@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Jewels by NavKush - Jewelry Website
 
-## Getting Started
+A professional, SEO-optimized website for a jewelry business built with Next.js, Sanity.io CMS, and Firebase Firestore.
 
-First, run the development server:
+## 🚀 Quick Start
 
 ```bash
+# Install dependencies
+npm install
+
+# Run development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Build for production
+npm run build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 📚 Documentation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+All documentation is organized in the [`docs/`](./docs/) folder.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**Quick Links:**
+- [Quick Start Guide](./docs/SETUP_QUICK_START.md) - Get started in minutes
+- [Development Guide](./docs/DEVELOPMENT_GUIDE.md) - Complete development workflow
+- [Standards Compliance Report](./docs/STANDARDS_COMPLIANCE_REPORT.md) - Security, SEO, Best Practices
+- [SEO Implementation](./docs/SEO_IMPLEMENTATION.md) - SEO best practices
+- [3D Animations Guide](./docs/3D_ANIMATIONS_GUIDE.md) - Animation system
+- [Sanity Setup](./docs/SANITY_SETUP.md) - CMS configuration
+- [Firebase Setup](./docs/FIREBASE_SETUP.md) - Database setup
+- [Vercel Deployment](./docs/VERCEL_DEPLOYMENT.md) - Deployment guide
 
-## Learn More
+**See [docs/README.md](./docs/README.md) for complete documentation index.**
 
-To learn more about Next.js, take a look at the following resources:
+## 🛠️ Tech Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Framework:** Next.js 14+ (App Router)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS
+- **CMS:** Sanity.io
+- **Database:** Firebase Firestore
+- **Hosting:** Vercel
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📝 Project Structure
 
-## Deploy on Vercel
+```
+jewelry-website/
+├── app/              # Next.js App Router pages
+├── components/        # React components
+├── lib/              # Utilities and helpers
+├── docs/             # All documentation
+├── public/           # Static assets
+└── sanity/           # Sanity CMS configuration
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🔗 Important Links
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Sanity Studio:** `/studio` (when running locally)
+- **Documentation:** See `docs/` folder
+- **Project README:** [docs/PROJECT_README.md](./docs/PROJECT_README.md)
+
+---
+
+For complete documentation, see the [`docs/`](./docs/) folder.
