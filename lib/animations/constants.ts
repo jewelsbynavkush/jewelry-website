@@ -27,6 +27,7 @@ export const ANIMATION_3D = {
   SPRING: {
     STIFFNESS: 300,
     DAMPING: 20,
+    MASS: 1,
   },
   
   // Perspective

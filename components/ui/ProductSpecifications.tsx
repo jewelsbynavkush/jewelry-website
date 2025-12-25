@@ -1,5 +1,6 @@
 'use client';
 
+import { ReactNode } from 'react';
 import { Product } from '@/types/data';
 import SmoothLink from './SmoothLink';
 import { formatPrice, getStockStatus } from '@/lib/utils/price-formatting';

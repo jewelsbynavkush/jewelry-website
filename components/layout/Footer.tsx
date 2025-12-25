@@ -12,7 +12,7 @@ export default async function Footer() {
       <div className="section-container">
         {/* Top Section: Categories and Social Media */}
         <FooterSection delay={0.1}>
-          <div className="flex flex-col md:flex-row justify-between items-center standard-gap-small pb-6 sm:pb-8 border-b" style={{ borderColor: 'var(--border-white-light)' }}>
+          <div className="flex flex-col md:flex-row justify-between items-center standard-gap-small standard-mb-small border-b" style={{ borderColor: 'var(--border-white-light)' }}>
             {/* Left: Category Links */}
             <div className="flex flex-wrap justify-center md:justify-start standard-gap-small">
               {CATEGORIES.map((category) => (

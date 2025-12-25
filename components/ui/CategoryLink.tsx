@@ -70,7 +70,7 @@ export default function CategoryLink({
           whileHover={{ x: 0 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
           style={{
-            background: 'linear-gradient(90deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))',
+            background: `linear-gradient(90deg, var(--white-opacity-20), var(--white-opacity-30))`,
           }}
         />
         

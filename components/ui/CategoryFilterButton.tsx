@@ -1,8 +1,8 @@
 'use client';
 
-import SmoothLink from '@/components/ui/SmoothLink';
-import { motion } from 'framer-motion';
 import { useRef } from 'react';
+import { motion } from 'framer-motion';
+import SmoothLink from '@/components/ui/SmoothLink';
 import { ANIMATION_3D } from '@/lib/animations/constants';
 
 interface CategoryFilterButtonProps {
@@ -51,7 +51,7 @@ export default function CategoryFilterButton({
           aria-pressed={isActive}
           whileHover={{ 
             scale: 1.05,
-            boxShadow: '0 8px 20px -5px rgba(0, 0, 0, 0.25)',
+            boxShadow: `0 8px 20px -5px var(--shadow-medium)`,
           }}
           whileTap={{ scale: 0.98 }}
           transition={{ 

@@ -117,8 +117,8 @@ export default function CategoryCard3D({
             className="relative h-64 sm:h-72 md:h-80 lg:h-96 rounded-lg overflow-hidden bg-[var(--beige)]"
             animate={{
               boxShadow: isHovered 
-                ? '0 20px 40px -10px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1)'
-                : '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                ? `0 20px 40px -10px var(--shadow-dark), 0 0 0 1px var(--white-opacity-20)`
+                : `0 4px 6px -1px var(--shadow-light)`,
             }}
             transition={{ duration: 0.3 }}
           >
@@ -126,7 +126,7 @@ export default function CategoryCard3D({
             <div 
               className="absolute inset-0 z-10"
               style={{
-                background: 'linear-gradient(135deg, rgba(204, 196, 186, 0.2) 0%, rgba(250, 248, 245, 0.3) 50%, rgba(204, 196, 186, 0.2) 100%)',
+                background: `linear-gradient(135deg, var(--gradient-beige-medium) 0%, var(--gradient-cream-medium) 50%, var(--gradient-beige-medium) 100%)`,
                 transform: 'none', // Prevent inheriting parent transforms
                 willChange: 'auto', // No animation needed
               }}
@@ -139,7 +139,7 @@ export default function CategoryCard3D({
               animate={isHovered ? { x: '200%', opacity: 1 } : { x: '-100%', opacity: 0 }}
               transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
               style={{
-                background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent)',
+                background: `linear-gradient(90deg, transparent, var(--white-opacity-30), transparent)`,
                 width: '60%',
               }}
             />
@@ -165,7 +165,7 @@ export default function CategoryCard3D({
                 }}
                 transition={{ duration: ANIMATION_3D.GLOW.DURATION }}
                 style={{
-                  background: 'radial-gradient(circle at center, rgba(255, 255, 255, 0.6) 0%, transparent 70%)',
+                  background: `radial-gradient(circle at center, var(--white-opacity-60) 0%, transparent 70%)`,
                   filter: `blur(${ANIMATION_3D.GLOW.BLUR})`,
                 }}
               />

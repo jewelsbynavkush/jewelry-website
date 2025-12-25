@@ -23,6 +23,7 @@ export function getSecurityHeaders(): Record<string, string> {
       "base-uri 'self'",
       "form-action 'self'",
       "object-src 'none'",
+      "upgrade-insecure-requests",
     ].join('; '),
   };
 }

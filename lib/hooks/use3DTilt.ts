@@ -3,12 +3,12 @@
  * Extracts common mouse handling logic for 3D animated components
  */
 
-import { useRef, useState, useCallback, MouseEvent } from 'react';
+import { useRef, useState, useCallback, MouseEvent, RefObject } from 'react';
 import { useMotionValue, useSpring, useTransform, MotionValue } from 'framer-motion';
 import { ANIMATION_3D } from '@/lib/animations/constants';
 
 interface Use3DTiltReturn {
-  cardRef: RefObject<HTMLDivElement>;
+  cardRef: RefObject<HTMLDivElement | null>;
   isHovered: boolean;
   setIsHovered: (value: boolean) => void;
   x: MotionValue<number>;

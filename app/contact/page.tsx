@@ -21,12 +21,12 @@ export default function ContactPage() {
         <SectionHeading as="h2">CONTACT US</SectionHeading>
       </ScrollReveal>
       <ScrollReveal delay={0.1}>
-        <p className="text-center text-[var(--text-secondary)] mb-6 sm:mb-8 md:mb-10 text-body-sm sm:text-body-base md:text-body-lg">
+        <p className="text-center text-[var(--text-secondary)] standard-mb text-body-sm sm:text-body-base md:text-body-lg">
           Have a question or want to learn more about our jewelry? We&apos;d love to hear from you.
         </p>
       </ScrollReveal>
       <ScrollReveal delay={0.2}>
-        <div className="grid md:grid-cols-2 standard-gap-small mb-6 sm:mb-8 md:mb-10">
+        <div className="grid md:grid-cols-2 standard-gap-small standard-mb">
           <InfoCard title="Get in Touch">
             <div className="standard-space-y-small text-[var(--text-secondary)] text-body-base">
               <p>
@@ -41,7 +41,7 @@ export default function ContactPage() {
             </div>
           </InfoCard>
           <InfoCard title="Business Hours">
-            <div className="space-y-2 text-[var(--text-secondary)] text-body-base">
+            <div className="standard-space-y-small text-[var(--text-secondary)] text-body-base">
               <p>Monday - Friday: 9:00 AM - 6:00 PM</p>
               <p>Saturday: 10:00 AM - 4:00 PM</p>
               <p>Sunday: Closed</p>

@@ -98,7 +98,7 @@ export default async function DesignDetailPage({ params }: PageProps) {
       <div className="section-container section-padding">
         {/* Breadcrumb */}
         <ScrollReveal>
-          <nav className="mb-4 sm:mb-6 text-xs sm:text-sm" aria-label="Breadcrumb">
+          <nav className="standard-mb-small text-xs sm:text-sm" aria-label="Breadcrumb">
             <Link href="/" className="text-[var(--text-secondary)] hover:text-[var(--text-on-cream)]">Home</Link>
             <span className="mx-2 text-[var(--text-muted)]">/</span>
             <Link href="/designs" className="text-[var(--text-secondary)] hover:text-[var(--text-on-cream)]">Designs</Link>
@@ -132,7 +132,7 @@ export default async function DesignDetailPage({ params }: PageProps) {
 
           {/* Product Details */}
           <ScrollReveal delay={0.2}>
-            <div className="space-y-4 sm:space-y-5 md:space-y-6">
+            <div className="standard-space-y">
             {/* Product Badges */}
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               {product.featured && <ProductBadge type="featured" />}
@@ -243,8 +243,8 @@ export default async function DesignDetailPage({ params }: PageProps) {
             {/* Related Products */}
             {relatedProducts.length > 0 && (
               <ScrollReveal delay={0.3} key={`related-${product.id}`}>
-                <section className="mt-8 sm:mt-10 md:mt-12" aria-label="Related products">
-                  <h2 className="font-section-heading text-center mb-6 sm:mb-8 md:mb-10">RELATED PRODUCTS</h2>
+                <section className="standard-mt" aria-label="Related products">
+                  <h2 className="font-section-heading text-center standard-mb">RELATED PRODUCTS</h2>
                   <div 
                     className="responsive-grid-4 container-content"
                     role="list"

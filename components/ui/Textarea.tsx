@@ -1,5 +1,6 @@
-import { cn } from '@/lib/utils/cn';
 import { TextareaHTMLAttributes } from 'react';
+import { cn } from '@/lib/utils/cn';
+import FormField from './FormField';
 
 interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
@@ -23,34 +24,17 @@ export default function Textarea({
   const baseStyles = 'w-full px-4 py-3 border border-[var(--border-light)] rounded-lg focus:outline-none focus:border-[var(--text-on-cream)] bg-[var(--cream)] min-h-[120px] text-base resize-y';
 
   return (
-    <div>
-      {label && (
-        <label 
-          htmlFor={textareaId} 
-          className="block text-body-sm font-medium text-[var(--text-on-cream)] mb-2 sm:mb-2.5"
-        >
-          {label} {required && <span className="text-[var(--required-indicator)]">*</span>}
-        </label>
-      )}
+    <FormField id={textareaId} label={label} error={error} required={required}>
       <textarea
         id={textareaId}
         rows={rows}
         className={cn(baseStyles, className)}
         aria-required={required}
         aria-invalid={error ? 'true' : 'false'}
-        aria-describedby={error ? `${textareaId}-error` : undefined}
+        aria-describedby={error && textareaId ? `${textareaId}-error` : undefined}
         {...props}
       />
-      {error && (
-        <p 
-          id={`${textareaId}-error`} 
-          className="mt-1 text-body-sm text-[var(--error-text)]" 
-          role="alert"
-        >
-          {error}
-        </p>
-      )}
-    </div>
+    </FormField>
   );
 }
 

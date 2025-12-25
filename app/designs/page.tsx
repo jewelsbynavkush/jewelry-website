@@ -7,6 +7,7 @@ import CategoryFilterButton from '@/components/ui/CategoryFilterButton';
 import ProductSort from '@/components/ui/ProductSort';
 import Button from '@/components/ui/Button';
 import ScrollReveal from '@/components/ui/ScrollReveal';
+import SectionHeading from '@/components/ui/SectionHeading';
 import { generateStandardMetadata } from '@/lib/seo/metadata';
 import { generateCollectionPageSchema } from '@/lib/seo/structured-data';
 import { formatCategoryName } from '@/lib/utils/text-formatting';
@@ -103,14 +104,17 @@ export default async function DesignsPage({ searchParams }: PageProps) {
       <div className="bg-[var(--cream)]">
         <div className="section-container section-padding">
         <ScrollReveal>
-          <h1 className="font-section-heading text-center mb-6 sm:mb-8 md:mb-10">
-            {category ? formatCategoryName(category).toUpperCase() : 'OUR DESIGNS'}
+          <h1 className="sr-only">
+            {category ? `${formatCategoryName(category)} - Jewelry Collection` : 'Our Designs - Jewelry Collection'}
           </h1>
+          <SectionHeading as="h2" className="text-center standard-mb">
+            {category ? formatCategoryName(category).toUpperCase() : 'OUR DESIGNS'}
+          </SectionHeading>
         </ScrollReveal>
         
         {/* Category Filter and Sort */}
         <ScrollReveal delay={0.1}>
-          <div className="flex flex-col sm:flex-row items-center justify-between standard-gap-small mb-6 sm:mb-8 md:mb-10">
+          <div className="flex flex-col sm:flex-row items-center justify-between standard-gap-small standard-mb">
             <nav className="flex flex-wrap justify-center standard-gap-small" aria-label="Category filter">
               {filterCategories.map((cat, index) => (
                 <CategoryFilterButton

@@ -132,7 +132,7 @@ export default function CategoryImage3D({ category, imageSource, index = 0 }: Ca
             <div 
               className="absolute inset-0 z-0"
               style={{
-                background: 'linear-gradient(135deg, rgba(204, 196, 186, 0.15) 0%, rgba(250, 248, 245, 0.25) 50%, rgba(204, 196, 186, 0.15) 100%)',
+                background: `linear-gradient(135deg, var(--gradient-beige-light) 0%, var(--gradient-cream-light) 50%, var(--gradient-beige-light) 100%)`,
                 transform: 'none', // Prevent inheriting parent transforms
                 willChange: 'auto', // No animation needed
               }}
@@ -145,7 +145,7 @@ export default function CategoryImage3D({ category, imageSource, index = 0 }: Ca
               animate={isHovered ? { x: '200%', opacity: ANIMATION_3D.SHINE.PRIMARY.OPACITY } : { x: '-100%', opacity: 0 }}
               transition={{ duration: ANIMATION_3D.SHINE.PRIMARY.DURATION, ease: ANIMATION_3D.SHINE.PRIMARY.EASE }}
               style={{
-                background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent)',
+                background: `linear-gradient(90deg, transparent, var(--white-opacity-40), transparent)`,
                 width: ANIMATION_3D.SHINE.PRIMARY.WIDTH,
               }}
             />
@@ -157,7 +157,7 @@ export default function CategoryImage3D({ category, imageSource, index = 0 }: Ca
               animate={isHovered ? { x: '250%', opacity: ANIMATION_3D.SHINE.SECONDARY.OPACITY } : { x: '-150%', opacity: 0 }}
               transition={{ duration: ANIMATION_3D.SHINE.SECONDARY.DURATION, delay: ANIMATION_3D.SHINE.SECONDARY.DELAY, ease: ANIMATION_3D.SHINE.SECONDARY.EASE }}
               style={{
-                background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent)',
+                background: `linear-gradient(90deg, transparent, var(--white-opacity-20), transparent)`,
                 width: ANIMATION_3D.SHINE.SECONDARY.WIDTH,
               }}
             />
@@ -183,7 +183,7 @@ export default function CategoryImage3D({ category, imageSource, index = 0 }: Ca
                 }}
                 transition={{ duration: ANIMATION_3D.GLOW.DURATION }}
                 style={{
-                  background: 'radial-gradient(circle at center, rgba(255, 255, 255, 0.6) 0%, transparent 70%)',
+                  background: `radial-gradient(circle at center, var(--white-opacity-60) 0%, transparent 70%)`,
                   filter: `blur(${ANIMATION_3D.GLOW.BLUR})`,
                 }}
               />
@@ -205,7 +205,7 @@ export default function CategoryImage3D({ category, imageSource, index = 0 }: Ca
                 }}
                 transition={{ duration: 0.3 }}
                 style={{
-                  boxShadow: 'inset 0 0 40px rgba(255, 255, 255, 0.4)',
+                  boxShadow: `inset 0 0 40px var(--white-opacity-40)`,
                 }}
               />
             </motion.div>

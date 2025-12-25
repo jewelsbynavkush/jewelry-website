@@ -46,7 +46,7 @@ jewelry-website/
 ├── lib/              # Utilities and helpers
 ├── docs/             # All documentation
 ├── public/           # Static assets
-└── sanity/           # Sanity CMS configuration
+└── data/             # JSON data files
 ```
 
 ## 🔗 Important Links
