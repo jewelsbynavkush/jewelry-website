@@ -23,7 +23,9 @@ All documentation is organized in the [`docs/`](./docs/) folder.
 - [Quick Start Guide](./docs/SETUP_QUICK_START.md) - Get started in minutes
 - [Development Guide](./docs/DEVELOPMENT_GUIDE.md) - Complete development workflow
 - [Overall Best Practices](./docs/OVERALL_BEST_PRACTICES_FINAL.md) - Complete best practices verification
-- [Standards Compliance Report](./docs/STANDARDS_COMPLIANCE_REPORT.md) - Security, SEO, Best Practices
+- [E-commerce Best Practices](./docs/E_COMMERCE_BEST_PRACTICES_FINAL.md) - E-commerce implementation
+- [Security Verification](./docs/SECURITY_FINAL_VERIFICATION.md) - Security measures
+- [SEO Verification](./docs/SEO_FINAL_VERIFICATION.md) - SEO implementation
 - [3D Animations Guide](./docs/3D_ANIMATIONS_GUIDE.md) - Animation system
 - [Vercel Deployment](./docs/VERCEL_DEPLOYMENT.md) - Deployment guide
 

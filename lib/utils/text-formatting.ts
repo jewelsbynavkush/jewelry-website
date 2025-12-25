@@ -33,7 +33,6 @@ export function titleCase(str: string): string {
 export function formatCategoryName(category: string): string {
   if (!category) return category;
   
-  // Handle common category names
   const categoryMap: Record<string, string> = {
     'rings': 'Rings',
     'earrings': 'Earrings',
@@ -61,7 +60,6 @@ export function getBrandName(): string {
  */
 export function formatProductTitle(title: string): string {
   if (!title) return title;
-  // Preserve original casing from CMS, just trim whitespace
   return title.trim();
 }
 

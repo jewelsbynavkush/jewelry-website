@@ -14,7 +14,7 @@ interface QuantitySelectorProps {
 
 /**
  * E-commerce quantity selector component
- * Allows users to select quantity for products
+ * Provides increment/decrement buttons and direct input for product quantity
  */
 export default function QuantitySelector({
   min = 1,

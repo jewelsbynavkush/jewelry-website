@@ -69,9 +69,9 @@ export default function FAQsPage() {
         {faqs.map((faq, index) => (
           <ScrollReveal key={index} delay={index * 0.1}>
             <Card padding="sm">
-              <SectionHeading as="h2" size="sm" align="left" className="mb-3 sm:mb-4">
+              <h3 className="font-playfair font-bold text-[var(--text-on-cream)] text-lg sm:text-xl md:text-2xl mb-3 sm:mb-4">
                 {faq.question}
-              </SectionHeading>
+              </h3>
               <p className="text-[var(--text-secondary)] text-body-sm sm:text-body-base md:text-body-lg">
                 {faq.answer}
               </p>

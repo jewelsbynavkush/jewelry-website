@@ -12,10 +12,7 @@ interface SmoothLinkProps extends Omit<LinkProps, 'href'>, Omit<ComponentPropsWi
 }
 
 /**
- * Enhanced Link component with smooth scrolling
- * - Handles smooth scrolling for anchor links
- * - Smoothly scrolls to top on cross-page navigation
- * - Consistent smooth scroll behavior across the app
+ * Enhanced Link component with smooth scrolling for anchor links
  */
 export default function SmoothLink({
   href,
@@ -27,17 +24,14 @@ export default function SmoothLink({
   const pathname = usePathname();
   
   const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
-    // Call custom onClick if provided
     if (onClick) {
       onClick(e);
     }
     
-    // Handle smooth scrolling
     if (scroll) {
       const isSamePage = pathname === href || (isAnchorLink(href) && pathname === '/');
       
       if (isSamePage && isAnchorLink(href)) {
-        // Same page anchor link - prevent default and scroll smoothly
         e.preventDefault();
         const anchorId = getAnchorId(href);
         if (anchorId) {
@@ -47,7 +41,6 @@ export default function SmoothLink({
           }
         }
       }
-      // For cross-page navigation, SmoothScrollProvider will handle smooth scroll
     }
   };
   

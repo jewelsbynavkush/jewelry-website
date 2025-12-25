@@ -7,7 +7,8 @@ type ClassValue = string | number | boolean | undefined | null | { [key: string]
 
 /**
  * Combines class names conditionally
- * Similar to clsx but lightweight and custom for our needs
+ * @param classes - Variable number of class values (strings, objects, etc.)
+ * @returns Combined class string
  */
 export function cn(...classes: ClassValue[]): string {
   return classes

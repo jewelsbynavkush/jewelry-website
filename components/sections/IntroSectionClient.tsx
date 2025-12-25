@@ -1,9 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { useState } from 'react';
 import { CATEGORIES, DEFAULTS } from '@/lib/constants';
-import { ANIMATION_3D } from '@/lib/animations/constants';
 import Button from '@/components/ui/Button';
 import CategoryLink from '@/components/ui/CategoryLink';
 import ScrollReveal from '@/components/ui/ScrollReveal';
@@ -19,6 +16,9 @@ interface IntroSectionClientProps {
   rightColumnSlogan?: string;
 }
 
+/**
+ * Intro section client component (animations removed for iOS scroll compatibility)
+ */
 export default function IntroSectionClient({
   brandName = DEFAULTS.brandName,
   heroTitle = DEFAULTS.heroTitle,
@@ -28,23 +28,17 @@ export default function IntroSectionClient({
   heroImageAlt,
   rightColumnSlogan = DEFAULTS.rightColumnSlogan,
 }: IntroSectionClientProps) {
-  // Ensure animations trigger on mount/navigation
-  // Use useState initializer instead of useEffect to avoid setState in effect
-  const [isMounted] = useState(true);
-
   return (
-    <section id="intro-section" className="bg-[var(--beige)]">
+    <section 
+      id="intro-section" 
+      className="bg-[var(--beige)]"
+    >
       {/* Brand Heading */}
       <ScrollReveal>
         <div className="section-container section-padding-small">
-          <motion.h1 
-            className="text-[var(--text-on-beige)] text-center font-brand-display"
-            initial={{ opacity: ANIMATION_3D.ENTRY.INITIAL_OPACITY, scale: ANIMATION_3D.ENTRY.INITIAL_SCALE }}
-            animate={isMounted ? { opacity: 1, scale: 1 } : { opacity: ANIMATION_3D.ENTRY.INITIAL_OPACITY, scale: ANIMATION_3D.ENTRY.INITIAL_SCALE }}
-            transition={{ duration: ANIMATION_3D.ENTRY.DURATION, ease: ANIMATION_3D.ENTRY.EASE, type: 'tween' as const }}
-          >
+          <h1 className="text-[var(--text-on-beige)] text-center font-brand-display">
             {brandName}
-          </motion.h1>
+          </h1>
         </div>
       </ScrollReveal>
 
@@ -53,40 +47,26 @@ export default function IntroSectionClient({
         {/* Mobile: Stacked Layout */}
         <div className="flex flex-col md:hidden gap-6 sm:gap-8 pb-12 md:pb-16 lg:pb-20">
           {/* Mobile: Brand Heading */}
-          <ScrollReveal delay={0.2}>
+          <ScrollReveal>
             <div className="text-center space-y-4">
-              <motion.h2 
-                className="text-[var(--text-on-beige)] font-hero-title uppercase text-2xl sm:text-3xl"
-                initial={{ opacity: ANIMATION_3D.ENTRY.INITIAL_OPACITY, y: ANIMATION_3D.ENTRY.INITIAL_Y }}
-                animate={isMounted ? { opacity: 1, y: 0 } : { opacity: ANIMATION_3D.ENTRY.INITIAL_OPACITY, y: ANIMATION_3D.ENTRY.INITIAL_Y }}
-                transition={{ duration: ANIMATION_3D.ENTRY.DURATION, delay: 0.2, ease: ANIMATION_3D.ENTRY.EASE, type: 'tween' as const }}
-              >
+              <h2 className="text-[var(--text-on-beige)] font-hero-title uppercase text-2xl sm:text-3xl">
                 {heroTitle}
-              </motion.h2>
-              <motion.p 
-                className="text-[var(--text-on-beige)] text-body-sm sm:text-body-base"
-                initial={{ opacity: ANIMATION_3D.ENTRY.INITIAL_OPACITY, y: ANIMATION_3D.ENTRY.INITIAL_Y }}
-                animate={isMounted ? { opacity: 1, y: 0 } : { opacity: ANIMATION_3D.ENTRY.INITIAL_OPACITY, y: ANIMATION_3D.ENTRY.INITIAL_Y }}
-                transition={{ duration: ANIMATION_3D.ENTRY.DURATION, delay: 0.4, ease: ANIMATION_3D.ENTRY.EASE, type: 'tween' as const }}
-              >
+              </h2>
+              <p className="text-[var(--text-on-beige)] text-body-sm sm:text-body-base">
                 {heroDescription}
-              </motion.p>
-              <motion.div
-                initial={{ opacity: ANIMATION_3D.ENTRY.INITIAL_OPACITY, y: ANIMATION_3D.ENTRY.INITIAL_Y }}
-                animate={isMounted ? { opacity: 1, y: 0 } : { opacity: ANIMATION_3D.ENTRY.INITIAL_OPACITY, y: ANIMATION_3D.ENTRY.INITIAL_Y }}
-                transition={{ duration: ANIMATION_3D.ENTRY.DURATION, delay: 0.6, ease: ANIMATION_3D.ENTRY.EASE, type: 'tween' as const }}
-              >
+              </p>
+              <div>
                 <Button href="/designs" className="w-full sm:w-auto">
                   {heroButtonText} →
                 </Button>
-              </motion.div>
+              </div>
             </div>
           </ScrollReveal>
 
-              {/* Mobile: Hero Image */}
-              <ScrollReveal delay={0.3}>
-                <HeroImage3D heroImage={heroImage} heroImageAlt={heroImageAlt} isMobile={true} />
-              </ScrollReveal>
+          {/* Mobile: Hero Image */}
+          <ScrollReveal>
+            <HeroImage3D heroImage={heroImage} heroImageAlt={heroImageAlt} isMobile={true} />
+          </ScrollReveal>
 
           {/* Mobile: Slogan */}
           <div className="text-center">
@@ -114,55 +94,36 @@ export default function IntroSectionClient({
         {/* Tablet & Desktop: 3-Column Grid */}
         <div className="hidden md:grid md:grid-cols-3 gap-6 sm:gap-8 md:gap-10 lg:gap-12 items-end">
           {/* Left Column: Collection 2025, Message, Discover Button */}
-          <ScrollReveal delay={0.2}>
+          <ScrollReveal>
             <div className="space-y-4 lg:space-y-6 pb-12 md:pb-16 lg:pb-20">
-              <motion.h2 
-                className="text-[var(--text-on-beige)] font-hero-title uppercase text-3xl lg:text-4xl xl:text-5xl"
-                initial={{ opacity: ANIMATION_3D.ENTRY.INITIAL_OPACITY, y: ANIMATION_3D.ENTRY.INITIAL_Y }}
-                animate={isMounted ? { opacity: 1, y: 0 } : { opacity: ANIMATION_3D.ENTRY.INITIAL_OPACITY, y: ANIMATION_3D.ENTRY.INITIAL_Y }}
-                transition={{ duration: ANIMATION_3D.ENTRY.DURATION, ease: ANIMATION_3D.ENTRY.EASE, type: 'tween' as const }}
-              >
+              <h2 className="text-[var(--text-on-beige)] font-hero-title uppercase text-3xl lg:text-4xl xl:text-5xl">
                 {heroTitle}
-              </motion.h2>
-              <motion.p 
-                className="text-[var(--text-on-beige)] text-body-sm lg:text-body-base xl:text-body-lg"
-                initial={{ opacity: ANIMATION_3D.ENTRY.INITIAL_OPACITY, y: ANIMATION_3D.ENTRY.INITIAL_Y }}
-                animate={isMounted ? { opacity: 1, y: 0 } : { opacity: ANIMATION_3D.ENTRY.INITIAL_OPACITY, y: ANIMATION_3D.ENTRY.INITIAL_Y }}
-                transition={{ duration: ANIMATION_3D.ENTRY.DURATION, delay: 0.1, ease: ANIMATION_3D.ENTRY.EASE, type: 'tween' as const }}
-              >
+              </h2>
+              <p className="text-[var(--text-on-beige)] text-body-sm lg:text-body-base xl:text-body-lg">
                 {heroDescription}
-              </motion.p>
-              <motion.div
-                initial={{ opacity: ANIMATION_3D.ENTRY.INITIAL_OPACITY, y: ANIMATION_3D.ENTRY.INITIAL_Y }}
-                animate={isMounted ? { opacity: 1, y: 0 } : { opacity: ANIMATION_3D.ENTRY.INITIAL_OPACITY, y: ANIMATION_3D.ENTRY.INITIAL_Y }}
-                transition={{ duration: ANIMATION_3D.ENTRY.DURATION, delay: 0.2, ease: ANIMATION_3D.ENTRY.EASE, type: 'tween' as const }}
-              >
+              </p>
+              <div>
                 <Button href="/designs" className="w-full lg:w-auto">
                   {heroButtonText} →
                 </Button>
-              </motion.div>
+              </div>
             </div>
           </ScrollReveal>
 
           {/* Center Column: Hero Image */}
-          <ScrollReveal delay={0.3}>
+          <ScrollReveal>
             <HeroImage3D heroImage={heroImage} heroImageAlt={heroImageAlt} isMobile={false} />
           </ScrollReveal>
 
           {/* Right Column: Slogan and Category Menu */}
-          <ScrollReveal delay={0.4}>
+          <ScrollReveal>
             <div className="flex flex-col justify-between h-full w-full min-h-[400px] lg:min-h-[500px] pb-12 md:pb-16 lg:pb-20">
               {/* Top: Slogan - Full Row */}
-              <motion.div 
-                className="w-full mb-4 sm:mb-6 md:mb-8"
-                initial={{ opacity: ANIMATION_3D.ENTRY.INITIAL_OPACITY, y: ANIMATION_3D.ENTRY.INITIAL_Y }}
-                animate={isMounted ? { opacity: 1, y: 0 } : { opacity: ANIMATION_3D.ENTRY.INITIAL_OPACITY, y: ANIMATION_3D.ENTRY.INITIAL_Y }}
-                transition={{ duration: ANIMATION_3D.ENTRY.DURATION, ease: ANIMATION_3D.ENTRY.EASE, type: 'tween' as const }}
-              >
+              <div className="w-full mb-4 sm:mb-6 md:mb-8">
                 <p className="text-[var(--text-on-beige)] text-heading-sm lg:text-heading-md xl:text-heading-lg text-right w-full">
                   {rightColumnSlogan}
                 </p>
-              </motion.div>
+              </div>
               
               {/* Bottom: Category Menu - Each link takes full row with dividers */}
               <div className="flex flex-col justify-end w-full mt-auto">
@@ -185,4 +146,3 @@ export default function IntroSectionClient({
     </section>
   );
 }
-

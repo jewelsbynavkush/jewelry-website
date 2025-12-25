@@ -116,13 +116,12 @@ export default async function DesignsPage({ searchParams }: PageProps) {
         <ScrollReveal delay={0.1}>
           <div className="flex flex-col sm:flex-row items-center justify-between standard-gap-small standard-mb">
             <nav className="flex flex-wrap justify-center standard-gap-small" aria-label="Category filter">
-              {filterCategories.map((cat, index) => (
+              {filterCategories.map((cat) => (
                 <CategoryFilterButton
                   key={cat.value}
                   name={cat.name}
                   href={cat.href}
                   isActive={(!category && !cat.value) || category === cat.value}
-                  index={index}
                 />
               ))}
             </nav>
@@ -165,9 +164,9 @@ export default async function DesignsPage({ searchParams }: PageProps) {
               role="list"
               aria-label="Jewelry products"
             >
-              {products.map((product, index) => (
+              {products.map((product) => (
                 <div key={product.id} role="listitem">
-                  <ProductCard product={product} showDescription index={index} />
+                  <ProductCard product={product} showDescription />
                 </div>
               ))}
             </div>

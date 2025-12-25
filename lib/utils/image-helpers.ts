@@ -1,13 +1,11 @@
 import { CATEGORIES } from '@/lib/constants';
 
-/**
- * Category type from constants
- */
 export type CategoryType = typeof CATEGORIES[number];
 
 /**
- * Get random category images for placeholder products
- * Uses the same 4 category images randomly
+ * Returns array of random category image paths for placeholder products
+ * @param count - Number of images to return
+ * @returns Array of image paths
  */
 export function getRandomCategoryImages(count: number): string[] {
   const categoryImages = [
@@ -27,22 +25,21 @@ export function getRandomCategoryImages(count: number): string[] {
   return selected;
 }
 
-/**
- * Category image source result
- */
 export interface CategoryImageSource {
   src: string;
   alt?: string;
 }
 
 /**
- * Get image source for category - uses provided image URL or falls back to public folder
+ * Gets image source for category, using provided URL or falling back to public folder
+ * @param category - Category type
+ * @param imageUrl - Optional image URL
+ * @returns Category image source or null
  */
 export function getCategoryImageSource(
   category: CategoryType, 
   imageUrl?: string
 ): CategoryImageSource | null {
-  // Priority 1: Provided image URL
   if (imageUrl) {
     return {
       src: imageUrl,
@@ -50,8 +47,6 @@ export function getCategoryImageSource(
     };
   }
   
-  // Priority 2: Public folder image (fallback)
-  // Map category slugs to structured asset paths
   const publicImageMap: Record<string, string> = {
     'rings': '/assets/categories/rings.png',
     'earrings': '/assets/categories/earrings.png',
@@ -71,7 +66,10 @@ export function getCategoryImageSource(
 }
 
 /**
- * Get image alt text - simple helper for string alt text
+ * Returns alt text or fallback if not provided
+ * @param altText - Optional alt text
+ * @param fallback - Fallback alt text
+ * @returns Alt text string
  */
 export function getImageAltText(
   altText: string | undefined,

@@ -56,8 +56,7 @@ Complete documentation for the Jewels by NavKush jewelry website.
 - **[NoSQL Database Comparison](./NOSQL_DATABASE_COMPARISON.md)** - Database options
 
 ### **Standards & Compliance**
-- **[Standards Compliance Report](./STANDARDS_COMPLIANCE_REPORT.md)** - Security, SEO, Responsiveness, Best Practices
-- **[Overall Best Practices](./OVERALL_BEST_PRACTICES_FINAL.md)** - Complete best practices verification
+- **[Overall Best Practices](./OVERALL_BEST_PRACTICES_FINAL.md)** - Complete best practices verification (includes security, SEO, responsiveness)
 
 ---
 
@@ -74,7 +73,6 @@ Complete documentation for the Jewels by NavKush jewelry website.
 
 ### **E-commerce**
 - **[E-commerce Best Practices Final](./E_COMMERCE_BEST_PRACTICES_FINAL.md)** - E-commerce best practices & consistency
-- **[E-commerce Assessment](./E_COMMERCE_ASSESSMENT.md)** - Current e-commerce status
 - **[E-commerce Implementation Guide](./E_COMMERCE_IMPLEMENTATION_GUIDE.md)** - E-commerce features
 
 ### **Design & Styling**
@@ -119,7 +117,6 @@ Complete documentation for the Jewels by NavKush jewelry website.
 3. **[Deployment Plan](./DEPLOYMENT_PLAN.md)** - Complete deployment strategy
 4. **[Development Guide](./DEVELOPMENT_GUIDE.md)** - Development workflow
 5. **[Overall Best Practices](./OVERALL_BEST_PRACTICES_FINAL.md)** - Complete best practices verification
-6. **[Standards Compliance Report](./STANDARDS_COMPLIANCE_REPORT.md)** - Quality standards
 
 ---
 

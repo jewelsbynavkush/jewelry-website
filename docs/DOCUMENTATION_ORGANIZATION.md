@@ -43,10 +43,10 @@ All documentation files are organized in the `docs/` folder for easy access and 
 - `E_COMMERCE_BEST_PRACTICES_FINAL.md` - E-commerce best practices & consistency
 - `COLOR_CONSISTENCY_FINAL_VERIFICATION.md` - Color system consistency
 - `CSS_RESPONSIVENESS_FINAL_VERIFICATION.md` - CSS & responsiveness best practices
-- `STANDARDS_COMPLIANCE_REPORT.md` - Security, SEO, Responsiveness, Best Practices
+- `OVERALL_BEST_PRACTICES_FINAL.md` - Complete best practices verification (includes security, SEO, responsiveness)
 
 ### **E-commerce**
-- `E_COMMERCE_ASSESSMENT.md` - Current e-commerce status
+- `E_COMMERCE_BEST_PRACTICES_FINAL.md` - E-commerce best practices & consistency
 - `E_COMMERCE_IMPLEMENTATION_GUIDE.md` - E-commerce features
 
 ### **Troubleshooting & Guides**

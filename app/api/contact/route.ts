@@ -5,14 +5,11 @@ import { sanitizeString, sanitizeEmail, sanitizePhone } from '@/lib/security/san
 import { logError } from '@/lib/security/error-handler';
 import { getSecurityHeaders } from '@/lib/security/api-headers';
 
-// Optional: Import Firebase if you want to keep contact form submissions
-// import { db } from '@/lib/firebase/config';
-// import { collection, addDoc } from 'firebase/firestore';
-
-// Request size limit (10KB)
 const MAX_REQUEST_SIZE = 10 * 1024;
 
-// Validate request origin (CSRF protection)
+/**
+ * Validates request origin for CSRF protection
+ */
 function isValidOrigin(request: NextRequest): boolean {
   const origin = request.headers.get('origin');
   const referer = request.headers.get('referer');

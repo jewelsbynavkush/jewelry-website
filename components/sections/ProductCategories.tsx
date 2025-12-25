@@ -9,17 +9,15 @@ import { getCategoryImageSource, CategoryType } from '@/lib/utils/image-helpers'
 interface CategoryImageSectionProps {
   category: CategoryType;
   imageUrl?: string;
-  index?: number;
 }
 
-function CategoryImageSection({ category, imageUrl, index = 0 }: CategoryImageSectionProps) {
+function CategoryImageSection({ category, imageUrl }: CategoryImageSectionProps) {
   const imageSource = getCategoryImageSource(category, imageUrl);
   
   return (
     <CategoryImage3D 
       category={category} 
       imageSource={imageSource}
-      index={index}
     />
   );
 }
@@ -27,11 +25,8 @@ function CategoryImageSection({ category, imageUrl, index = 0 }: CategoryImageSe
 export default async function ProductCategories() {
   const settings = await getSiteSettings();
   const categoryImages = await getCategoryImages();
-
-  // Left column: RINGS, NECKLACES
-  const leftCategories = [CATEGORIES[0], CATEGORIES[2]]; // RINGS, NECKLACES
-  // Right column: EARRINGS, BRACELETS
-  const rightCategories = [CATEGORIES[1], CATEGORIES[3]]; // EARRINGS, BRACELETS
+  const leftCategories = [CATEGORIES[0], CATEGORIES[2]];
+  const rightCategories = [CATEGORIES[1], CATEGORIES[3]];
 
   return (
     <section id="products-section">
@@ -64,7 +59,6 @@ export default async function ProductCategories() {
                     <CategoryImageSection 
                       category={category} 
                       imageUrl={categoryImages[category.slug]}
-                      index={index}
                     />
                   </div>
                 </ScrollReveal>
@@ -90,7 +84,6 @@ export default async function ProductCategories() {
                           <CategoryImageSection 
                             category={category} 
                             imageUrl={categoryImages[category.slug]}
-                            index={index * 2}
                           />
                         )}
                       </div>
@@ -100,7 +93,6 @@ export default async function ProductCategories() {
                     <CategoryImageSection 
                       category={leftCategories[1]} 
                       imageUrl={categoryImages[leftCategories[1].slug]}
-                      index={1}
                     />
                   </ScrollReveal>
                 </div>
@@ -123,7 +115,6 @@ export default async function ProductCategories() {
                           <CategoryImageSection 
                             category={category} 
                             imageUrl={categoryImages[category.slug]}
-                            index={index * 2 + 2}
                           />
                         )}
                       </div>
@@ -133,7 +124,6 @@ export default async function ProductCategories() {
                     <CategoryImageSection 
                       category={rightCategories[1]} 
                       imageUrl={categoryImages[rightCategories[1].slug]}
-                      index={3}
                     />
                   </ScrollReveal>
                 </div>

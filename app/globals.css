@@ -578,12 +578,7 @@ select option {
   }
 }
 
-/* Scroll performance optimization - GPU acceleration for animated elements */
-[data-framer-component] {
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  perspective: 1000px;
-}
+/* Animation-related CSS removed for iOS scroll compatibility */
 
 /* Optimize scroll performance */
 html {

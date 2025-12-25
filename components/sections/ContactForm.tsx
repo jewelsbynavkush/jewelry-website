@@ -33,17 +33,14 @@ export default function ContactForm() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data),
-        credentials: 'same-origin', // Ensure cookies are sent for same-origin requests
+        credentials: 'same-origin',
       });
 
-      // Check if response is ok
       if (!response.ok) {
-        // Error logged securely on server side, no need to log here
         setSubmitStatus('error');
         return;
       }
 
-      // Validate response is JSON
       const contentType = response.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
         setSubmitStatus('error');
@@ -59,8 +56,6 @@ export default function ContactForm() {
         setSubmitStatus('error');
       }
     } catch {
-      // Don't expose error details to user
-      // Error handling is done on server side
       setSubmitStatus('error');
     } finally {
       setIsSubmitting(false);

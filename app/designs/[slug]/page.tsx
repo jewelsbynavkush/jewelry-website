@@ -34,13 +34,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
   const baseUrl = getBaseUrl();
   const url = `${baseUrl}/designs/${product.slug}`;
-
-  // Optimize description for SEO (ensure it's descriptive even if short)
   const productDescription = product.description 
     ? product.description.trim()
     : `${product.title} - Exquisite handcrafted jewelry piece. Discover our collection of unique, beautifully designed jewelry.`;
-
-  // Generate product-specific keywords
   const keywords = [
     product.title,
     product.category ? formatCategoryName(product.category) : '',
@@ -250,9 +246,9 @@ export default async function DesignDetailPage({ params }: PageProps) {
                     role="list"
                     aria-label="Related products"
                   >
-                    {relatedProducts.map((related, index) => (
+                    {relatedProducts.map((related) => (
                       <div key={related.id} role="listitem">
-                        <ProductCard product={related} variant="compact" index={index} />
+                        <ProductCard product={related} variant="compact" />
                       </div>
                     ))}
                   </div>

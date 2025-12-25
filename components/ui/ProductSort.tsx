@@ -2,7 +2,6 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, ChangeEvent } from 'react';
-import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils/cn';
 
 type SortOption = 'default' | 'price-asc' | 'price-desc' | 'name-asc' | 'name-desc' | 'newest';
@@ -12,8 +11,7 @@ interface ProductSortProps {
 }
 
 /**
- * Product sorting component for e-commerce
- * Styled to match the design system with beige background and consistent styling
+ * Product sorting component for e-commerce (animations removed for iOS scroll compatibility)
  */
 export default function ProductSort({ className = '' }: ProductSortProps) {
   const router = useRouter();
@@ -44,16 +42,7 @@ export default function ProductSort({ className = '' }: ProductSortProps) {
       >
         Sort by:
       </label>
-      <motion.div
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        transition={{ 
-          type: 'spring',
-          stiffness: 400,
-          damping: 17
-        }}
-        className="relative"
-      >
+      <div className="relative">
         <select
           id="sort"
           value={sort}
@@ -74,8 +63,7 @@ export default function ProductSort({ className = '' }: ProductSortProps) {
           <option value="name-desc" className="bg-[var(--beige)] text-[var(--text-on-beige)]">Name: Z to A</option>
           <option value="newest" className="bg-[var(--beige)] text-[var(--text-on-beige)]">Newest First</option>
         </select>
-      </motion.div>
+      </div>
     </div>
   );
 }
-

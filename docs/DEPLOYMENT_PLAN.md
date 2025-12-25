@@ -488,7 +488,7 @@ After domain is active:
 - **[Firebase Setup Guide](./FIREBASE_SETUP.md)** - Firebase configuration
 - **[Sanity Setup Guide](./SANITY_SETUP.md)** - Sanity.io configuration
 - **[Security Final Verification](./SECURITY_FINAL_VERIFICATION.md)** - Complete security best practices & audit
-- **[Standards Compliance Report](./STANDARDS_COMPLIANCE_REPORT.md)** - Quality standards
+- **[Overall Best Practices](./OVERALL_BEST_PRACTICES_FINAL.md)** - Quality standards
 
 ---
 

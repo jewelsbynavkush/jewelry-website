@@ -25,9 +25,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Log error securely using error handler
     logError('ErrorBoundary', error);
-    // Also log errorInfo in development
     if (process.env.NODE_ENV === 'development') {
       console.error('ErrorBoundary errorInfo:', errorInfo);
     }

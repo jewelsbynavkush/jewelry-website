@@ -2,7 +2,6 @@
 
 import { ReactNode, ButtonHTMLAttributes } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils/cn';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -12,7 +11,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 /**
- * Reusable Button component with professional 3D hover effects
+ * Reusable Button component with variants (primary, secondary, outline)
+ * Can render as button or link based on href prop
  */
 export default function Button({ 
   variant = 'primary', 
@@ -21,7 +21,7 @@ export default function Button({
   href,
   ...props 
 }: ButtonProps) {
-  const baseStyles = 'inline-block px-6 sm:px-7 md:px-8 py-2.5 sm:py-3 rounded-full text-button transition-all min-h-[44px] flex items-center justify-center text-center relative overflow-hidden';
+  const baseStyles = 'inline-block px-6 sm:px-7 md:px-8 py-2.5 sm:py-3 rounded-full text-button transition-colors min-h-[44px] flex items-center justify-center text-center relative overflow-hidden';
   
   const variants = {
     primary: {
@@ -46,40 +46,10 @@ export default function Button({
     },
   };
 
-  const buttonProps = {
-    className: cn(baseStyles, className),
-    style: variants[variant].style,
-    whileHover: { 
-      scale: 1.05,
-      boxShadow: `0 10px 25px -5px var(--shadow-dark)`,
-    },
-    whileTap: { scale: 0.98 },
-    transition: { 
-      type: 'spring' as const,
-      stiffness: 400,
-      damping: 17
-    },
-  };
-
-  const shineEffect = (
-    <motion.div
-      className="absolute inset-0 pointer-events-none"
-      initial={{ x: '-100%' }}
-      whileHover={{ x: '100%' }}
-      transition={{ duration: 0.6, ease: 'easeInOut' }}
-      style={{
-        background: `linear-gradient(90deg, transparent, var(--white-opacity-30), transparent)`,
-      }}
-    />
-  );
-
   if (href) {
     return (
-      <Link href={href} className="inline-block">
-        <motion.div {...buttonProps}>
-          {shineEffect}
-          <span className="relative z-10">{children}</span>
-        </motion.div>
+      <Link href={href} className={cn(baseStyles, className)} style={variants[variant].style}>
+        {children}
       </Link>
     );
   }
@@ -87,17 +57,15 @@ export default function Button({
   const { disabled, type = 'button', onClick } = props;
   
   return (
-    <motion.button
+    <button
       type={type}
       onClick={onClick}
-      {...buttonProps}
-      whileHover={disabled ? {} : buttonProps.whileHover}
-      whileTap={disabled ? {} : buttonProps.whileTap}
+      className={cn(baseStyles, className)}
+      style={variants[variant].style}
       disabled={disabled}
       aria-disabled={disabled}
     >
-      {!disabled && shineEffect}
-      <span className="relative z-10">{children}</span>
-    </motion.button>
+      {children}
+    </button>
   );
 }

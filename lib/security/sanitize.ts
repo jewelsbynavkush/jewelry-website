@@ -4,41 +4,29 @@
  */
 
 /**
- * Sanitize string input - removes potentially dangerous characters
- * Prevents XSS attacks by removing HTML, scripts, and dangerous protocols
+ * Sanitizes string input by removing HTML tags, scripts, event handlers, and dangerous protocols
+ * @param input - String to sanitize
+ * @returns Sanitized string (max 10000 characters)
  */
 export function sanitizeString(input: string): string {
   if (typeof input !== 'string') {
     return '';
   }
 
-  // Remove HTML tags (including nested tags)
   let sanitized = input.replace(/<[^>]*>/g, '');
-  
-  // Remove script tags (including nested and encoded)
   sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
   sanitized = sanitized.replace(/<\/?script[^>]*>/gi, '');
-  
-  // Remove event handlers (onclick, onerror, etc.)
   sanitized = sanitized.replace(/on\w+\s*=\s*["'][^"']*["']/gi, '');
   sanitized = sanitized.replace(/on\w+\s*=\s*[^\s>]*/gi, '');
-  
-  // Remove dangerous protocols (javascript:, data:, vbscript:, etc.)
   sanitized = sanitized.replace(/javascript:/gi, '');
   sanitized = sanitized.replace(/data:text\/html/gi, '');
   sanitized = sanitized.replace(/vbscript:/gi, '');
   sanitized = sanitized.replace(/file:/gi, '');
-  
-  // Remove HTML entities that could be used for XSS (but keep safe ones like &amp;)
-  // Only remove numeric entities that could be used maliciously
   sanitized = sanitized.replace(/&#[0-9]+;/g, '');
   sanitized = sanitized.replace(/&#x[0-9a-f]+;/gi, '');
-  
-  // Remove null bytes and control characters
   sanitized = sanitized.replace(/\0/g, '');
   sanitized = sanitized.replace(/[\x00-\x1F\x7F]/g, '');
   
-  // Limit length to prevent DoS (reasonable limit)
   const MAX_LENGTH = 10000;
   if (sanitized.length > MAX_LENGTH) {
     sanitized = sanitized.substring(0, MAX_LENGTH);
