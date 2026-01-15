@@ -26,8 +26,13 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
+# Ignore all environment files except .env.example (which is safe to commit as a template)
 .env*.local
 .env
+.env*.local.example
+.env*.old
+# Only allow .env.example to be committed (template with no secrets)
+!.env.example
 
 # vercel
 .vercel

@@ -63,3 +63,69 @@ export function getSiteName(): string {
   return siteName.replace(/<[^>]*>/g, '').trim();
 }
 
+/**
+ * Get environment-specific configuration
+ * 
+ * Returns the current environment ('development' or 'production')
+ * based on NEXT_PUBLIC_ENV environment variable.
+ * 
+ * @returns Environment string ('development' or 'production')
+ */
+export function getEnv(): string {
+  return process.env.NEXT_PUBLIC_ENV || 'development';
+}
+
+/**
+ * Check if running in production environment
+ * 
+ * @returns True if environment is production, false otherwise
+ */
+export function isProduction(): boolean {
+  return getEnv() === 'production';
+}
+
+/**
+ * Check if running in development environment
+ * 
+ * @returns True if environment is development, false otherwise
+ */
+export function isDevelopment(): boolean {
+  return getEnv() === 'development';
+}
+
+/**
+ * Get Zoho Catalyst configuration based on environment
+ * 
+ * Returns Zoho Catalyst credentials from environment variables.
+ * These should be set separately for dev and prod environments.
+ * 
+ * @returns Object containing Zoho Catalyst configuration
+ */
+export function getZohoCatalystConfig(): {
+  projectId: string;
+  clientId: string;
+  clientSecret: string;
+  environment: string;
+} {
+  const env = getEnv();
+  
+  return {
+    projectId: process.env.ZOHO_CATALYST_PROJECT_ID || '',
+    clientId: process.env.ZOHO_CATALYST_CLIENT_ID || '',
+    clientSecret: process.env.ZOHO_CATALYST_CLIENT_SECRET || '',
+    environment: env,
+  };
+}
+
+/**
+ * Get Zoho Mail API key
+ * 
+ * Returns the Zoho Mail API key from environment variables.
+ * Used for sending transactional emails.
+ * 
+ * @returns Zoho Mail API key string
+ */
+export function getZohoMailApiKey(): string {
+  return process.env.ZOHO_MAIL_API_KEY || '';
+}
+

@@ -8,6 +8,7 @@ Complete documentation for the Jewels by NavKush jewelry website.
 
 - **[Quick Start Guide](./SETUP_QUICK_START.md)** - Get up and running in minutes
 - **[Development Guide](./DEVELOPMENT_GUIDE.md)** - Complete development workflow
+- **[Project Roadmap](./PROJECT_ROADMAP.md)** - Comprehensive development plan for full e-commerce platform
 
 ---
 
@@ -15,6 +16,8 @@ Complete documentation for the Jewels by NavKush jewelry website.
 
 ### **Initial Setup**
 - **[Quick Start Guide](./SETUP_QUICK_START.md)** - Initial project setup
+- **[Environment Setup Guide](./ENVIRONMENT_SETUP_GUIDE.md)** - Step-by-step dev/prod environment setup (100% free)
+- **[Project Roadmap](./PROJECT_ROADMAP.md)** - Comprehensive development plan (dev/prod, e-commerce, database, etc.)
 - **[JSON-Based Architecture](./JSON_BASED_ARCHITECTURE_PLAN.md)** - Current architecture (JSON-based)
 - **[Migration Complete](./MIGRATION_COMPLETE.md)** - Migration from Sanity/Firebase to JSON
 
