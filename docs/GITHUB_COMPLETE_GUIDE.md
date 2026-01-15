@@ -219,10 +219,10 @@ For your jewelry website, we recommend:
 - ✅ Global CDN
 - ✅ Preview deployments for testing
 
-**See:** [Deployment Plan](./DEPLOYMENT_PLAN.md) for complete deployment strategy.
+**See:** [Vercel Deployment Guide](./VERCEL_DEPLOYMENT.md) for complete deployment strategy.
 
 ---
 
 **Related Documentation:**
 - [Vercel Deployment Guide](./VERCEL_DEPLOYMENT.md) - Step-by-step Vercel deployment
-- [Deployment Plan](./DEPLOYMENT_PLAN.md) - Complete deployment strategy
+- [Vercel Deployment Guide](./VERCEL_DEPLOYMENT.md) - Complete deployment guide

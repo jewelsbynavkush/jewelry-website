@@ -197,8 +197,25 @@ ZOHO_MAIL_API_KEY=your_dev_mail_key
 # Add to all environments: Production, Preview, Development
 ```
 
-7. **Branch:** Select **"develop"** branch
-8. Click **"Deploy"**
+7. Click **"Deploy"** (branch will be configured after deployment)
+   
+   **Note:** If you don't see a branch selector, that's normal. You'll configure it after the project is created (see Step 3.2.1 below).
+
+#### **3.2.1 Configure Branch After Deployment:**
+
+After the project is created and first deployment completes:
+
+1. Go to your project dashboard
+2. Click **"Settings"** → **"Environments"** (NOT "Git" - it's in Environments!)
+3. Scroll to **"Production"** section
+4. Find **"Branch Tracking"** or **"Production Branch"** field
+5. Enter: `develop`
+6. Save (may auto-save)
+7. Vercel will automatically redeploy from `develop` branch
+
+**Important:** The branch setting is in **Settings → Environments**, not Settings → Git!
+
+**Alternative:** See [Vercel Branch Setup Guide](./VERCEL_BRANCH_SETUP.md) for detailed instructions.
 
 ### **3.3 Create Production Project**
 
@@ -235,8 +252,24 @@ ZOHO_MAIL_API_KEY=your_prod_mail_key
 # Add to all environments: Production, Preview, Development
 ```
 
-7. **Branch:** Select **"main"** branch
-8. Click **"Deploy"**
+7. Click **"Deploy"** (branch will be configured after deployment)
+   
+   **Note:** If you don't see a branch selector, that's normal. You'll configure it after the project is created (see Step 3.3.1 below).
+
+#### **3.3.1 Configure Branch After Deployment:**
+
+After the project is created and first deployment completes:
+
+1. Go to your project dashboard
+2. Click **"Settings"** → **"Environments"** (NOT "Git" - it's in Environments!)
+3. Scroll to **"Production"** section
+4. Find **"Branch Tracking"** or **"Production Branch"** field
+5. Verify it shows `main` (should be default)
+6. If not, enter: `main` and save
+
+**Important:** The branch setting is in **Settings → Environments**, not Settings → Git!
+
+**Alternative:** See [Vercel Branch Setup Guide](./VERCEL_BRANCH_SETUP.md) for detailed instructions.
 
 **✅ Step 3 Complete:** You now have two Vercel projects (dev & prod) connected to GitHub.
 
@@ -637,6 +670,7 @@ After completing this setup:
 
 ## 📚 **Related Documentation**
 
+- [Vercel Branch Setup Guide](./VERCEL_BRANCH_SETUP.md) - **How to select/change branches in Vercel**
 - [Project Roadmap](./PROJECT_ROADMAP.md) - Complete development plan
 - [Zoho Catalyst Setup](./ZOHO_CATALYST_NOSQL_SETUP.md) - Database setup details
 - [Vercel Deployment](./VERCEL_DEPLOYMENT.md) - Deployment guide

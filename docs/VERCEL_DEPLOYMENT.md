@@ -1,7 +1,8 @@
 # Vercel Deployment Guide
 **Complete Step-by-Step Guide to Deploy Your Jewelry Website to Vercel**
 
-**Date:** December 2024
+**Date:** January 2025  
+**Status:** ✅ **Complete Deployment Guide**
 
 ## 📋 Table of Contents
 
@@ -15,15 +16,41 @@
 
 ---
 
+## 📋 **Deployment Overview**
+
+### **Architecture**
+- **Frontend:** Next.js 16 (App Router) - Serverless
+- **Database:** Zoho Catalyst NoSQL (or JSON-based for now)
+- **Hosting:** Vercel (Serverless Platform)
+- **Version Control:** GitHub
+- **Domain:** Custom domain (optional)
+
+### **Deployment Strategy**
+- ✅ **Serverless Architecture** - Zero server management
+- ✅ **Automatic Deployments** - CI/CD via Vercel
+- ✅ **Preview Deployments** - Test before production
+- ✅ **Global CDN** - Fast worldwide performance
+- ✅ **HTTPS by Default** - SSL certificates auto-provisioned
+
+### **Estimated Time: 1-2 Hours**
+- Pre-Deployment Prep: 15-30 min
+- GitHub Setup: 10-15 min
+- Vercel Deployment: 15-30 min
+- Post-Deployment Config: 15-30 min
+- Custom Domain: 30-60 min (optional)
+- Testing & Verification: 15-30 min
+
+---
+
 ## 1. Prerequisites
 
 Before deploying, ensure you have:
 
 - ✅ Code pushed to GitHub repository
-- ✅ Firebase project set up (see [Firebase Setup Guide](FIREBASE_SETUP.md))
-- ✅ Sanity.io project set up (see [Sanity Complete Guide](./SANITY_COMPLETE_GUIDE.md)) - Note: Legacy, no longer used
-- ✅ All environment variables ready
+- ✅ All environment variables ready (see [Environment Setup Guide](./ENVIRONMENT_SETUP_GUIDE.md))
+- ✅ Zoho Catalyst project set up (see [Zoho Catalyst Setup](./ZOHO_CATALYST_NOSQL_SETUP.md)) - Optional for now
 - ✅ Vercel account (free)
+- ✅ Build passes locally (`npm run build`)
 
 ---
 
@@ -116,18 +143,21 @@ Vercel will auto-detect Next.js:
 2. Click **"Add"** for each variable:
 
 ```
-NEXT_PUBLIC_FIREBASE_API_KEY = your_firebase_api_key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN = your_project.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID = your_project_id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET = your_project.appspot.com
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID = your_sender_id
-NEXT_PUBLIC_FIREBASE_APP_ID = your_app_id
-NEXT_PUBLIC_SANITY_PROJECT_ID = your_sanity_project_id
-NEXT_PUBLIC_SANITY_DATASET = production
-NEXT_PUBLIC_SANITY_API_VERSION = 2024-01-01
-SANITY_API_TOKEN = your_sanity_token (if needed)
-NEXT_PUBLIC_BASE_URL = https://your-vercel-url.vercel.app
+# Environment
+NEXT_PUBLIC_ENV=production
+NEXT_PUBLIC_BASE_URL=https://your-vercel-url.vercel.app
+NEXT_PUBLIC_SITE_NAME=Jewels by NavKush
+
+# Zoho Catalyst (Production)
+ZOHO_CATALYST_PROJECT_ID=your_prod_project_id
+ZOHO_CATALYST_CLIENT_ID=your_prod_client_id
+ZOHO_CATALYST_CLIENT_SECRET=your_prod_client_secret
+
+# Zoho Mail (Production)
+ZOHO_MAIL_API_KEY=your_prod_mail_key
 ```
+
+**Note:** For current JSON-based architecture, only `NEXT_PUBLIC_ENV`, `NEXT_PUBLIC_BASE_URL`, and `NEXT_PUBLIC_SITE_NAME` are required. Zoho Catalyst variables are for future implementation.
 
 3. For each variable:
    - **Name:** Variable name (e.g., `NEXT_PUBLIC_FIREBASE_API_KEY`)
@@ -248,49 +278,60 @@ Go to **"Settings"** → **"Environment Variables"**:
 3. Ensure `NEXT_PUBLIC_*` prefix for client-side vars
 4. Redeploy after adding variables
 
-### Issue: Firebase Not Working on Production
+### Issue: Zoho Catalyst Not Working
 **Solution:**
-1. Check Firebase CORS settings
-2. Verify environment variables in Vercel
-3. Check Firebase Console → Project Settings → General
-4. Ensure Firestore is enabled
-
-### Issue: Sanity.io Not Loading
-**Solution:**
-1. Verify Project ID in environment variables
-2. Check dataset name (usually `production`)
-3. Verify content is published (not drafts)
-4. Check CORS settings in Sanity.io
+1. Verify environment variables in Vercel
+2. Check Zoho Catalyst project ID matches
+3. Verify API credentials are correct
+4. Check Zoho Catalyst console for errors
+5. See [Zoho Catalyst Setup Guide](./ZOHO_CATALYST_NOSQL_SETUP.md)
 
 ### Issue: Images Not Loading
 **Solution:**
-1. Check Sanity.io image URLs
-2. Verify `@sanity/image-url` is installed
+1. Check image paths in public directory
+2. Verify Next.js Image component configuration
 3. Check browser console for errors
-4. Verify image assets exist in Sanity
+4. Verify image assets exist in public folder
+5. See [Image Guide](./IMAGE_GUIDE.md)
 
 ### Issue: Contact Form Not Working
 **Solution:**
-1. Check Firebase environment variables
-2. Verify Firestore is enabled
-3. Check security rules allow `create`
-4. Check browser console for errors
-5. Verify API route is deployed
+1. Check API route is deployed
+2. Verify rate limiting settings
+3. Check browser console for errors
+4. Verify CORS settings
+5. Check API route logs in Vercel
 
 ---
 
-## ✅ Verification Checklist
+## ✅ **Complete Deployment Checklist**
 
+### **Pre-Deployment**
+- [ ] Code is production-ready
+- [ ] Build passes (`npm run build`)
+- [ ] All environment variables prepared
+- [ ] Security headers configured
+- [ ] `.env.local` in `.gitignore`
+
+### **GitHub Setup**
+- [ ] GitHub account created
+- [ ] Repository created
 - [ ] Code pushed to GitHub
+- [ ] `.env.local` NOT in repository
+
+### **Vercel Deployment**
 - [ ] Vercel account created
 - [ ] Project imported from GitHub
 - [ ] All environment variables added
 - [ ] Build successful
 - [ ] Site accessible at Vercel URL
-- [ ] Contact form working
-- [ ] Designs loading from Sanity.io
-- [ ] Images displaying correctly
+
+### **Post-Deployment**
+- [ ] Base URL updated
+- [ ] All functionality tested
 - [ ] Custom domain configured (if applicable)
+- [ ] Analytics enabled (optional)
+- [ ] Monitoring set up (optional)
 
 ---
 
@@ -314,16 +355,85 @@ After deployment:
 
 ---
 
-## 💡 Pro Tips
+## 💡 **Pro Tips**
 
 - **Use Preview Deployments** to test before merging
 - **Monitor Build Logs** for any issues
 - **Set up Vercel Analytics** for insights
 - **Use Environment Variables** for different environments
 - **Enable Automatic HTTPS** (done by default)
+- **Set up separate dev/prod projects** (see [Environment Setup Guide](./ENVIRONMENT_SETUP_GUIDE.md))
+
+---
+
+## 📊 **Monitoring & Maintenance**
+
+### **Weekly Maintenance**
+- [ ] Check deployment logs for errors
+- [ ] Review analytics for issues
+- [ ] Test critical functionality
+
+### **Monthly Maintenance**
+- [ ] Update dependencies (`npm update`)
+- [ ] Review security advisories
+- [ ] Check service usage/quota
+
+### **Quarterly Maintenance**
+- [ ] Security audit
+- [ ] Performance review
+- [ ] SEO audit
+- [ ] Dependency updates
+
+---
+
+## 🎯 **Quick Start Deployment**
+
+### **Fastest Path to Production (~40 minutes):**
+
+1. **Prepare Environment Variables** (5 min)
+   - Gather all credentials
+   - See [Environment Setup Guide](./ENVIRONMENT_SETUP_GUIDE.md)
+
+2. **Push to GitHub** (5 min)
+   ```bash
+   git init
+   git remote add origin https://github.com/yourusername/jewelry-website.git
+   git add .
+   git commit -m "Initial commit"
+   git push -u origin main
+   ```
+
+3. **Deploy to Vercel** (10 min)
+   - Import from GitHub
+   - Add environment variables
+   - Deploy
+
+4. **Configure & Test** (10 min)
+   - Update base URL
+   - Test all functionality
+   - Verify everything works
+
+5. **Custom Domain** (10 min - optional)
+   - Add domain in Vercel
+   - Configure DNS
+   - Wait for propagation
+
+**Total: ~40 minutes to production!**
+
+---
+
+## 📚 **Related Documentation**
+
+- [Environment Setup Guide](./ENVIRONMENT_SETUP_GUIDE.md) - Dev/prod environment setup
+- [Vercel Branch Setup](./VERCEL_BRANCH_SETUP.md) - Configure different branches
+- [GitHub Complete Guide](./GITHUB_COMPLETE_GUIDE.md) - Complete GitHub setup
+- [Zoho Catalyst Setup](./ZOHO_CATALYST_NOSQL_SETUP.md) - Database setup
+- [Production Launch Guide](./PRODUCTION_LAUNCH_GUIDE.md) - Complete business launch guide
 
 ---
 
 **Deployment complete!** Your jewelry website is now live on Vercel! 🚀
+
+**Last Updated:** January 2025
 
 

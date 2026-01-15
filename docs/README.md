@@ -27,8 +27,8 @@ Complete documentation for the Jewels by NavKush jewelry website.
 - **[Firebase & Sanity Usage Report](./FIREBASE_SANITY_USAGE_REPORT.md)** - Historical analysis
 
 ### **Deployment**
-- **[Deployment Plan](./DEPLOYMENT_PLAN.md)** - Complete deployment strategy & checklist
-- **[Vercel Deployment](./VERCEL_DEPLOYMENT.md)** - Complete step-by-step Vercel deployment guide
+- **[Vercel Deployment Guide](./VERCEL_DEPLOYMENT.md)** - Complete step-by-step deployment guide (includes strategy, checklist, and troubleshooting)
+- **[Deployment Plan](./DEPLOYMENT_PLAN.md)** - Quick reference overview (see Vercel Deployment Guide for details)
 - **[GitHub Complete Guide](./GITHUB_COMPLETE_GUIDE.md)** - Complete GitHub setup and hosting options (merged from multiple files)
 
 ---
@@ -113,7 +113,7 @@ Complete documentation for the Jewels by NavKush jewelry website.
 ### **Most Important Docs:**
 1. **[Quick Start Guide](./SETUP_QUICK_START.md)** - Get started
 2. **[Project Structure](./PROJECT_STRUCTURE.md)** - Complete technical documentation
-3. **[Deployment Plan](./DEPLOYMENT_PLAN.md)** - Complete deployment strategy
+3. **[Vercel Deployment Guide](./VERCEL_DEPLOYMENT.md)** - Complete deployment guide
 4. **[Development Guide](./DEVELOPMENT_GUIDE.md)** - Development workflow
 5. **[Overall Best Practices](./OVERALL_BEST_PRACTICES_FINAL.md)** - Complete best practices verification
 

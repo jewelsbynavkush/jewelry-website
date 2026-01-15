@@ -15,7 +15,8 @@ All documentation files are organized in the `docs/` folder for easy access and 
 ### **Third-Party Setup (Legacy - Historical Reference)**
 - `FIREBASE_SETUP.md` - Firebase Firestore configuration (no longer used)
 - `SANITY_COMPLETE_GUIDE.md` - Complete Sanity.io CMS guide (no longer used - merged from multiple files)
-- `VERCEL_DEPLOYMENT.md` - Deployment to Vercel
+- `VERCEL_DEPLOYMENT.md` - Complete deployment guide (merged from DEPLOYMENT_PLAN.md)
+- `DEPLOYMENT_PLAN.md` - Quick reference overview (see VERCEL_DEPLOYMENT.md for details)
 - `GITHUB_COMPLETE_GUIDE.md` - Complete GitHub setup and hosting options (merged from multiple files)
 
 ### **Technical Documentation**
