@@ -28,13 +28,15 @@ export default function middleware(request: NextRequest) {
   // Content Security Policy
   // 'unsafe-eval' and 'unsafe-inline' are required for Next.js runtime
   // Future enhancement: use nonces or hashes for stricter CSP
+  // Include request origin in connect-src to allow same-origin API calls in Vercel deployments
+  const origin = request.nextUrl.origin;
   const csp = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: https: blob:",
     "font-src 'self' data: https://fonts.gstatic.com",
-    "connect-src 'self'",
+    `connect-src 'self' ${origin}`,
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
