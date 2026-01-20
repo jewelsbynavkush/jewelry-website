@@ -6,7 +6,20 @@
  * Industry standard: Automatic token refresh on 401 errors
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+/**
+ * Get the API base URL for requests
+ * Client-side: Uses relative URLs to avoid DNS resolution issues
+ * Server-side: Uses NEXT_PUBLIC_BASE_URL for absolute URLs when needed
+ */
+function getApiBaseUrl(): string {
+  // Client-side: Always use relative URLs (works with any domain)
+  // This avoids DNS resolution issues and works automatically with Vercel deployments
+  if (typeof window !== 'undefined') {
+    return '';
+  }
+  // Server-side: Use base URL if available, otherwise relative
+  return process.env.NEXT_PUBLIC_BASE_URL || '';
+}
 
 export interface ApiError {
   error: string;
@@ -89,7 +102,8 @@ async function refreshToken(): Promise<boolean> {
   isRefreshing = true;
   refreshPromise = (async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+      const baseUrl = getApiBaseUrl();
+      const response = await fetch(`${baseUrl}/api/auth/refresh`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -153,7 +167,8 @@ async function apiRequest<T = unknown>(
     // Note: Auth token is in HTTP-only cookie, sent automatically with credentials: 'include'
     // Session ID is also in cookie, sent automatically
     
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const baseUrl = getApiBaseUrl();
+    const response = await fetch(`${baseUrl}${endpoint}`, {
       ...options,
       headers,
       credentials: 'include', // Include cookies in requests
