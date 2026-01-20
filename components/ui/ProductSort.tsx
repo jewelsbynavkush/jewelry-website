@@ -13,7 +13,11 @@ interface ProductSortProps {
 }
 
 /**
- * Product sorting component for e-commerce (animations removed for iOS scroll compatibility)
+ * Product sorting component for e-commerce
+ * 
+ * Provides dropdown interface for sorting products by price, name, or date.
+ * Updates URL query parameters to maintain sort state across page refreshes.
+ * Animations removed for iOS scroll compatibility.
  */
 export default function ProductSort({ className = '' }: ProductSortProps) {
   const router = useRouter();

@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ANIMATION_PRESETS, SCALE, ROTATE, DURATION, STAGGER } from '@/lib/animations/constants';
+import UserMenu from './UserMenu';
 
 export default function TopHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -213,7 +214,7 @@ export default function TopHeader() {
 
   return (
     <header 
-      className="relative z-50"
+      className="relative z-50 overflow-visible"
       style={{ backgroundColor: headerBgColor }}
     >
       <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4">
@@ -222,7 +223,11 @@ export default function TopHeader() {
           <motion.button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="flex items-center gap-1.5 sm:gap-2 p-2 -ml-2 sm:p-0 sm:ml-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0"
-            style={{ color: textColor }}
+            style={{ 
+              color: headerBgColor === 'var(--cream)' 
+                ? 'rgb(26, 26, 26)' 
+                : (textColor || 'var(--text-on-beige)')
+            }}
             aria-label="Toggle menu"
             whileHover={ANIMATION_PRESETS.ICON_HOVER}
             whileTap={ANIMATION_PRESETS.ICON_TAP}
@@ -236,13 +241,13 @@ export default function TopHeader() {
               transition={{ duration: DURATION.MENU }}
             >
               {isMenuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
               ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 6h16M4 12h16M4 18h16" />
               )}
             </motion.svg>
             <motion.span 
-              className="text-nav text-xs sm:text-sm"
+              className="text-nav text-xs sm:text-sm font-semibold"
               whileHover={ANIMATION_PRESETS.LINK_HOVER}
             >
               MENU
@@ -253,10 +258,8 @@ export default function TopHeader() {
           {!isHomePage && (
             <SmoothLink href="/" className="flex-1 text-center">
               <h1 
-                className="text-base sm:text-lg md:text-xl lg:text-2xl font-playfair font-bold"
+                className="text-base sm:text-lg md:text-xl lg:text-2xl font-playfair font-bold tracking-wide"
                 style={{
-                  letterSpacing: '0.08em',
-                  fontWeight: 700,
                   color: textColor,
                 }}
               >
@@ -271,6 +274,7 @@ export default function TopHeader() {
               initial={{ scale: 1, rotate: 0 }}
               whileHover={ANIMATION_PRESETS.ICON_HOVER}
               whileTap={ANIMATION_PRESETS.ICON_TAP}
+              className="flex items-center"
             >
               <SmoothLink
                 href="/cart"
@@ -297,33 +301,7 @@ export default function TopHeader() {
                 />
               </SmoothLink>
             </motion.div>
-            <motion.div
-              initial={{ scale: 1, rotate: 0 }}
-              whileHover={ANIMATION_PRESETS.ICON_HOVER}
-              whileTap={ANIMATION_PRESETS.ICON_TAP}
-            >
-              <SmoothLink
-                href="/profile"
-                className="transition-colors p-2 sm:p-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center relative overflow-visible"
-                style={{ color: textColor }}
-                aria-label="User profile"
-              >
-                <motion.svg 
-                  className="w-5 h-5 sm:w-6 sm:h-6" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                  initial={{ scale: 1, rotate: 0 }}
-                  whileHover={{ 
-                    scale: SCALE.ICON_HOVER,
-                    rotate: ROTATE.ICON_HOVER,
-                    transition: ANIMATION_PRESETS.ICON_HOVER.transition
-                  }}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </motion.svg>
-              </SmoothLink>
-            </motion.div>
+            <UserMenu textColor={textColor} />
           </div>
         </div>
 

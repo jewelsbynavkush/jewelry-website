@@ -11,8 +11,7 @@ export default function TrustBadges() {
     <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 py-4 sm:py-6 border-t border-[var(--border-light)]">
       <div className="flex items-center gap-2 text-[var(--text-secondary)] text-body-xs sm:text-body-sm">
         <svg
-          className="w-5 h-5"
-          style={{ color: 'var(--accent-success)' }}
+          className="w-5 h-5 text-[var(--accent-success)]"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -29,8 +28,7 @@ export default function TrustBadges() {
       </div>
       <div className="flex items-center gap-2 text-[var(--text-secondary)] text-body-xs sm:text-body-sm">
         <svg
-          className="w-5 h-5"
-          style={{ color: 'var(--accent-info)' }}
+          className="w-5 h-5 text-[var(--accent-info)]"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -47,8 +45,7 @@ export default function TrustBadges() {
       </div>
       <div className="flex items-center gap-2 text-[var(--text-secondary)] text-body-xs sm:text-body-sm">
         <svg
-          className="w-5 h-5"
-          style={{ color: 'var(--accent-info)' }}
+          className="w-5 h-5 text-[var(--accent-info)]"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -67,8 +64,7 @@ export default function TrustBadges() {
       </div>
       <div className="flex items-center gap-2 text-[var(--text-secondary)] text-body-xs sm:text-body-sm">
         <svg
-          className="w-5 h-5"
-          style={{ color: 'var(--accent-warning)' }}
+          className="w-5 h-5 text-[var(--accent-warning)]"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"

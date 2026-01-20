@@ -6,11 +6,19 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "migrate:mongodb": "tsx scripts/migrate-to-mongodb.ts",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:coverage": "vitest --coverage",
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
+    "bcryptjs": "^3.0.3",
     "framer-motion": "^11.11.17",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.1.4",
     "next": "^16.0.7",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
@@ -20,12 +28,18 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/ui": "^4.0.17",
     "eslint": "^9",
     "eslint-config-next": "^16.0.7",
+    "mongodb-memory-server": "^10.4.3",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "tsx": "^4.21.0",
+    "typescript": "^5",
+    "vitest": "^4.0.17"
   }
 }

@@ -22,16 +22,10 @@ export default function AboutImage3D({ aboutImage, aboutImageAlt, isMobile = fal
 
   return (
     <div
-      className={`relative ${heightClass} w-full bg-[var(--beige)]`}
-      style={{ 
-        borderTopLeftRadius: '40px', 
-        paddingTop: isMobile ? '12px' : '16px', 
-        paddingLeft: isMobile ? '12px' : '16px',
-      }}
+      className={`relative ${heightClass} w-full bg-[var(--beige)] rounded-tl-[40px] pt-3 sm:pt-4 pl-3 sm:pl-4`}
     >
       <div 
-        className="relative h-full w-full overflow-hidden" 
-        style={{ borderTopLeftRadius: '40px' }}
+        className="relative h-full w-full overflow-hidden rounded-tl-[40px]"
       >
         <Image
           src={imageUrl}

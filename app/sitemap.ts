@@ -70,6 +70,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'yearly',
       priority: 0.5,
     },
+    // Note: Cart, profile, checkout, and auth pages are excluded from sitemap
+    // as they are private/user-specific pages
   ];
 
   // Category pages
@@ -82,13 +84,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Dynamic product pages
   try {
-    const products = await getProducts();
-      const productPages: MetadataRoute.Sitemap = products.map((product) => ({
-        url: `${baseUrl}/designs/${product.slug}`,
-        lastModified: product.updatedAt ? new Date(product.updatedAt) : now,
-        changeFrequency: 'weekly' as const,
-        priority: 0.6,
-      }));
+    const productsData = await getProducts();
+    const productPages: MetadataRoute.Sitemap = productsData.products.map((product) => ({
+      url: `${baseUrl}/designs/${product.slug}`,
+      lastModified: product.updatedAt ? new Date(product.updatedAt) : now,
+      changeFrequency: 'weekly' as const,
+      priority: 0.6,
+    }));
 
     return [...staticPages, ...categoryPages, ...productPages];
   } catch (error) {

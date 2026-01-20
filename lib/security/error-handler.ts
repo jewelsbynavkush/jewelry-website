@@ -47,14 +47,45 @@ export function sanitizeError(error: unknown): { message: string; details?: unkn
 }
 
 /**
+ * Generate a correlation ID for request tracking
+ */
+export function generateCorrelationId(): string {
+  return `${Date.now()}-${Math.random().toString(36).substring(2, 15)}`;
+}
+
+/**
+ * Get correlation ID from request headers or generate a new one
+ */
+export function getCorrelationId(request?: Request): string {
+  if (request) {
+    const existingId = request.headers.get('x-correlation-id') || 
+                       request.headers.get('x-request-id');
+    if (existingId) {
+      return existingId;
+    }
+  }
+  return generateCorrelationId();
+}
+
+/**
  * Log error securely (don't log sensitive data)
  */
-export function logError(context: string, error: unknown) {
+export function logError(context: string, error: unknown, correlationId?: string) {
   const sanitized = sanitizeError(error);
   
-  console.error(`[${context}]`, {
+  // Always log full error details in test environment for debugging
+  const isTest = process.env.NODE_ENV === 'test' || process.env.VITEST === 'true';
+  const shouldLogDetails = isDevelopment || isTest;
+  
+  console.error(`[${context}]${correlationId ? ` [${correlationId}]` : ''}`, {
     message: sanitized.message,
-    ...(isDevelopment && sanitized.details ? { details: sanitized.details } : {}),
+    ...(correlationId ? { correlationId } : {}),
+    ...(shouldLogDetails && sanitized.details ? { details: sanitized.details } : {}),
+    ...(shouldLogDetails && error instanceof Error ? { 
+      stack: error.stack,
+      name: error.name,
+      message: error.message 
+    } : {}),
     timestamp: new Date().toISOString(),
   });
 }

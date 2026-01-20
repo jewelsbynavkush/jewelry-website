@@ -9,6 +9,7 @@ import { generateStandardMetadata } from "@/lib/seo/metadata";
 import { generateOrganizationSchema, generateWebsiteSchema } from "@/lib/seo/structured-data";
 import { getBaseUrl } from "@/lib/utils/env";
 import SmoothScrollProvider from "@/components/providers/SmoothScrollProvider";
+import AuthProvider from "@/components/providers/AuthProvider";
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -60,12 +61,14 @@ export default async function RootLayout({
         </a>
         <ErrorBoundary>
           <SmoothScrollProvider>
-            <TopHeader />
-            <main id="main-content" className="flex-grow" role="main">
-              {children}
-            </main>
-            <Footer />
-            <ToastContainer />
+            <AuthProvider>
+              <TopHeader />
+              <main id="main-content" className="flex-grow" role="main">
+                {children}
+              </main>
+              <Footer />
+              <ToastContainer />
+            </AuthProvider>
           </SmoothScrollProvider>
         </ErrorBoundary>
       </body>

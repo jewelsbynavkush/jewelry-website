@@ -5,6 +5,7 @@ import Button from './Button';
 import { showToast } from './Toast';
 import { getStockStatus } from '@/lib/utils/price-formatting';
 import { Product } from '@/types/data';
+import { useCartStore } from '@/lib/store/cart-store';
 
 interface AddToCartButtonProps {
   product: Product;
@@ -22,27 +23,36 @@ export default function AddToCartButton({
   className = '' 
 }: AddToCartButtonProps) {
   const [isAdding, setIsAdding] = useState(false);
+  const { addItem, isLoading } = useCartStore();
   const stockStatus = getStockStatus(product.inStock);
 
   const handleAddToCart = async () => {
-    if (!stockStatus.available || isAdding) return;
+    if (!stockStatus.available || isAdding || isLoading) return;
+
+    if (!product.id && !product.slug) {
+      showToast('Product information is missing', 'error', 3000);
+      return;
+    }
 
     setIsAdding(true);
 
-    // Simulate network delay for realistic UX feedback
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
     try {
-      // TODO: Integrate with cart state management (e.g., Zustand store)
-      // Example implementation:
-      // const { addItem } = useCartStore.getState();
-      // addItem({ id: product.id, title: product.title, price: product.price || 0, image: product.image || '', quantity });
+      const productId = product.id || product.slug;
+      const response = await addItem(productId, quantity);
 
-      showToast(
-        `${product.title} added to cart${quantity > 1 ? ` (${quantity})` : ''}`,
-        'success',
-        3000
-      );
+      if (response.success) {
+        showToast(
+          `${product.title} added to cart${quantity > 1 ? ` (${quantity})` : ''}`,
+          'success',
+          3000
+        );
+      } else {
+        showToast(
+          response.error || 'Failed to add item to cart. Please try again.',
+          'error',
+          4000
+        );
+      }
     } catch {
       showToast(
         'Failed to add item to cart. Please try again.',
@@ -58,7 +68,7 @@ export default function AddToCartButton({
     <Button
       onClick={handleAddToCart}
       className={`w-full sm:flex-1 min-h-[44px] ${className}`}
-      disabled={!stockStatus.available || isAdding}
+      disabled={!stockStatus.available || isAdding || isLoading}
       aria-label={
         stockStatus.available
           ? isAdding

@@ -1,63 +1,47 @@
-import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getPageContent } from '@/lib/data/content';
-import { getSecurityHeaders } from '@/lib/security/api-headers';
+import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
 import { sanitizeString } from '@/lib/security/sanitize';
-
-/**
- * Validate page identifier format
- */
-function isValidPageIdentifier(page: string): boolean {
-  // Allow alphanumeric, hyphens, underscores, and common page names
-  return /^[a-z0-9_-]+$/i.test(page) && page.length <= 50;
-}
+import { isValidPageIdentifier } from '@/lib/utils/validation';
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ page: string }> }
 ) {
+  // Apply security (CORS, CSRF, rate limiting)
+  // Industry standard: 200 requests per 15 minutes for public browsing endpoints
+  const securityResponse = applyApiSecurity(request, {
+    rateLimitConfig: { windowMs: 15 * 60 * 1000, maxRequests: 200 }, // 200 requests per 15 minutes (industry standard)
+  });
+  if (securityResponse) return securityResponse;
+
   try {
     const { page } = await params;
     
     // Validate and sanitize page parameter
     if (!page || !isValidPageIdentifier(page)) {
-      return NextResponse.json(
-        { error: 'Invalid page identifier' },
-        { 
-          status: 400,
-          headers: getSecurityHeaders(),
-        }
-      );
+      return createSecureErrorResponse('Invalid page identifier', 400, request);
     }
     
     const sanitizedPage = sanitizeString(page);
     const content = await getPageContent(sanitizedPage);
 
     if (!content) {
-      return NextResponse.json(
-        { error: 'Content not found' },
-        { 
-          status: 404,
-          headers: getSecurityHeaders(),
-        }
-      );
+      return createSecureErrorResponse('Content not found', 404, request);
     }
 
-    return NextResponse.json({ content }, {
-      headers: {
-        ...getSecurityHeaders(),
-        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
-      },
-    });
+    const response = createSecureResponse(
+      { content },
+      200,
+      request
+    );
+    
+    response.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+    return response;
   } catch (error) {
     logError('content/[page] API', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch content' },
-      { 
-        status: 500,
-        headers: getSecurityHeaders(),
-      }
-    );
+    return createSecureErrorResponse('Failed to fetch content', 500, request);
   }
 }
 

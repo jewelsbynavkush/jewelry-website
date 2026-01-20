@@ -1,34 +1,74 @@
 /**
  * Categories data access layer
- * Reads from JSON files
+ * Reads from MongoDB - Only returns active categories
  */
 
-import { readFile } from 'fs/promises';
-import { join } from 'path';
-import type { Category, CategoriesData } from '@/types/data';
-
-const DATA_DIR = join(process.cwd(), 'data');
+import connectDB from '@/lib/mongodb';
+import Category from '@/models/Category';
+import type { Category as CategoryType } from '@/types/data';
+import { logError } from '@/lib/security/error-handler';
 
 /**
- * Get all categories
+ * Get all active categories
+ * Only returns categories where active: true
+ * 
+ * @returns Array of active categories, sorted by order
  */
-export async function getCategories(): Promise<Category[]> {
+export async function getCategories(): Promise<CategoryType[]> {
   try {
-    const filePath = join(DATA_DIR, 'categories.json');
-    const fileContents = await readFile(filePath, 'utf8');
-    const data = JSON.parse(fileContents) as CategoriesData;
-    return data.categories;
+    await connectDB();
+    
+    const categories = await Category.find({ active: true })
+      .sort({ order: 1 })
+      .lean();
+    
+    // Transform to match existing Category type
+    return categories.map(cat => ({
+      slug: cat.slug,
+      name: cat.name,
+      displayName: cat.displayName,
+      image: cat.image,
+      alt: cat.alt,
+      description: cat.description || '',
+      active: cat.active, // Include active field for API response
+    }));
   } catch (error) {
-    console.error('Error loading categories:', error);
+    logError('getCategories', error);
     return [];
   }
 }
 
 /**
- * Get category by slug
+ * Get category by slug (only if active)
+ * 
+ * @param slug - Category slug
+ * @returns Category if found and active, null otherwise
  */
-export async function getCategory(slug: string): Promise<Category | null> {
-  const categories = await getCategories();
-  return categories.find(c => c.slug === slug) || null;
+export async function getCategory(slug: string): Promise<CategoryType | null> {
+  try {
+    await connectDB();
+    
+    const category = await Category.findOne({ 
+      slug: slug.toLowerCase(),
+      active: true 
+    }).lean();
+    
+    if (!category) {
+      return null;
+    }
+    
+    // Transform to match existing Category type
+    return {
+      slug: category.slug,
+      name: category.name,
+      displayName: category.displayName,
+      image: category.image,
+      alt: category.alt,
+      description: category.description || '',
+    };
+  } catch (error) {
+    logError('getCategory', error);
+    return null;
+  }
 }
 

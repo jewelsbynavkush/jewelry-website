@@ -80,7 +80,7 @@ export default function CategoryCard3D({
             >
               <Image
                 src={imageSrc}
-                alt={`${name} collection`}
+                alt={`${name} jewelry collection - Exquisite handcrafted ${name.toLowerCase()} pieces`}
                 fill
                 className="object-contain mix-blend-multiply relative z-10"
                 loading="lazy"

@@ -1,26 +1,29 @@
-import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getSiteSettings } from '@/lib/data/site-settings';
-import { getSecurityHeaders } from '@/lib/security/api-headers';
+import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Apply security (CORS, CSRF, rate limiting)
+  // Industry standard: 200 requests per 15 minutes for public content endpoints
+  const securityResponse = applyApiSecurity(request, {
+    rateLimitConfig: { windowMs: 15 * 60 * 1000, maxRequests: 200 }, // 200 requests per 15 minutes (industry standard)
+  });
+  if (securityResponse) return securityResponse;
+
   try {
     const settings = await getSiteSettings();
-    return NextResponse.json({ settings }, {
-      headers: {
-        ...getSecurityHeaders(),
-        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
-      },
-    });
+    const response = createSecureResponse(
+      { settings },
+      200,
+      request
+    );
+    
+    response.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+    return response;
   } catch (error) {
     logError('site-settings API', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch site settings' },
-      { 
-        status: 500,
-        headers: getSecurityHeaders(),
-      }
-    );
+    return createSecureErrorResponse('Failed to fetch site settings', 500, request);
   }
 }
 

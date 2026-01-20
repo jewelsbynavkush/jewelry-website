@@ -2,7 +2,7 @@
  * In-memory rate limiter for API routes
  * 
  * Note: Resets on server restart. For production with multiple instances,
- * consider Redis-based rate limiting (Upstash, Vercel KV) or Edge Config.
+ * consider implementing distributed rate limiting with Redis or similar.
  */
 
 interface RateLimitStore {
@@ -34,25 +34,36 @@ const defaultConfig: RateLimitConfig = {
  * 
  * Sanitizes IP address to prevent injection attacks.
  * Validates IPv4 and IPv6 formats before returning.
+ * For localhost/development, uses a combination of user agent and origin to differentiate clients.
  * 
  * @param request - Request object to extract client identifier from
- * @returns Sanitized IP address or 'unknown' if invalid
+ * @returns Sanitized IP address or fallback identifier for localhost
  */
 function getClientId(request: Request): string {
   const forwarded = request.headers.get('x-forwarded-for');
   const realIp = request.headers.get('x-real-ip');
-  const rawIp = forwarded?.split(',')[0]?.trim() || realIp?.trim() || 'unknown';
+  const rawIp = forwarded?.split(',')[0]?.trim() || realIp?.trim();
   
-  if (rawIp === 'unknown') return 'unknown';
-  
-  const ipv4Pattern = /^(\d{1,3}\.){3}\d{1,3}$/;
-  const ipv6Pattern = /^([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}$/;
-  
-  if (ipv4Pattern.test(rawIp) || ipv6Pattern.test(rawIp) || rawIp.startsWith('::')) {
-    return rawIp;
+  // Validate IP format
+  if (rawIp) {
+    const ipv4Pattern = /^(\d{1,3}\.){3}\d{1,3}$/;
+    const ipv6Pattern = /^([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}$/;
+    
+    if (ipv4Pattern.test(rawIp) || ipv6Pattern.test(rawIp) || rawIp.startsWith('::')) {
+      return rawIp;
+    }
   }
   
-  return 'unknown';
+  // For localhost/development: Use user agent + origin as fallback identifier
+  // This prevents all localhost requests from sharing the same rate limit bucket
+  const userAgent = request.headers.get('user-agent') || 'unknown';
+  const origin = request.headers.get('origin') || request.headers.get('referer') || 'unknown';
+  
+  // Create a simple hash-like identifier from user agent and origin
+  // This differentiates between different browsers/devices on localhost
+  const fallbackId = `${userAgent.slice(0, 20)}-${origin.slice(0, 20)}`.replace(/[^a-zA-Z0-9-]/g, '');
+  
+  return fallbackId || 'localhost-unknown';
 }
 
 /**
@@ -72,6 +83,7 @@ export function checkRateLimit(
   const clientId = getClientId(request);
   const now = Date.now();
   // Create time-windowed key to automatically expire old entries
+  // Key changes every windowMs milliseconds, causing old entries to be ignored
   const key = `${clientId}:${Math.floor(now / config.windowMs)}`;
 
   // Periodic cleanup prevents unbounded memory growth
@@ -85,6 +97,7 @@ export function checkRateLimit(
   }
 
   // Initialize rate limit entry for this time window if it doesn't exist
+  // Each time window gets its own counter, automatically resetting after windowMs
   if (!store[key]) {
     store[key] = {
       count: 0,

@@ -34,6 +34,7 @@ export function getBaseUrl(): string {
   if (!baseUrl) {
     // Warn in production since missing base URL affects SEO and absolute URLs
     if (process.env.NODE_ENV === 'production') {
+      // Use console.warn for configuration warnings (infrastructure logging)
       console.warn('NEXT_PUBLIC_BASE_URL is not set. Using default fallback.');
     }
     return 'https://yourdomain.com';
@@ -41,6 +42,7 @@ export function getBaseUrl(): string {
   
   // Validate URL format to prevent security issues from malformed URLs
   if (!isValidUrl(baseUrl)) {
+    // Use console.error for configuration errors (infrastructure logging)
     console.error('Invalid NEXT_PUBLIC_BASE_URL format. Using default fallback.');
     return 'https://yourdomain.com';
   }
@@ -94,27 +96,21 @@ export function isDevelopment(): boolean {
 }
 
 /**
- * Get Zoho Catalyst configuration based on environment
+ * Get MongoDB connection URI
  * 
- * Returns Zoho Catalyst credentials from environment variables.
- * These should be set separately for dev and prod environments.
+ * Returns the MongoDB Atlas connection string from environment variables.
+ * This should be set separately for dev and prod environments.
  * 
- * @returns Object containing Zoho Catalyst configuration
+ * @returns MongoDB connection URI string
  */
-export function getZohoCatalystConfig(): {
-  projectId: string;
-  clientId: string;
-  clientSecret: string;
-  environment: string;
-} {
-  const env = getEnv();
+export function getMongoDbUri(): string {
+  const uri = process.env.MONGODB_URI;
   
-  return {
-    projectId: process.env.ZOHO_CATALYST_PROJECT_ID || '',
-    clientId: process.env.ZOHO_CATALYST_CLIENT_ID || '',
-    clientSecret: process.env.ZOHO_CATALYST_CLIENT_SECRET || '',
-    environment: env,
-  };
+  if (!uri) {
+    throw new Error('MONGODB_URI environment variable is not set');
+  }
+  
+  return uri;
 }
 
 /**
@@ -129,3 +125,28 @@ export function getZohoMailApiKey(): string {
   return process.env.ZOHO_MAIL_API_KEY || '';
 }
 
+/**
+ * Get JWT secret for token signing
+ * 
+ * Returns the JWT secret from environment variables.
+ * Throws an error in production if not set, warns in development.
+ * 
+ * @returns JWT secret string
+ * @throws Error if JWT_SECRET is not set in production
+ */
+export function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('JWT_SECRET environment variable is not set in production');
+    }
+    // Use console.warn for configuration warnings (infrastructure logging)
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('JWT_SECRET environment variable is not set. Using a default for development.');
+    }
+    return 'dev-secret-key-do-not-use-in-production';
+  }
+  
+  return secret;
+}

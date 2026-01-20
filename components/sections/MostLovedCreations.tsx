@@ -19,8 +19,8 @@ export default async function MostLovedCreations() {
           aria-label="Most loved jewelry creations"
         >
           {displayProducts.length === 0 ? (
-            placeholderImages.map((imageSrc, index) => (
-              <div key={index} role="listitem">
+            placeholderImages.map((imageSrc) => (
+              <div key={imageSrc} role="listitem">
                 <ProductCard 
                   placeholderImage={imageSrc}
                 />

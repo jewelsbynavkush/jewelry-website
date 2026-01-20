@@ -96,7 +96,7 @@ export function generateProductSchema(product: Product) {
       offers: {
         '@type': 'Offer',
         price: product.price.toFixed(2),
-        priceCurrency: CURRENCY.code,
+        priceCurrency: product.currency || CURRENCY.code, // Use product currency if available
         availability: product.inStock !== false ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
         url: productUrl,
         itemCondition: 'https://schema.org/NewCondition',

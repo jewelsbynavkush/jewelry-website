@@ -25,6 +25,11 @@ export function getSecurityHeaders(): Record<string, string> {
       "object-src 'none'",
       "upgrade-insecure-requests",
     ].join('; '),
+    // Additional security headers
+    'X-Permitted-Cross-Domain-Policies': 'none',
+    'Cross-Origin-Embedder-Policy': 'require-corp',
+    'Cross-Origin-Opener-Policy': 'same-origin',
+    'Cross-Origin-Resource-Policy': 'same-origin',
   };
 }
 

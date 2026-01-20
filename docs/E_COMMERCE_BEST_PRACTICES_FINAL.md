@@ -292,7 +292,7 @@ While the current implementation is excellent for a showcase website, future e-c
    - Personalized recommendations
    - Wishlist functionality
 
-**Note:** These features are documented in `docs/E_COMMERCE_IMPLEMENTATION_GUIDE.md` for future implementation.
+**Note:** These features are documented in `docs/E_COMMERCE_GUIDE.md`.
 
 ---
 
@@ -343,8 +343,8 @@ const status = getStockStatus(product.inStock);
 ## 📚 **Related Documentation**
 
 For detailed implementation guides and best practices, see:
-- [E-Commerce Implementation Guide](./E_COMMERCE_IMPLEMENTATION_GUIDE.md) - Detailed feature implementation
-- [Overall Best Practices](./OVERALL_BEST_PRACTICES_FINAL.md) - Complete best practices verification
+- [E-Commerce Guide](./E_COMMERCE_GUIDE.md) - Complete e-commerce guide
+- [Overall Best Practices](./OVERALL_BEST_PRACTICES_FINAL_2025.md) - Complete best practices verification
 
 ---
 

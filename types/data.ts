@@ -11,6 +11,7 @@ export interface Product {
   image: string;
   alt: string;
   price?: number;
+  currency?: string; // Currency code (INR, USD, EUR) - defaults to INR
   category?: string;
   material?: string;
   inStock?: boolean;
@@ -69,6 +70,7 @@ export interface Category {
   image: string;
   alt: string;
   description: string;
+  active?: boolean; // Optional for backward compatibility, but included in API responses
 }
 
 export interface PageContent {

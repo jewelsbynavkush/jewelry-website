@@ -32,7 +32,7 @@ export default function ProductSpecifications({ product }: ProductSpecifications
     },
     product.price && {
       label: 'Price',
-      value: formatPrice(product.price),
+      value: formatPrice(product.price, { currencyCode: product.currency || 'INR' }),
     },
     {
       label: 'Availability',
@@ -57,8 +57,8 @@ export default function ProductSpecifications({ product }: ProductSpecifications
         Product Specifications
       </h3>
       <dl className="grid grid-cols-1 sm:grid-cols-2 standard-gap-small">
-        {specifications.map((spec, index) => (
-          <div key={index} className="border-b border-[var(--border-light)] pb-2 sm:pb-3">
+        {specifications.map((spec) => (
+          <div key={spec.label} className="border-b border-[var(--border-light)] pb-2 sm:pb-3">
             <dt className="text-[var(--text-secondary)] text-body-sm sm:text-body-base font-medium mb-1">
               {spec.label}
             </dt>

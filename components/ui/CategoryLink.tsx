@@ -31,10 +31,10 @@ export default function CategoryLink({
     ? 'flex items-center justify-between text-[var(--text-on-beige)] hover:text-[var(--text-on-beige-hover)] transition-colors w-full py-3 sm:py-3.5 md:py-4 lg:py-5 uppercase text-heading-sm min-h-[44px] sm:min-h-[48px] relative overflow-hidden'
     : 'flex items-center justify-between text-[var(--text-on-beige)] hover:text-[var(--text-on-beige-hover)] transition-colors w-full py-2.5 sm:py-3 md:py-3.5 lg:py-4 uppercase text-category-link min-h-[44px] relative overflow-hidden';
 
-  const borderStyle = {
-    borderTop: index === 0 ? '1px solid var(--border-light)' : 'none',
-    borderBottom: index < total - 1 ? '1px solid var(--border-light)' : 'none',
-  };
+  const borderClasses = [
+    index === 0 ? 'border-t border-[var(--border-light)]' : '',
+    index < total - 1 ? 'border-b border-[var(--border-light)]' : '',
+  ].filter(Boolean).join(' ');
   
   return (
     <motion.div
@@ -43,8 +43,7 @@ export default function CategoryLink({
     >
       <Link 
         href={href} 
-        className={baseStyles} 
-        style={borderStyle}
+        className={`${baseStyles} ${borderClasses}`}
         aria-label={`View ${name} collection`}
       >
         <motion.span 

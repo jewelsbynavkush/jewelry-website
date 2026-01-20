@@ -45,7 +45,7 @@ export default function Card({
         }}
         whileTap={{ scale: SCALE.TAP }}
         style={{
-          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+          boxShadow: `0 4px 6px -1px var(--shadow-light)`,
         }}
       >
         {children}

@@ -71,12 +71,17 @@ export const DEFAULTS = {
 
 /**
  * E-commerce constants
+ * Centralized configuration for all e-commerce operations
  */
 export const ECOMMERCE = {
-  currency: 'USD',
-  currencySymbol: '$',
+  currency: 'INR',
+  currencySymbol: '₹',
   defaultShippingDays: 5,
-  freeShippingThreshold: 100, // USD
+  freeShippingThreshold: 5000, // INR (approximately $60 USD)
+  defaultShippingCost: 100, // INR - Standard shipping cost when threshold not met
   returnWindowDays: 30,
+  // Tax configuration
+  taxRate: 0.18, // 18% GST (India) - Set to 0 if tax-exempt
+  calculateTax: true, // Enable/disable automatic tax calculation
 } as const;
 

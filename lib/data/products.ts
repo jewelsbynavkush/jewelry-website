@@ -1,94 +1,231 @@
 /**
  * Product data access layer
- * Reads from JSON files
+ * Reads from MongoDB - Only returns products from active categories
  */
 
-import { readFile } from 'fs/promises';
-import { join } from 'path';
-import type { Product, ProductsData } from '@/types/data';
-
-const DATA_DIR = join(process.cwd(), 'data');
-
-/**
- * Loads products from JSON file
- * 
- * Handles file read errors gracefully by returning empty products array
- * to prevent app crashes if data file is missing or corrupted.
- * 
- * @returns Products data object with products array and metadata
- */
-async function loadProducts(): Promise<ProductsData> {
-  try {
-    const filePath = join(DATA_DIR, 'products.json');
-    const fileContents = await readFile(filePath, 'utf8');
-    return JSON.parse(fileContents) as ProductsData;
-  } catch (error) {
-    console.error('Error loading products:', error);
-    return { products: [], meta: { total: 0, lastUpdated: new Date().toISOString() } };
-  }
-}
+import connectDB from '@/lib/mongodb';
+import Product from '@/models/Product';
+import Category from '@/models/Category';
+import type { Product as ProductType } from '@/types/data';
+import { logError } from '@/lib/security/error-handler';
 
 /**
- * Get all products, optionally filtered by category
+ * Get all active products, optionally filtered by category, featured, mostLoved with pagination
+ * Only returns products from active categories
  * 
  * Products are sorted by most recently updated/created to show latest items first.
  * 
- * @param category - Optional category filter (rings, earrings, necklaces, bracelets)
- * @returns Array of products, sorted by most recent first
+ * @param category - Optional category slug filter (must be an active category)
+ * @param featured - Optional filter for featured products
+ * @param mostLoved - Optional filter for most loved products
+ * @param limit - Number of products per page (default: 20)
+ * @param page - Page number (default: 1)
+ * @returns Object with products array and pagination metadata
  */
-export async function getProducts(category?: string): Promise<Product[]> {
-  const data = await loadProducts();
-  let products = data.products;
-
-  if (category) {
-    products = products.filter(p => p.category === category);
+export async function getProducts(
+  category?: string,
+  featured?: boolean,
+  mostLoved?: boolean,
+  limit: number = 20,
+  page: number = 1
+): Promise<{ products: ProductType[]; pagination: { page: number; limit: number; total: number; totalPages: number } }> {
+  try {
+    await connectDB();
+    
+    // Base query: only return products with active status
+    const query: Record<string, unknown> = { status: 'active' };
+    
+    // Apply featured filter if provided
+    if (featured === true) {
+      query.featured = true;
+    }
+    
+    // Apply mostLoved filter if provided
+    if (mostLoved === true) {
+      query.mostLoved = true;
+    }
+    
+    // If category filter provided, verify category is active before filtering
+    // Prevents showing products from disabled categories
+    if (category) {
+      const activeCategory = await Category.findOne({ 
+        slug: category.toLowerCase(),
+        active: true 
+      });
+      
+      if (activeCategory) {
+        query.category = category.toLowerCase();
+      } else {
+        // Category is inactive or doesn't exist - return empty to prevent showing hidden products
+        return {
+          products: [],
+          pagination: { page, limit, total: 0, totalPages: 0 },
+        };
+      }
+    } else {
+      // No category filter: ensure products only come from active categories
+      // Prevents products from disabled categories appearing in "all products" view
+      const activeCategories = await Category.find({ active: true }).select('slug').lean();
+      const activeCategorySlugs = activeCategories.map(cat => cat.slug);
+      query.category = { $in: activeCategorySlugs };
+    }
+    
+    // Calculate pagination
+    const skip = (page - 1) * limit;
+    const total = await Product.countDocuments(query);
+    const totalPages = Math.ceil(total / limit);
+    
+    const products = await Product.find(query)
+      .sort({ updatedAt: -1, createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+    
+    // Transform to match existing Product type
+    const transformedProducts = products.map(product => ({
+      id: product._id.toString(),
+      slug: product.slug,
+      title: product.title,
+      description: product.description,
+      image: product.primaryImage || (product.images[0] || ''),
+      alt: product.alt,
+      price: product.price,
+      currency: product.currency || 'INR', // Include currency field
+      category: product.category,
+      material: product.material,
+      inStock: product.inStock,
+      mostLoved: product.mostLoved,
+      featured: product.featured,
+      createdAt: product.createdAt.toISOString(),
+      updatedAt: product.updatedAt.toISOString(),
+    }));
+    
+    return {
+      products: transformedProducts,
+      pagination: { page, limit, total, totalPages },
+    };
+  } catch (error) {
+    logError('getProducts', error);
+    return {
+      products: [],
+      pagination: { page, limit, total: 0, totalPages: 0 },
+    };
   }
-
-  // Sort by most recently updated/created to show latest products first
-  return products.sort((a, b) => {
-    const dateA = new Date(a.updatedAt || a.createdAt).getTime();
-    const dateB = new Date(b.updatedAt || b.createdAt).getTime();
-    return dateB - dateA;
-  });
 }
 
 /**
  * Get a single product by its slug identifier
+ * Only returns product if it's from an active category
  * 
  * @param slug - Product slug (URL-friendly identifier)
- * @returns Product object if found, null otherwise
+ * @returns Product object if found and from active category, null otherwise
  */
-export async function getProduct(slug: string): Promise<Product | null> {
-  const data = await loadProducts();
-  return data.products.find(p => p.slug === slug) || null;
+export async function getProduct(slug: string): Promise<ProductType | null> {
+  try {
+    await connectDB();
+    
+    const product = await Product.findOne({ 
+      slug: slug.toLowerCase(),
+      status: 'active'
+    }).lean();
+    
+    if (!product) {
+      return null;
+    }
+    
+    // Verify product's category is active
+    const category = await Category.findOne({ 
+      slug: product.category,
+      active: true 
+    });
+    
+    if (!category) {
+      // Product's category is inactive
+      return null;
+    }
+    
+    // Transform to match existing Product type
+    return {
+      id: product._id.toString(),
+      slug: product.slug,
+      title: product.title,
+      description: product.description,
+      image: product.primaryImage || (product.images[0] || ''),
+      alt: product.alt,
+      price: product.price,
+      currency: product.currency || 'INR', // Include currency field
+      category: product.category,
+      material: product.material,
+      inStock: product.inStock,
+      mostLoved: product.mostLoved,
+      featured: product.featured,
+      createdAt: product.createdAt.toISOString(),
+      updatedAt: product.updatedAt.toISOString(),
+    };
+  } catch (error) {
+    logError('getProduct', error);
+    return null;
+  }
 }
 
 /**
  * Get products marked as "most loved"
+ * Only returns products from active categories
  * 
  * Products are sorted by most recently updated/created to show latest items first.
  * 
  * @param limit - Maximum number of products to return (default: 8)
  * @returns Array of most loved products, sorted by most recent first
  */
-export async function getMostLovedProducts(limit: number = 8): Promise<Product[]> {
-  const data = await loadProducts();
-  return data.products
-    .filter(p => p.mostLoved === true)
-    .slice(0, limit)
-    .sort((a, b) => {
-      const dateA = new Date(a.updatedAt || a.createdAt).getTime();
-      const dateB = new Date(b.updatedAt || b.createdAt).getTime();
-      return dateB - dateA;
-    });
+export async function getMostLovedProducts(limit: number = 8): Promise<ProductType[]> {
+  try {
+    await connectDB();
+    
+    // Fetch only active category slugs to filter products
+    // Ensures "most loved" products only come from visible categories
+    const activeCategories = await Category.find({ active: true }).select('slug').lean();
+    const activeCategorySlugs = activeCategories.map(cat => cat.slug);
+    
+    const products = await Product.find({
+      status: 'active',
+      mostLoved: true,
+      category: { $in: activeCategorySlugs }
+    })
+      .sort({ updatedAt: -1, createdAt: -1 })
+      .limit(limit)
+      .lean();
+    
+    // Transform to match existing Product type
+    return products.map(product => ({
+      id: product._id.toString(),
+      slug: product.slug,
+      title: product.title,
+      description: product.description,
+      image: product.primaryImage || (product.images[0] || ''),
+      alt: product.alt,
+      price: product.price,
+      currency: product.currency || 'INR', // Include currency field
+      category: product.category,
+      material: product.material,
+      inStock: product.inStock,
+      mostLoved: product.mostLoved,
+      featured: product.featured,
+      createdAt: product.createdAt.toISOString(),
+      updatedAt: product.updatedAt.toISOString(),
+    }));
+  } catch (error) {
+    logError('getMostLovedProducts', error);
+    return [];
+  }
 }
 
 /**
  * Get related products from the same category, excluding the current product
+ * Only returns products if category is active
  * 
  * Products are sorted by most recently updated/created to show latest items first.
  * 
- * @param category - Product category to filter by
+ * @param category - Product category slug to filter by
  * @param excludeId - Product ID to exclude from results
  * @param limit - Maximum number of products to return (default: 4)
  * @returns Array of related products, sorted by most recent first
@@ -97,37 +234,95 @@ export async function getRelatedProducts(
   category: string,
   excludeId: string,
   limit: number = 4
-): Promise<Product[]> {
-  const data = await loadProducts();
-  return data.products
-    .filter(p => p.category === category && p.id !== excludeId)
-    .slice(0, limit)
-    .sort((a, b) => {
-      const dateA = new Date(a.updatedAt || a.createdAt).getTime();
-      const dateB = new Date(b.updatedAt || b.createdAt).getTime();
-      return dateB - dateA;
+): Promise<ProductType[]> {
+  try {
+    await connectDB();
+    
+    // Verify category is active
+    const activeCategory = await Category.findOne({ 
+      slug: category.toLowerCase(),
+      active: true 
     });
+    
+    if (!activeCategory) {
+      // Category is inactive, return empty
+      return [];
+    }
+    
+    const products = await Product.find({
+      status: 'active',
+      category: category.toLowerCase(),
+      _id: { $ne: excludeId }
+    })
+      .sort({ updatedAt: -1, createdAt: -1 })
+      .limit(limit)
+      .lean();
+    
+    // Transform to match existing Product type
+    return products.map(product => ({
+      id: product._id.toString(),
+      slug: product.slug,
+      title: product.title,
+      description: product.description,
+      image: product.primaryImage || (product.images[0] || ''),
+      alt: product.alt,
+      price: product.price,
+      currency: product.currency || 'INR', // Include currency field
+      category: product.category,
+      material: product.material,
+      inStock: product.inStock,
+      mostLoved: product.mostLoved,
+      featured: product.featured,
+      createdAt: product.createdAt.toISOString(),
+      updatedAt: product.updatedAt.toISOString(),
+    }));
+  } catch (error) {
+    logError('getRelatedProducts', error);
+    return [];
+  }
 }
 
 /**
- * Get image URLs for each product category
+ * Get image URLs for each active product category
  * 
- * Uses the first product found in each category as the category image.
+ * Uses the first product found in each active category as the category image.
+ * Only returns images for active categories.
  * 
- * @returns Object mapping category slugs to image URLs
+ * @returns Object mapping active category slugs to image URLs
  */
 export async function getCategoryImages(): Promise<Record<string, string>> {
-  const data = await loadProducts();
-  const categoryImages: Record<string, string> = {};
-  const categories = ['rings', 'earrings', 'necklaces', 'bracelets'];
-
-  categories.forEach((category) => {
-    const product = data.products.find(p => p.category === category);
-    if (product) {
-      categoryImages[category] = product.image;
+  try {
+    await connectDB();
+    
+    // Fetch active categories sorted by display order
+    // Only returns categories that should be visible to users
+    const activeCategories = await Category.find({ active: true })
+      .sort({ order: 1 })
+      .lean();
+    
+    const categoryImages: Record<string, string> = {};
+    
+    // For each active category, get the first product's image
+    for (const category of activeCategories) {
+      const product = await Product.findOne({
+        status: 'active',
+        category: category.slug
+      })
+        .select('primaryImage images')
+        .lean();
+      
+      if (product) {
+        categoryImages[category.slug] = product.primaryImage || (product.images[0] || category.image);
+      } else {
+        // Fallback to category image if no products
+        categoryImages[category.slug] = category.image;
+      }
     }
-  });
-
-  return categoryImages;
+    
+    return categoryImages;
+  } catch (error) {
+    logError('getCategoryImages', error);
+    return {};
+  }
 }
 

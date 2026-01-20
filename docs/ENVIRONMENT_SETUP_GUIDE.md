@@ -27,7 +27,7 @@
 |---------|-----------|-------------|
 | **GitHub** | ✅ Free | Unlimited repos, version control, CI/CD |
 | **Vercel** | ✅ Free | 100GB bandwidth/month, unlimited deployments, CDN |
-| **Zoho Catalyst** | ✅ Free | 2GB storage, 10K reads/month, 5K writes/month |
+| **MongoDB Atlas** | ✅ Free | 512MB storage, unlimited operations (M0 free tier) |
 | **Zoho Mail** | ✅ Free | 5GB storage, 25MB attachment limit |
 | **Domain** | ⚠️ Paid | Your existing domain (jewelsbynavkush.com) |
 
@@ -40,7 +40,7 @@
 Before starting, ensure you have:
 - ✅ GitHub account (free)
 - ✅ Vercel account (free - sign up with GitHub)
-- ✅ Zoho Catalyst account (free)
+- ✅ MongoDB Atlas account (free)
 - ✅ Domain access (jewelsbynavkush.com)
 - ✅ Code pushed to GitHub
 
@@ -94,61 +94,72 @@ git push -u origin develop
 
 ---
 
-## 🗄️ **Step 2: Zoho Catalyst Projects Setup**
+## 🗄️ **Step 2: MongoDB Atlas Setup**
 
-### **2.1 Create Development Project**
+### **2.1 Create MongoDB Atlas Account**
 
-1. Go to [Zoho Catalyst Console](https://catalyst.zoho.com)
-2. Click **"Create Project"**
-3. **Project Name:** `jewelry-website-dev`
-4. **Description:** Development environment for jewelry website
-5. Click **"Create"**
-6. **Note down:**
-   - Project ID (you'll need this)
-   - Project Name
+1. Go to [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+2. Click **"Try Free"** or **"Sign Up"**
+3. Sign up with email or Google account
+4. **No credit card required** for free tier
+5. Verify your email
 
-### **2.2 Set Up NoSQL Database (Dev)**
+### **2.2 Create Development Cluster**
 
-1. In your dev project, go to **"Data Store"** → **"NoSQL"**
-2. Click **"Create Table"**
-3. **Table Name:** `products`
-4. **Primary Key:** `id` (String)
-5. Click **"Create"**
-6. Repeat for all tables:
-   - `users`
-   - `addresses`
-   - `cart`
-   - `orders`
-   - `order_items`
-   - `categories`
-   - `site_settings`
-   - `inventory_log`
-   - `wishlist`
-   - `email_templates`
-   - `email_queue`
+1. After login, click **"Build a Database"**
+2. Choose **"M0 Free"** tier (512MB, free forever)
+3. **Cloud Provider:** AWS (or your preference)
+4. **Region:** Choose closest to your users (e.g., Mumbai for India)
+5. **Cluster Name:** `jewelry-website-dev`
+6. Click **"Create"**
+7. Wait 3-5 minutes for cluster creation
 
-### **2.3 Get API Credentials (Dev)**
+### **2.3 Create Database User (Dev)**
 
-1. Go to **"Settings"** → **"API Details"**
-2. Click **"Generate Client ID"**
-3. **Client Name:** `jewelry-website-dev-client`
-4. Click **"Generate"**
-5. **Copy and save:**
-   - Client ID
-   - Client Secret (shown only once!)
+1. In **"Database Access"** section
+2. Click **"Add New Database User"**
+3. **Authentication Method:** Password
+4. **Username:** `jewelry-dev-user` (or your choice)
+5. **Password:** Generate secure password (save it!)
+6. **Database User Privileges:** Read and write to any database
+7. Click **"Add User"**
 
-### **2.4 Create Production Project**
+### **2.4 Whitelist IP Addresses (Dev)**
 
-1. Click **"Create Project"** again
-2. **Project Name:** `jewelry-website-prod`
-3. **Description:** Production environment for jewelry website
+1. Go to **"Network Access"** section
+2. Click **"Add IP Address"**
+3. For Vercel: Click **"Allow Access from Anywhere"** (0.0.0.0/0)
+   - ⚠️ **Note:** For production, use specific IPs for better security
+4. Click **"Confirm"**
+
+### **2.5 Get Connection String (Dev)**
+
+1. Go to **"Clusters"** section
+2. Click **"Connect"** on your dev cluster
+3. Choose **"Connect your application"**
+4. **Driver:** Node.js
+5. **Version:** 5.5 or later
+6. Copy the connection string:
+   ```
+   mongodb+srv://<username>:<password>@jewelry-website-dev.xxxxx.mongodb.net/?retryWrites=true&w=majority
+   ```
+7. Replace `<username>` with your database username
+8. Replace `<password>` with your database password
+9. Add database name: `?retryWrites=true&w=majority` → `jewelry-website-dev?retryWrites=true&w=majority`
+10. **Save this connection string securely**
+
+### **2.6 Create Production Cluster**
+
+1. Click **"Build a Database"** again
+2. Choose **"M0 Free"** tier (or upgrade to M10 for $9/month if needed)
+3. **Cluster Name:** `jewelry-website-prod`
 4. Click **"Create"**
-5. Repeat steps 2.2 and 2.3 for production:
-   - Create all tables
-   - Generate API credentials
-   - Save Client ID and Client Secret
+5. Repeat steps 2.3, 2.4, and 2.5 for production:
+   - Create database user
+   - Whitelist IP addresses
+   - Get connection string
 
-**✅ Step 2 Complete:** You now have two Zoho Catalyst projects (dev & prod) with databases.
+**✅ Step 2 Complete:** You now have two MongoDB Atlas clusters (dev & prod) ready to use.
 
 ---
 
@@ -186,10 +197,15 @@ Click **"Environment Variables"** and add:
 NEXT_PUBLIC_ENV=development
 NEXT_PUBLIC_BASE_URL=https://dev2026.jewelsbynavkush.com
 
-# Zoho Catalyst (Dev)
-ZOHO_CATALYST_PROJECT_ID=your_dev_project_id
-ZOHO_CATALYST_CLIENT_ID=your_dev_client_id
-ZOHO_CATALYST_CLIENT_SECRET=your_dev_client_secret
+# MongoDB Atlas (Dev)
+MONGODB_URI=mongodb+srv://username:password@dev-cluster.mongodb.net/jewelry-website-dev?retryWrites=true&w=majority
+
+# JWT Authentication
+JWT_SECRET=your-secure-random-secret-key-change-in-production
+JWT_EXPIRES_IN=5m
+
+# CORS Configuration
+CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
 
 # Zoho Mail (Dev - optional for now)
 ZOHO_MAIL_API_KEY=your_dev_mail_key
@@ -241,10 +257,15 @@ Click **"Environment Variables"** and add:
 NEXT_PUBLIC_ENV=production
 NEXT_PUBLIC_BASE_URL=https://jewelsbynavkush.com
 
-# Zoho Catalyst (Prod)
-ZOHO_CATALYST_PROJECT_ID=your_prod_project_id
-ZOHO_CATALYST_CLIENT_ID=your_prod_client_id
-ZOHO_CATALYST_CLIENT_SECRET=your_prod_client_secret
+# MongoDB Atlas (Prod)
+MONGODB_URI=mongodb+srv://username:password@prod-cluster.mongodb.net/jewelry-website-prod?retryWrites=true&w=majority
+
+# JWT Authentication
+JWT_SECRET=your-secure-random-secret-key-change-in-production
+JWT_EXPIRES_IN=5m
+
+# CORS Configuration
+CORS_ALLOWED_ORIGINS=https://jewelsbynavkush.com,https://www.jewelsbynavkush.com
 
 # Zoho Mail (Prod)
 ZOHO_MAIL_API_KEY=your_prod_mail_key
@@ -324,10 +345,15 @@ Create environment files in your project:
 NEXT_PUBLIC_ENV=development
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
 
-# Zoho Catalyst (Dev)
-ZOHO_CATALYST_PROJECT_ID=your_dev_project_id
-ZOHO_CATALYST_CLIENT_ID=your_dev_client_id
-ZOHO_CATALYST_CLIENT_SECRET=your_dev_client_secret
+# MongoDB Atlas (Dev)
+MONGODB_URI=mongodb+srv://username:password@dev-cluster.mongodb.net/jewelry-website-dev?retryWrites=true&w=majority
+
+# JWT Authentication
+JWT_SECRET=your-secure-random-secret-key-change-in-production
+JWT_EXPIRES_IN=5m
+
+# CORS Configuration
+CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
 
 # Zoho Mail (Dev)
 ZOHO_MAIL_API_KEY=your_dev_mail_key
@@ -340,10 +366,8 @@ ZOHO_MAIL_API_KEY=your_dev_mail_key
 NEXT_PUBLIC_ENV=production
 NEXT_PUBLIC_BASE_URL=https://jewelsbynavkush.com
 
-# Zoho Catalyst (Prod)
-ZOHO_CATALYST_PROJECT_ID=your_prod_project_id
-ZOHO_CATALYST_CLIENT_ID=your_prod_client_id
-ZOHO_CATALYST_CLIENT_SECRET=your_prod_client_secret
+# MongoDB Atlas (Prod)
+MONGODB_URI=mongodb+srv://username:password@prod-cluster.mongodb.net/jewelry-website-prod?retryWrites=true&w=majority
 
 # Zoho Mail (Prod)
 ZOHO_MAIL_API_KEY=your_prod_mail_key
@@ -356,10 +380,15 @@ ZOHO_MAIL_API_KEY=your_prod_mail_key
 NEXT_PUBLIC_ENV=development
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
 
-# Zoho Catalyst
-ZOHO_CATALYST_PROJECT_ID=
-ZOHO_CATALYST_CLIENT_ID=
-ZOHO_CATALYST_CLIENT_SECRET=
+# MongoDB Atlas
+MONGODB_URI=
+
+# JWT Authentication
+JWT_SECRET=
+JWT_EXPIRES_IN=5m
+
+# CORS Configuration
+CORS_ALLOWED_ORIGINS=
 
 # Zoho Mail
 ZOHO_MAIL_API_KEY=
@@ -406,15 +435,17 @@ export function isDevelopment() {
 /**
  * Get Zoho Catalyst configuration based on environment
  */
-export function getZohoCatalystConfig() {
-  const env = getEnv();
+/**
+ * Get MongoDB connection URI
+ */
+export function getMongoDbUri(): string {
+  const uri = process.env.MONGODB_URI;
   
-  return {
-    projectId: process.env.ZOHO_CATALYST_PROJECT_ID || '',
-    clientId: process.env.ZOHO_CATALYST_CLIENT_ID || '',
-    clientSecret: process.env.ZOHO_CATALYST_CLIENT_SECRET || '',
-    environment: env,
-  };
+  if (!uri) {
+    throw new Error('MONGODB_URI environment variable is not set');
+  }
+  
+  return uri;
 }
 ```
 
@@ -487,10 +518,12 @@ cd /Users/rajatsharma/Desktop/STUDY/DI/jewelry-website
 npm install
 ```
 
-### **7.2 Install Zoho Catalyst SDK**
+### **7.2 Install MongoDB Driver**
 
 ```bash
-npm install @zohocatalyst/nodejs-sdk
+npm install mongoose
+# or
+npm install mongodb
 ```
 
 ### **7.3 Create Environment File**
@@ -560,8 +593,8 @@ npm start
    - Verify all variables are set
    - **Important:** Use production credentials only!
 
-3. **Check Zoho Catalyst:**
-   - Go to Zoho Catalyst prod project
+3. **Check MongoDB Atlas:**
+   - Go to MongoDB Atlas prod cluster
    - Verify tables are created
    - Test API connection
 
@@ -597,9 +630,10 @@ git push origin main
 ### **Development Environment**
 - [ ] GitHub repository created
 - [ ] `develop` branch created
-- [ ] Zoho Catalyst dev project created
-- [ ] Zoho Catalyst dev database tables created
-- [ ] Zoho Catalyst dev API credentials generated
+- [ ] MongoDB Atlas dev cluster created
+- [ ] MongoDB Atlas dev database user created
+- [ ] MongoDB Atlas dev IP whitelisted
+- [ ] MongoDB Atlas dev connection string saved
 - [ ] Vercel dev project created
 - [ ] Vercel dev environment variables configured
 - [ ] Dev domain configured (or using Vercel preview)
@@ -607,9 +641,10 @@ git push origin main
 
 ### **Production Environment**
 - [ ] `main` branch exists
-- [ ] Zoho Catalyst prod project created
-- [ ] Zoho Catalyst prod database tables created
-- [ ] Zoho Catalyst prod API credentials generated
+- [ ] MongoDB Atlas prod cluster created
+- [ ] MongoDB Atlas prod database user created
+- [ ] MongoDB Atlas prod IP whitelisted
+- [ ] MongoDB Atlas prod connection string saved
 - [ ] Vercel prod project created
 - [ ] Vercel prod environment variables configured
 - [ ] Production domain configured
@@ -619,7 +654,7 @@ git push origin main
 - [ ] `.env.development.local` created
 - [ ] `.env.production.local` created
 - [ ] `.env.example` created
-- [ ] Zoho Catalyst SDK installed
+- [ ] MongoDB driver (mongoose) installed
 - [ ] Local dev server runs successfully
 
 ---
@@ -629,11 +664,11 @@ git push origin main
 After completing this setup:
 
 1. **Start Database Migration:**
-   - Migrate existing JSON data to Zoho Catalyst
-   - See: [Zoho Catalyst Setup Guide](./ZOHO_CATALYST_NOSQL_SETUP.md)
+   - Migrate existing JSON data to MongoDB Atlas
+   - See: [MongoDB Atlas Setup Guide](./DATABASE_RECOMMENDATION.md) or [MongoDB Atlas Documentation](https://docs.mongodb.com/atlas/)
 
 2. **Implement API Integration:**
-   - Create API routes for Zoho Catalyst
+   - Create API routes for MongoDB Atlas
    - Update existing code to use database
 
 3. **Begin Feature Development:**
@@ -651,7 +686,7 @@ After completing this setup:
 - Verify environment variables are set
 - Check for TypeScript/linting errors
 
-### **Issue: Zoho Catalyst connection fails**
+### **Issue: MongoDB Atlas connection fails**
 - Verify API credentials are correct
 - Check project ID matches
 - Ensure tables are created
@@ -666,13 +701,24 @@ After completing this setup:
 - Check variable names match exactly
 - Restart dev server after changes
 
+### **About NODE_ENV**
+
+**✅ You DON'T Need to Set NODE_ENV Manually**
+
+`NODE_ENV` is **automatically set** by Next.js and Vercel:
+- **Development (`npm run dev`):** Next.js automatically sets `NODE_ENV=development`
+- **Production Build (`npm run build`):** Next.js automatically sets `NODE_ENV=production`
+- **Vercel Deployment:** Vercel automatically sets `NODE_ENV=production` for all deployments
+
+**No need to add it to `.env.local` or Vercel environment variables!**
+
 ---
 
 ## 📚 **Related Documentation**
 
 - [Vercel Branch Setup Guide](./VERCEL_BRANCH_SETUP.md) - **How to select/change branches in Vercel**
 - [Project Roadmap](./PROJECT_ROADMAP.md) - Complete development plan
-- [Zoho Catalyst Setup](./ZOHO_CATALYST_NOSQL_SETUP.md) - Database setup details
+- [MongoDB Atlas Setup](./DATABASE_RECOMMENDATION.md) - Database setup details
 - [Vercel Deployment](./VERCEL_DEPLOYMENT.md) - Deployment guide
 - [GitHub Complete Guide](./GITHUB_COMPLETE_GUIDE.md) - Version control
 

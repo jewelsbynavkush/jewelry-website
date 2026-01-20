@@ -8,7 +8,7 @@ Complete documentation for the Jewels by NavKush jewelry website.
 
 - **[Quick Start Guide](./SETUP_QUICK_START.md)** - Get up and running in minutes
 - **[Development Guide](./DEVELOPMENT_GUIDE.md)** - Complete development workflow
-- **[Project Roadmap](./PROJECT_ROADMAP.md)** - Comprehensive development plan for full e-commerce platform
+- **[Project Roadmap](./PROJECT_ROADMAP.md)** - Comprehensive development plan
 
 ---
 
@@ -16,20 +16,13 @@ Complete documentation for the Jewels by NavKush jewelry website.
 
 ### **Initial Setup**
 - **[Quick Start Guide](./SETUP_QUICK_START.md)** - Initial project setup
-- **[Environment Setup Guide](./ENVIRONMENT_SETUP_GUIDE.md)** - Step-by-step dev/prod environment setup (100% free)
-- **[Project Roadmap](./PROJECT_ROADMAP.md)** - Comprehensive development plan (dev/prod, e-commerce, database, etc.)
-- **[JSON-Based Architecture](./JSON_BASED_ARCHITECTURE_PLAN.md)** - Current architecture (JSON-based)
-- **[Migration Complete](./MIGRATION_COMPLETE.md)** - Migration from Sanity/Firebase to JSON
-
-### **Legacy Setup (Historical Reference)**
-- **[Sanity Complete Guide](./SANITY_COMPLETE_GUIDE.md)** - Complete Sanity.io CMS guide (no longer used - merged from multiple files)
-- **[Firebase Setup](./FIREBASE_SETUP.md)** - Firebase Firestore (no longer used)
-- **[Firebase & Sanity Usage Report](./FIREBASE_SANITY_USAGE_REPORT.md)** - Historical analysis
+- **[Environment Setup Guide](./ENVIRONMENT_SETUP_GUIDE.md)** - Step-by-step dev/prod environment setup
+- **[MongoDB Atlas Complete Guide](./MONGODB_ATLAS_COMPLETE_GUIDE.md)** - Complete MongoDB Atlas setup ⭐ **READ THIS FIRST**
+- **[Account Setup Guide](./ACCOUNT_SETUP_GUIDE.md)** - Business accounts, Gmail, GitHub, domain transfer, SSH setup
 
 ### **Deployment**
-- **[Vercel Deployment Guide](./VERCEL_DEPLOYMENT.md)** - Complete step-by-step deployment guide (includes strategy, checklist, and troubleshooting)
-- **[Deployment Plan](./DEPLOYMENT_PLAN.md)** - Quick reference overview (see Vercel Deployment Guide for details)
-- **[GitHub Complete Guide](./GITHUB_COMPLETE_GUIDE.md)** - Complete GitHub setup and hosting options (merged from multiple files)
+- **[Vercel Deployment Guide](./VERCEL_DEPLOYMENT.md)** - Complete deployment guide
+- **[GitHub Complete Guide](./GITHUB_COMPLETE_GUIDE.md)** - GitHub setup and hosting
 
 ---
 
@@ -38,73 +31,95 @@ Complete documentation for the Jewels by NavKush jewelry website.
 ### **Design System**
 - **[Design System Consistency](./DESIGN_SYSTEM_CONSISTENCY.md)** - Design standards
 - **[Typography Guide](./TYPOGRAPHY_GUIDE.md)** - Font system
-- **[Design Implementation Summary](./DESIGN_IMPLEMENTATION_SUMMARY.md)** - Design implementation
+- **[3D Animations Guide](./3D_ANIMATIONS_GUIDE.md)** - 3D effects and animations
+- **[Color Consistency Final Report](./COLOR_CONSISTENCY_FINAL_REPORT.md)** - Color system and contrast
 
 ### **Development**
 - **[Development Guide](./DEVELOPMENT_GUIDE.md)** - Complete development workflow
-- **[Layout Rebuild Summary](./LAYOUT_REBUILD_SUMMARY.md)** - Layout architecture
-- **[3D Animations Guide](./3D_ANIMATIONS_GUIDE.md)** - 3D effects and animations
+- **[Project Structure](./PROJECT_STRUCTURE.md)** - Complete technical documentation
 
 ---
 
 ## 🔍 **Technical Documentation**
 
 ### **Framework & Architecture**
-- **[Project Structure](./PROJECT_STRUCTURE.md)** - Complete technical documentation (design, structure, components, layouts, functions)
-- **[Tech Stack Recommendation](./TECH_STACK_RECOMMENDATION.md)** - Technology choices
-- **[What is Next.js?](./WHAT_IS_NEXTJS.md)** - Next.js overview
+- **[Project Structure](./PROJECT_STRUCTURE.md)** - Complete technical documentation
 - **[Next.js Static vs Dynamic](./NEXTJS_STATIC_VS_DYNAMIC.md)** - Rendering strategies
-- **[NoSQL Database Comparison](./NOSQL_DATABASE_COMPARISON.md)** - Database options
 
-### **Standards & Compliance**
-- **[Overall Best Practices](./OVERALL_BEST_PRACTICES_FINAL.md)** - Complete best practices verification (includes security, SEO, responsiveness)
+### **Standards & Best Practices**
+- **[Overall Best Practices Final](./OVERALL_BEST_PRACTICES_FINAL_2025.md)** - Complete best practices verification
+- **[Comment Standards](./COMMENT_STANDARDS.md)** - Code commenting standards
+- **[Text Casing Standards](./TEXT_CASING_STANDARDS.md)** - Text formatting standards
+- **[Import Patterns Guide](./IMPORT_PATTERNS_GUIDE.md)** - Import organization patterns
+- **[Code Quality Cleanup Final Report](./CODE_QUALITY_CLEANUP_FINAL_REPORT.md)** - Code quality audit
+- **[Color Consistency Final Report](./COLOR_CONSISTENCY_FINAL_REPORT.md)** - Color standards
+- **[CSS Responsiveness Final Report](./CSS_RESPONSIVENESS_FINAL_REPORT.md)** - Responsiveness standards
+- **[Security Best Practices Final Report](./SECURITY_BEST_PRACTICES_FINAL_REPORT.md)** - Security standards
+- **[SEO Best Practices Final Report](./SEO_BEST_PRACTICES_FINAL_REPORT.md)** - SEO standards
+- **[E-Commerce Best Practices Final](./E_COMMERCE_BEST_PRACTICES_FINAL.md)** - E-commerce standards
 
 ---
 
-## ✅ **Quality & Best Practices Verification**
+## 📊 **Models & Database**
 
-### **Code Quality**
-- **[Code Quality Final Verification](./CODE_QUALITY_FINAL_VERIFICATION.md)** - Code quality, modularity, and best practices
+- **[Models Guide](./MODELS_GUIDE.md)** - Complete MongoDB models documentation
+- **[Inventory Management Deep Dive](./INVENTORY_MANAGEMENT_DEEP_DIVE.md)** - Inventory system details
+- **[Inventory Flow Explained](./INVENTORY_FLOW_EXPLAINED.md)** - Inventory flow diagram
+- **[Inventory Model Structure](./INVENTORY_MODEL_STRUCTURE.md)** - Inventory model details
+- **[Category Active Field Guide](./CATEGORY_ACTIVE_FIELD_GUIDE.md)** - Category management
+- **[MongoDB Atlas Complete Guide](./MONGODB_ATLAS_COMPLETE_GUIDE.md)** - MongoDB setup
+- **[MongoDB Lock Timeout Explanation](./MONGODB_LOCK_TIMEOUT_EXPLANATION.md)** - Transaction timeouts
 
-### **Security**
-- **[Security Final Verification](./SECURITY_FINAL_VERIFICATION.md)** - Complete security best practices & audit
+---
 
-### **SEO**
-- **[SEO Final Verification](./SEO_FINAL_VERIFICATION.md)** - Complete SEO best practices & verification
+## 🔌 **APIs**
 
-### **E-commerce**
-- **[E-commerce Best Practices Final](./E_COMMERCE_BEST_PRACTICES_FINAL.md)** - E-commerce best practices & consistency (includes implementation details)
-- **[E-commerce Implementation Guide](./E_COMMERCE_IMPLEMENTATION_GUIDE.md)** - E-commerce features
+- **[API Guide](./API_GUIDE.md)** - Complete API documentation (includes quick reference)
+- **[Swagger Documentation](./SWAGGER_API_DOCUMENTATION.md)** - Interactive API docs
+- **[JWT Environment Setup](./JWT_ENV_SETUP.md)** - JWT configuration
 
-### **Design & Styling**
-- **[Color Consistency Final Verification](./COLOR_CONSISTENCY_FINAL_VERIFICATION.md)** - Color system consistency
-- **[CSS & Responsiveness Final Verification](./CSS_RESPONSIVENESS_FINAL_VERIFICATION.md)** - CSS & responsiveness best practices
-- **[Text Casing Standards](./TEXT_CASING_STANDARDS.md)** - Text formatting standards
+---
+
+## 🛒 **E-Commerce**
+
+- **[E-Commerce Guide](./E_COMMERCE_GUIDE.md)** - Complete e-commerce guide
+- **[E-Commerce Best Practices Final](./E_COMMERCE_BEST_PRACTICES_FINAL.md)** - E-commerce standards
+
+---
+
+## ✅ **Quality & Audits**
+
+- **[Comprehensive Audit Report](./AUDIT_REPORT_2025.md)** - All audits consolidated
+- **[Overall Best Practices Final](./OVERALL_BEST_PRACTICES_FINAL_2025.md)** - Complete best practices verification
+- **[Code Quality Cleanup Final Report](./CODE_QUALITY_CLEANUP_FINAL_REPORT.md)** - Code quality audit
+- **[Security Best Practices Final Report](./SECURITY_BEST_PRACTICES_FINAL_REPORT.md)** - Security standards
+- **[Comment Standards](./COMMENT_STANDARDS.md)** - Comment standards (includes audit history)
+- **[SEO Best Practices Final Report](./SEO_BEST_PRACTICES_FINAL_REPORT.md)** - SEO standards
+- **[CSS Responsiveness Final Report](./CSS_RESPONSIVENESS_FINAL_REPORT.md)** - Responsiveness standards
+- **[Color Consistency Final Report](./COLOR_CONSISTENCY_FINAL_REPORT.md)** - Color standards
+- **[E-Commerce Best Practices Final](./E_COMMERCE_BEST_PRACTICES_FINAL.md)** - E-commerce standards
+
+---
+
+## 🧪 **Testing**
+
+- **[Testing Guide](./TESTING_GUIDE.md)** - Complete testing documentation (includes architecture, implementation, and coverage)
 
 ---
 
 ## 🔧 **Troubleshooting & Guides**
 
 ### **Image Setup**
-- **[Complete Image Guide](./IMAGE_GUIDE.md)** - Comprehensive image guide (merged from multiple files)
-  - Image directory structure
-  - Product, hero, about, and category image setup
-  - Image naming conventions and specifications
-  - Troubleshooting and historical notes
+- **[Image Guide](./IMAGE_GUIDE.md)** - Comprehensive image guide
 
-### **Cache & Performance**
-- **[Cache Clearing Guide](./CACHE_CLEARING_GUIDE.md)** - Clear Next.js cache
-
-### **Migration & Architecture**
-- **[Migration Complete](./MIGRATION_COMPLETE.md)** - JSON-based architecture migration
-- **[JSON-Based Architecture Plan](./JSON_BASED_ARCHITECTURE_PLAN.md)** - Architecture overview
-- **[Firebase & Sanity Usage Report](./FIREBASE_SANITY_USAGE_REPORT.md)** - Historical reference (outdated)
+### **Services**
+- **[Zoho Mail Setup](./ZOHO_MAIL_SETUP.md)** - Zoho Mail configuration
 
 ---
 
-## 📋 **Documentation Organization**
+## 📋 **Production & Launch**
 
-- **[Documentation Organization](./DOCUMENTATION_ORGANIZATION.md)** - How docs are organized
+- **[Production Launch Guide](./PRODUCTION_LAUNCH_GUIDE.md)** - Complete production launch checklist (includes setup)
 
 ---
 
@@ -112,22 +127,30 @@ Complete documentation for the Jewels by NavKush jewelry website.
 
 ### **Most Important Docs:**
 1. **[Quick Start Guide](./SETUP_QUICK_START.md)** - Get started
-2. **[Project Structure](./PROJECT_STRUCTURE.md)** - Complete technical documentation
-3. **[Vercel Deployment Guide](./VERCEL_DEPLOYMENT.md)** - Complete deployment guide
-4. **[Development Guide](./DEVELOPMENT_GUIDE.md)** - Development workflow
-5. **[Overall Best Practices](./OVERALL_BEST_PRACTICES_FINAL.md)** - Complete best practices verification
+2. **[MongoDB Atlas Complete Guide](./MONGODB_ATLAS_COMPLETE_GUIDE.md)** - Database setup
+3. **[Project Structure](./PROJECT_STRUCTURE.md)** - Technical documentation
+4. **[Vercel Deployment Guide](./VERCEL_DEPLOYMENT.md)** - Deployment guide
+5. **[Development Guide](./DEVELOPMENT_GUIDE.md)** - Development workflow
+6. **[Overall Best Practices](./OVERALL_BEST_PRACTICES_FINAL_2025.md)** - Best practices
+7. **[Models Guide](./MODELS_GUIDE.md)** - Database models
+8. **[API Guide](./API_GUIDE.md)** - API documentation
+9. **[E-Commerce Guide](./E_COMMERCE_GUIDE.md)** - E-commerce features
+10. **[Comprehensive Audit Report](./AUDIT_REPORT_2025.md)** - All audits
 
 ---
 
 ## 📝 **Documentation Structure**
 
 All documentation is organized in the `docs/` directory:
-- **Final Verification Reports** - Comprehensive verification reports (most recent)
 - **Setup Guides** - Initial setup and configuration
 - **Development Guides** - Development workflow and best practices
+- **Technical Documentation** - Framework, architecture, and standards
+- **Models & APIs** - Database models and API documentation
+- **E-Commerce** - E-commerce features and best practices
+- **Audit Reports** - Quality and compliance audits
+- **Testing** - Test documentation and guides
 - **Troubleshooting** - Common issues and solutions
-- **Legacy Docs** - Historical reference (outdated but kept for context)
 
 ---
 
-**Last Updated:** Current
+**Last Updated:** January 2025

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
+export default function middleware(request: NextRequest) {
   // Skip security headers for internal Next.js routes and API endpoints
   // API routes handle their own security headers
   if (

@@ -889,6 +889,38 @@ export default function robots(): MetadataRoute.Robots {
 
 ## 🐛 Troubleshooting
 
+### **Cache Clearing**
+
+If you've updated images or files but the website still shows old content, it's likely a caching issue.
+
+**Quick Fix Steps:**
+
+1. **Clear Next.js Build Cache:**
+   ```bash
+   # Delete .next folder
+   rm -rf .next
+   
+   # Rebuild
+   npm run build
+   ```
+
+2. **Restart Dev Server:**
+   ```bash
+   # Stop the server (Ctrl+C)
+   # Then restart
+   npm run dev
+   ```
+
+3. **Clear Browser Cache:**
+   - **Chrome/Edge:** Press `Ctrl+Shift+R` (Windows) or `Cmd+Shift+R` (Mac)
+   - **Firefox:** Press `Ctrl+F5` (Windows) or `Cmd+Shift+R` (Mac)
+   - **Safari:** Press `Cmd+Option+E` to clear cache
+
+**Why This Happens:**
+- Next.js caches builds in `.next` folder
+- Browsers cache images for performance
+- CDN may cache content if deployed
+
 ### **Common Issues:**
 
 1. **Firebase not initializing:**

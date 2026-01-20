@@ -62,7 +62,8 @@ export default async function DesignsPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const category = params.category;
   const sort = params.sort || 'default';
-  let products = await getProducts(category);
+  const productsData = await getProducts(category);
+  let products = productsData.products;
   
   // Apply sorting
   if (sort !== 'default') {

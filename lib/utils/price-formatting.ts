@@ -1,36 +1,108 @@
 /**
  * Price formatting utilities for consistent e-commerce display
+ * 
+ * Supports multiple currencies: INR, USD, EUR
+ * Default currency: INR (Indian Rupees)
  */
 
+/**
+ * Default currency configuration
+ * Aligned with ECOMMERCE.currency in lib/constants.ts for consistency
+ */
 export const CURRENCY = {
-  code: 'USD',
-  symbol: '$',
-  name: 'US Dollar',
+  code: 'INR',
+  symbol: '₹',
+  name: 'Indian Rupee',
 } as const;
 
 /**
+ * Currency configuration mapping
+ */
+export const CURRENCY_CONFIG = {
+  INR: {
+    code: 'INR',
+    symbol: '₹',
+    name: 'Indian Rupee',
+    locale: 'en-IN',
+  },
+  USD: {
+    code: 'USD',
+    symbol: '$',
+    name: 'US Dollar',
+    locale: 'en-US',
+  },
+  EUR: {
+    code: 'EUR',
+    symbol: '€',
+    name: 'Euro',
+    locale: 'en-GB',
+  },
+} as const;
+
+/**
+ * Get currency symbol by currency code
+ * @param currencyCode - Currency code (INR, USD, EUR)
+ * @returns Currency symbol
+ */
+/**
+ * Get currency symbol by currency code
+ * Falls back to default INR symbol if currency not found
+ * 
+ * @param currencyCode - Currency code (INR, USD, EUR)
+ * @returns Currency symbol
+ */
+export function getCurrencySymbol(currencyCode: string = CURRENCY.code): string {
+  const currency = currencyCode.toUpperCase() as keyof typeof CURRENCY_CONFIG;
+  return CURRENCY_CONFIG[currency]?.symbol || CURRENCY.symbol;
+}
+
+/**
+ * Get currency locale by currency code
+ * @param currencyCode - Currency code (INR, USD, EUR)
+ * @returns Locale string for number formatting
+ */
+export function getCurrencyLocale(currencyCode: string = CURRENCY.code): string {
+  const currency = currencyCode.toUpperCase() as keyof typeof CURRENCY_CONFIG;
+  return CURRENCY_CONFIG[currency]?.locale || 'en-IN';
+}
+
+/**
  * Format price with currency symbol
+ * Respects product currency field for multi-currency support
+ * 
  * @param price - Price in number format
  * @param options - Formatting options
- * @returns Formatted price string (e.g., "$1,299.00")
+ * @param options.showDecimals - Show decimal places (default: true)
+ * @param options.currencyCode - Currency code (INR, USD, EUR) - uses product currency if available
+ * @param options.currency - Currency symbol override (deprecated, use currencyCode)
+ * @returns Formatted price string (e.g., "₹1,299.00" or "$1,299.00")
  */
 export function formatPrice(
   price: number,
   options: {
     showDecimals?: boolean;
-    currency?: string;
+    currencyCode?: string;
+    currency?: string; // Deprecated: use currencyCode instead
   } = {}
 ): string {
-  const { showDecimals = true, currency = CURRENCY.symbol } = options;
+  const { 
+    showDecimals = true, 
+    currencyCode = CURRENCY.code,
+    currency: legacyCurrency 
+  } = options;
+  
+  // Support legacy currency parameter for backward compatibility
+  const symbol = legacyCurrency || getCurrencySymbol(currencyCode);
+  const locale = getCurrencyLocale(currencyCode);
   
   if (showDecimals) {
-    return `${currency}${price.toLocaleString('en-US', {
+    return `${symbol}${price.toLocaleString(locale, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
   }
   
-  return `${currency}${price.toLocaleString('en-US', {
+  return `${symbol}${price.toLocaleString(locale, {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   })}`;
@@ -40,13 +112,18 @@ export function formatPrice(
  * Format price range (for variants or collections)
  * @param minPrice - Minimum price
  * @param maxPrice - Maximum price
- * @returns Formatted price range string (e.g., "$299.00 - $1,299.00")
+ * @param currencyCode - Currency code (INR, USD, EUR)
+ * @returns Formatted price range string (e.g., "₹299.00 - ₹1,299.00")
  */
-export function formatPriceRange(minPrice: number, maxPrice: number): string {
+export function formatPriceRange(
+  minPrice: number, 
+  maxPrice: number,
+  currencyCode: string = CURRENCY.code
+): string {
   if (minPrice === maxPrice) {
-    return formatPrice(minPrice);
+    return formatPrice(minPrice, { currencyCode });
   }
-  return `${formatPrice(minPrice)} - ${formatPrice(maxPrice)}`;
+  return `${formatPrice(minPrice, { currencyCode })} - ${formatPrice(maxPrice, { currencyCode })}`;
 }
 
 /**
