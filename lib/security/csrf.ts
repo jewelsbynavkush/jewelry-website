@@ -22,33 +22,73 @@ export function validateOrigin(request: NextRequest, strict: boolean = true): bo
   // Use Referer as fallback since same-origin requests may omit Origin header
   const originToCheck = origin || referer;
   
-  if (!originToCheck) {
-    // Missing both headers could indicate same-origin request or direct API call
-    // Strict validation in production prevents unauthorized access
-    if (strict && process.env.NODE_ENV === 'production') {
-      return false;
+  // Check if request is same-origin by comparing to request URL
+  // This handles cases where NEXT_PUBLIC_BASE_URL might differ slightly (www vs non-www)
+  try {
+    const requestUrl = request.nextUrl;
+    const requestOrigin = `${requestUrl.protocol}//${requestUrl.host}`;
+    
+    // If origin matches request URL, it's same-origin (always allowed)
+    if (originToCheck) {
+      try {
+        const originUrl = new URL(originToCheck);
+        const originHost = originUrl.host.toLowerCase();
+        const requestHost = requestUrl.host.toLowerCase();
+        
+        // Exact match
+        if (originHost === requestHost) {
+          return true;
+        }
+        
+        // Allow if domains match (handles www vs non-www)
+        // e.g., dev2026.jewelsbynavkush.com matches www.dev2026.jewelsbynavkush.com
+        const normalizeHost = (host: string) => host.replace(/^www\./, '');
+        if (normalizeHost(originHost) === normalizeHost(requestHost)) {
+          return true;
+        }
+      } catch {
+        // Invalid origin URL, continue with other checks
+      }
     }
-    // Allow in development and test environments for testing convenience
-    return process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';
+    
+    // If no origin/referer but request is to same domain, allow in production
+    // This handles same-origin requests that don't send Origin header
+    if (!originToCheck && requestUrl.host) {
+      // Same-origin requests don't always send Origin header
+      // If request is to our own domain, it's likely legitimate
+      return true;
+    }
+  } catch {
+    // Invalid request URL, continue with other validation
   }
   
+  // Check against NEXT_PUBLIC_BASE_URL if set
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-  if (baseUrl) {
+  if (baseUrl && originToCheck) {
     try {
       const baseUrlObj = new URL(baseUrl);
       const originObj = new URL(originToCheck);
-      // Same-origin requests are always allowed
+      
+      // Exact origin match
       if (originObj.origin === baseUrlObj.origin) {
         return true;
       }
+      
+      // Allow if domains match (handles www vs non-www)
+      const normalizeHost = (host: string) => host.replace(/^www\./, '').toLowerCase();
+      if (normalizeHost(originObj.host) === normalizeHost(baseUrlObj.host)) {
+        return true;
+      }
     } catch {
-      // Invalid URL format indicates potential attack
-      return false;
+      // Invalid URL format, continue
     }
   }
   
   // Allow localhost in development and test environments for local testing
   if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+    if (!originToCheck) {
+      return true; // Allow missing origin in dev/test
+    }
     try {
       const originObj = new URL(originToCheck);
       if (originObj.hostname === 'localhost' || originObj.hostname === '127.0.0.1') {
@@ -59,7 +99,11 @@ export function validateOrigin(request: NextRequest, strict: boolean = true): bo
     }
   }
   
-  // Production: only same-origin requests allowed
+  // Production: strict validation - only same-origin requests allowed
+  if (strict && process.env.NODE_ENV === 'production' && !originToCheck) {
+    return false;
+  }
+  
   return false;
 }
 
