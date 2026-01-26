@@ -33,7 +33,10 @@ export default function CartPage() {
         </ScrollReveal>
         <ScrollReveal delay={0.1}>
           <Card className="text-center py-12">
-            <p className="text-[var(--text-secondary)]">Loading cart...</p>
+            <div className="space-y-4">
+              <div className="inline-block w-8 h-8 border-4 border-[var(--beige)] border-t-transparent rounded-full animate-spin" aria-label="Loading cart" role="status" />
+              <p className="text-[var(--text-secondary)]">Loading cart...</p>
+            </div>
           </Card>
         </ScrollReveal>
       </PageContainer>

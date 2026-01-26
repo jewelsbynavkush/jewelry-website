@@ -22,12 +22,12 @@ describe('POST /api/auth/reset-password', () => {
   });
 
   describe('Successful Reset Request', () => {
-    it('should generate reset token for existing user (mobile)', async () => {
-      const mobile = randomMobile();
-      await User.create(createTestUser({ mobile }));
+    it('should generate reset token for existing user (email)', async () => {
+      const email = randomEmail();
+      await User.create(createTestUser({ email }));
 
       const request = createGuestRequest('POST', 'http://localhost:3000/api/auth/reset-password', {
-        identifier: mobile,
+        identifier: email,
       });
 
       const response = await POST(request);
@@ -37,7 +37,7 @@ describe('POST /api/auth/reset-password', () => {
       expectSuccess(data);
       expect(data.message).toContain('password reset link has been sent');
 
-      const user = await User.findOne({ mobile });
+      const user = await User.findOne({ email });
       expect(user?.resetPasswordToken).toBeDefined();
       expect(user?.resetPasswordExpires).toBeDefined();
     });
@@ -64,7 +64,7 @@ describe('POST /api/auth/reset-password', () => {
   describe('User Enumeration Prevention', () => {
     it('should return same response for non-existent user', async () => {
       const request = createGuestRequest('POST', 'http://localhost:3000/api/auth/reset-password', {
-        identifier: randomMobile(),
+        identifier: randomEmail(),
       });
 
       const response = await POST(request);

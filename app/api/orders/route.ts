@@ -15,7 +15,7 @@ import { NextRequest } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Order from '@/models/Order';
 import Cart from '@/models/Cart';
-import User from '@/models/User';
+import User, { IAddress } from '@/models/User';
 import Product from '@/models/Product';
 import { requireAuth } from '@/lib/auth/middleware';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
@@ -25,42 +25,24 @@ import { formatZodError } from '@/lib/utils/zod-error';
 import { confirmOrderAndUpdateStock, retryWithBackoff, isTransientError } from '@/lib/inventory/inventory-service';
 import { generateIdempotencyKey } from '@/lib/utils/idempotency';
 import { ECOMMERCE } from '@/lib/constants';
+import { SECURITY_CONFIG } from '@/lib/security/constants';
 import type { CreateOrderRequest, CreateOrderResponse, GetOrdersResponse } from '@/types/api';
 import { z } from 'zod';
 import mongoose from 'mongoose';
+import { indianAddressSchema } from '@/lib/validations/address';
 
 /**
- * Schema for creating order
+ * Schema for creating order with Indian address validation
  */
 const createOrderSchema = z.object({
-  cartId: z.string().min(1, 'Cart ID is required').optional(),
-  shippingAddress: z.object({
-    firstName: z.string().min(1, 'First name is required').max(50),
-    lastName: z.string().min(1, 'Last name is required').max(50),
-    company: z.string().max(100).optional(),
-    addressLine1: z.string().min(1, 'Address line 1 is required').max(200),
-    addressLine2: z.string().max(200).optional(),
-    city: z.string().min(1, 'City is required').max(100),
-    state: z.string().min(1, 'State is required').max(100),
-    zipCode: z.string().min(1, 'ZIP code is required').max(20),
-    country: z.string().min(1, 'Country is required').max(100),
-    phone: z.string().max(20).optional(),
-  }),
-  billingAddress: z.object({
-    firstName: z.string().min(1, 'First name is required').max(50),
-    lastName: z.string().min(1, 'Last name is required').max(50),
-    company: z.string().max(100).optional(),
-    addressLine1: z.string().min(1, 'Address line 1 is required').max(200),
-    addressLine2: z.string().max(200).optional(),
-    city: z.string().min(1, 'City is required').max(100),
-    state: z.string().min(1, 'State is required').max(100),
-    zipCode: z.string().min(1, 'ZIP code is required').max(20),
-    country: z.string().min(1, 'Country is required').max(100),
-    phone: z.string().max(20).optional(),
-  }),
+  cartId: z.string().min(1, 'Cart ID is required').max(100).optional(),
+  shippingAddress: indianAddressSchema,
+  billingAddress: indianAddressSchema,
   paymentMethod: z.enum(['razorpay', 'cod', 'bank_transfer', 'other']),
-  customerNotes: z.string().max(1000).optional(),
-  idempotencyKey: z.string().optional(),
+  customerNotes: z.string().max(1000, 'Customer notes must not exceed 1000 characters').optional(),
+  idempotencyKey: z.string().max(100).optional(),
+  saveShippingAddress: z.boolean().optional().default(false),
+  saveBillingAddress: z.boolean().optional().default(false),
 });
 
 /**
@@ -71,10 +53,9 @@ export async function POST(request: NextRequest) {
   let session: mongoose.ClientSession | null = null;
   
   try {
-    // Apply security (CORS, CSRF, rate limiting)
-    // Industry standard: 20 order creations per 15 minutes (prevents abuse while allowing legitimate use)
+    // Apply security (CORS, CSRF) - rate limiting done after auth with user ID
     const securityResponse = applyApiSecurity(request, {
-      rateLimitConfig: { windowMs: 15 * 60 * 1000, maxRequests: 100 }, // 100 orders per 15 minutes
+      enableRateLimit: false, // Disable IP-based rate limiting, use user-based instead
       requireContentType: true,
     });
     if (securityResponse) {
@@ -89,7 +70,17 @@ export async function POST(request: NextRequest) {
 
     const { user } = authResult;
 
-    // Parse and validate request body BEFORE starting transaction
+    // Industry standard: Per-user rate limiting for authenticated endpoints
+    const { checkUserRateLimit } = await import('@/lib/security/api-security');
+    const userRateLimitResponse = checkUserRateLimit(
+      request,
+      user.userId,
+      SECURITY_CONFIG.RATE_LIMIT.ORDER
+    );
+    if (userRateLimitResponse) return userRateLimitResponse;
+
+    // Validate request body BEFORE starting transaction to avoid unnecessary DB operations
+    // Transaction overhead is expensive, so fail fast on invalid input
     let body: CreateOrderRequest;
     try {
       body = await request.json() as CreateOrderRequest;
@@ -130,8 +121,8 @@ export async function POST(request: NextRequest) {
       session = await mongoose.startSession();
       session.startTransaction();
 
-      // Fetch user's cart within transaction to ensure consistency
-      // Cart is locked during order creation to prevent concurrent modifications
+      // Fetch cart within transaction to lock it during order creation
+      // Prevents race conditions when multiple orders are created simultaneously
       const cart = await Cart.findOne({ userId: new mongoose.Types.ObjectId(user.userId) }).session(session);
       if (!cart || cart.items.length === 0) {
         await session.abortTransaction();
@@ -183,7 +174,8 @@ export async function POST(request: NextRequest) {
         state: sanitizeString(validatedData.shippingAddress.state),
         zipCode: sanitizeString(validatedData.shippingAddress.zipCode),
         country: sanitizeString(validatedData.shippingAddress.country),
-        phone: validatedData.shippingAddress.phone ? sanitizePhone(validatedData.shippingAddress.phone) : undefined,
+        phone: sanitizePhone(validatedData.shippingAddress.phone),
+        countryCode: sanitizeString(validatedData.shippingAddress.countryCode || '+91'),
       };
 
       const billingAddress = {
@@ -196,7 +188,8 @@ export async function POST(request: NextRequest) {
         state: sanitizeString(validatedData.billingAddress.state),
         zipCode: sanitizeString(validatedData.billingAddress.zipCode),
         country: sanitizeString(validatedData.billingAddress.country),
-        phone: validatedData.billingAddress.phone ? sanitizePhone(validatedData.billingAddress.phone) : undefined,
+        phone: sanitizePhone(validatedData.billingAddress.phone),
+        countryCode: sanitizeString(validatedData.billingAddress.countryCode || '+91'),
       };
 
       // Ensure tax is calculated if not already set
@@ -206,12 +199,20 @@ export async function POST(request: NextRequest) {
         orderTax = Math.round(cart.subtotal * ECOMMERCE.taxRate * 100) / 100;
       }
       
-      // Calculate final order total with all components
+      // Calculate final order total including subtotal, tax, shipping, and discount
       // Rounding prevents floating-point precision issues in financial calculations
       const orderTotal = Math.round((cart.subtotal + orderTax + cart.shipping - cart.discount) * 100) / 100;
+      
+      // E-commerce best practice: Validate order total is positive
+      // Prevents creating orders with zero or negative totals
+      if (orderTotal <= 0) {
+        await session.abortTransaction();
+        session.endSession();
+        return createSecureErrorResponse('Order total must be greater than zero', 400, request);
+      }
 
-      // Create order with sanitized addresses and calculated totals
-      // Order number will be auto-generated by pre-save hook
+      // Create order document with sanitized addresses to prevent XSS
+      // Order number auto-generated by pre-save hook ensures uniqueness
       const order = new Order({
         userId: new mongoose.Types.ObjectId(user.userId),
         items: cart.items.map((item) => ({
@@ -232,12 +233,13 @@ export async function POST(request: NextRequest) {
         shippingAddress,
         billingAddress,
         paymentMethod: validatedData.paymentMethod,
-        paymentStatus: validatedData.paymentMethod === 'cod' ? 'pending' : 'pending',
+        paymentStatus: 'pending', // All orders start with pending payment status
         customerNotes: validatedData.customerNotes ? sanitizeString(validatedData.customerNotes) : undefined,
         idempotencyKey,
       });
 
-      // Save order within transaction
+      // Save order within transaction to ensure atomicity
+      // If any part fails, entire order creation is rolled back
       // Order number auto-generated by pre-save hook ensures uniqueness
       await order.save({ session });
 
@@ -271,8 +273,83 @@ export async function POST(request: NextRequest) {
       cart.total = 0;
       await cart.save({ session });
 
-      // Update user statistics for analytics and customer insights
-      // Increments order count and total spent within transaction for consistency
+      // Save addresses within transaction to maintain data consistency
+      // Only saves new addresses that don't already exist to prevent duplicates
+      // Only save new addresses entered in checkout, not already saved addresses
+      if (validatedData.saveShippingAddress || validatedData.saveBillingAddress) {
+        const userDoc = await User.findById(new mongoose.Types.ObjectId(user.userId))
+          .select('addresses defaultShippingAddressId defaultBillingAddressId')
+          .session(session);
+        
+        if (userDoc) {
+          // Helper function to check if address already exists
+          const addressExists = (addressToCheck: typeof shippingAddress) => {
+            return userDoc.addresses.some((addr: IAddress) => {
+              return (
+                addr.firstName === addressToCheck.firstName &&
+                addr.lastName === addressToCheck.lastName &&
+                addr.addressLine1 === addressToCheck.addressLine1 &&
+                (addr.addressLine2 || '') === (addressToCheck.addressLine2 || '') &&
+                addr.city === addressToCheck.city &&
+                addr.state === addressToCheck.state &&
+                addr.zipCode === addressToCheck.zipCode &&
+                addr.country === addressToCheck.country &&
+                addr.phone === addressToCheck.phone &&
+                addr.countryCode === addressToCheck.countryCode
+              );
+            });
+          };
+
+          // Save shipping address if requested and it doesn't already exist
+          if (validatedData.saveShippingAddress) {
+            // Only save if this address doesn't already exist in saved addresses
+            if (!addressExists(shippingAddress)) {
+              const shippingAddressData = {
+                type: 'shipping' as const,
+                firstName: shippingAddress.firstName,
+                lastName: shippingAddress.lastName,
+                addressLine1: shippingAddress.addressLine1,
+                addressLine2: shippingAddress.addressLine2,
+                city: shippingAddress.city,
+                state: shippingAddress.state,
+                zipCode: shippingAddress.zipCode,
+                country: shippingAddress.country,
+                phone: shippingAddress.phone,
+                countryCode: shippingAddress.countryCode,
+                isDefault: userDoc.addresses.length === 0, // First address becomes default
+              };
+              userDoc.addAddress(shippingAddressData);
+            }
+          }
+          
+          // Save billing address if requested, different from shipping, and doesn't already exist
+          if (validatedData.saveBillingAddress && !validatedData.saveShippingAddress) {
+            // Only save if this address doesn't already exist in saved addresses
+            if (!addressExists(billingAddress)) {
+              const billingAddressData = {
+                type: 'billing' as const,
+                firstName: billingAddress.firstName,
+                lastName: billingAddress.lastName,
+                addressLine1: billingAddress.addressLine1,
+                addressLine2: billingAddress.addressLine2,
+                city: billingAddress.city,
+                state: billingAddress.state,
+                zipCode: billingAddress.zipCode,
+                country: billingAddress.country,
+                phone: billingAddress.phone,
+                countryCode: billingAddress.countryCode,
+                isDefault: userDoc.addresses.length === 0, // First address becomes default
+              };
+              userDoc.addAddress(billingAddressData);
+            }
+          }
+          
+          await userDoc.save({ session });
+        }
+      }
+
+      // Update user statistics within transaction for data consistency
+      // Tracks customer lifetime value and order frequency for business insights
       await User.findByIdAndUpdate(
         new mongoose.Types.ObjectId(user.userId),
         {
@@ -346,10 +423,9 @@ export async function POST(request: NextRequest) {
  * Get user's orders
  */
 export async function GET(request: NextRequest) {
-  // Apply security (CORS, CSRF, rate limiting)
-  // Industry standard: 100 requests per 15 minutes for user-specific read endpoints
+  // Apply security (CORS, CSRF) - rate limiting done after auth with user ID
   const securityResponse = applyApiSecurity(request, {
-    rateLimitConfig: { windowMs: 15 * 60 * 1000, maxRequests: 100 }, // 100 requests per 15 minutes (industry standard)
+    enableRateLimit: false, // Disable IP-based rate limiting, use user-based instead
   });
   if (securityResponse) return securityResponse;
 
@@ -362,25 +438,44 @@ export async function GET(request: NextRequest) {
 
     const { user } = authResult;
 
+    // Industry standard: Per-user rate limiting for authenticated endpoints
+    // 200 requests per 15 minutes (industry standard for user-specific read endpoints)
+    const { checkUserRateLimit } = await import('@/lib/security/api-security');
+    const userRateLimitResponse = checkUserRateLimit(
+      request,
+      user.userId,
+      SECURITY_CONFIG.RATE_LIMIT.PUBLIC_BROWSING
+    );
+    if (userRateLimitResponse) return userRateLimitResponse;
+
     await connectDB();
 
     // Extract query parameters for filtering and pagination
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '20', 10);
-    const page = parseInt(searchParams.get('page') || '1', 10);
-    const status = searchParams.get('status');
+    
+    // Validate and sanitize pagination parameters to prevent DoS attacks
+    const { getPaginationParams } = await import('@/lib/utils/api-helpers');
+    const { limit, page } = getPaginationParams(searchParams);
+    const statusParam = searchParams.get('status');
 
     const skip = (page - 1) * limit;
 
     // Build MongoDB query with user filter to enforce access control
     // Users can only view their own orders, preventing unauthorized data access
     const query: Record<string, unknown> = { userId: new mongoose.Types.ObjectId(user.userId) };
-    if (status) {
-      query.status = status;
+    
+    // Validate status parameter against allowed values (whitelist approach)
+    // Prevents injection attacks and ensures only valid status values are used
+    if (statusParam) {
+      const validStatuses = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'];
+      const sanitizedStatus = sanitizeString(statusParam);
+      if (validStatuses.includes(sanitizedStatus)) {
+        query.status = sanitizedStatus;
+      }
     }
 
-    // Fetch orders with pagination and sorting
-    // Excludes internal fields like idempotencyKey for security
+    // Fetch user's orders with pagination and sorting
+    // Excludes sensitive internal fields (idempotencyKey) to prevent information disclosure
     const orders = await Order.find(query)
       .sort({ createdAt: -1 })
       .limit(limit)

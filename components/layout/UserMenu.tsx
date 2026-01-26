@@ -8,7 +8,6 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/lib/store/auth-store';
 import SmoothLink from '@/components/ui/SmoothLink';
@@ -22,7 +21,6 @@ export default function UserMenu({ textColor }: UserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const router = useRouter();
   const { user, isAuthenticated, logout, isLoading } = useAuthStore();
 
   // Close menu when clicking outside
@@ -61,8 +59,7 @@ export default function UserMenu({ textColor }: UserMenuProps) {
   const handleLogout = async () => {
     setIsOpen(false);
     await logout();
-    router.push('/');
-    router.refresh();
+    // Redirect is handled in logout function
   };
 
   if (!isAuthenticated || !user) {
@@ -101,7 +98,7 @@ export default function UserMenu({ textColor }: UserMenuProps) {
       <motion.button
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className="transition-colors p-2 -mr-2 sm:p-0 sm:mr-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center relative focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--active-dark)] focus-visible:ring-offset-2"
+        className="transition-colors p-2 -mr-2 sm:p-0 sm:mr-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center relative focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--active-dark)] focus-visible:ring-offset-2 cursor-pointer"
         style={{ color: textColor || 'var(--text-on-beige)' }}
         aria-label={`User menu for ${user?.firstName}`}
         aria-haspopup="true"
@@ -142,7 +139,7 @@ export default function UserMenu({ textColor }: UserMenuProps) {
               >
                 <SmoothLink
                   href="/profile"
-                  className="block w-full text-left px-4 py-2 text-sm text-[var(--text-on-cream)] hover:bg-[rgba(0,0,0,0.04)] transition-colors"
+                  className="block w-full text-left px-4 py-2 text-sm text-[var(--text-on-cream)] hover:bg-[var(--black-opacity-4)] transition-colors"
                   role="menuitem"
                   onClick={() => setIsOpen(false)}
                   animated={false}
@@ -165,7 +162,7 @@ export default function UserMenu({ textColor }: UserMenuProps) {
             >
               <button
                 onClick={handleLogout}
-                className="w-full text-left px-4 py-2 text-sm text-[var(--text-on-cream)] hover:bg-[rgba(0,0,0,0.04)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full text-left px-4 py-2 text-sm text-[var(--text-on-cream)] hover:bg-[var(--black-opacity-4)] transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                 role="menuitem"
                 disabled={isLoading}
               >

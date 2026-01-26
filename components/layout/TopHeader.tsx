@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ANIMATION_PRESETS, SCALE, ROTATE, DURATION, STAGGER } from '@/lib/animations/constants';
+import { useCartStore } from '@/lib/store/cart-store';
 import UserMenu from './UserMenu';
 
 export default function TopHeader() {
@@ -13,6 +14,15 @@ export default function TopHeader() {
   const [textColor, setTextColor] = useState('var(--text-on-beige)');
   const pathname = usePathname();
   const isHomePage = pathname === '/';
+  const { cart, fetchCart, isLoading } = useCartStore();
+  const cartItemCount = cart?.items.reduce((total, item) => total + item.quantity, 0) || 0;
+
+  // Fetch cart on mount to ensure cart count is displayed on initial page load
+  useEffect(() => {
+    if (!cart && !isLoading) {
+      fetchCart();
+    }
+  }, [cart, isLoading, fetchCart]);
 
   useEffect(() => {
     /**
@@ -222,10 +232,10 @@ export default function TopHeader() {
           {/* Menu Button */}
           <motion.button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="flex items-center gap-1.5 sm:gap-2 p-2 -ml-2 sm:p-0 sm:ml-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0"
+            className="flex items-center gap-1.5 sm:gap-2 p-2 -ml-2 sm:p-0 sm:ml-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 cursor-pointer"
             style={{ 
               color: headerBgColor === 'var(--cream)' 
-                ? 'rgb(26, 26, 26)' 
+                ? 'var(--text-on-cream)' 
                 : (textColor || 'var(--text-on-beige)')
             }}
             aria-label="Toggle menu"
@@ -274,11 +284,11 @@ export default function TopHeader() {
               initial={{ scale: 1, rotate: 0 }}
               whileHover={ANIMATION_PRESETS.ICON_HOVER}
               whileTap={ANIMATION_PRESETS.ICON_TAP}
-              className="flex items-center"
+              className="flex items-center relative"
             >
               <SmoothLink
                 href="/cart"
-                className="transition-colors p-2 -mr-2 sm:p-0 sm:mr-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center relative"
+                className="transition-colors p-2 -mr-2 sm:p-0 sm:mr-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center"
                 style={{ color: textColor }}
                 aria-label="Shopping cart"
               >
@@ -292,14 +302,23 @@ export default function TopHeader() {
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </motion.svg>
-                {/* Cart badge animation */}
-                <motion.span
-                  className="absolute top-0 right-0 w-2 h-2 bg-[var(--active-dark)] rounded-full"
-                  initial={{ scale: 0 }}
-                  whileHover={{ scale: 1 }}
-                  transition={{ duration: DURATION.MENU }}
-                />
               </SmoothLink>
+              {/* Cart item count badge - positioned outside icon */}
+              {cartItemCount > 0 && (
+                <motion.span
+                  className="absolute -top-1 -right-1 sm:-top-1 sm:-right-1 min-w-[18px] h-[18px] sm:min-w-[20px] sm:h-[20px] px-1 sm:px-1.5 flex items-center justify-center bg-[var(--active-dark)] text-[var(--text-on-beige)] text-[10px] sm:text-xs font-bold rounded-full shadow-lg z-20 pointer-events-none"
+                  style={{ 
+                    lineHeight: '1',
+                    border: `2px solid ${headerBgColor === 'var(--cream)' ? 'var(--cream)' : 'var(--beige)'}`
+                  }}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                  aria-label={`${cartItemCount} items in cart`}
+                >
+                  {cartItemCount > 99 ? '99+' : cartItemCount}
+                </motion.span>
+              )}
             </motion.div>
             <UserMenu textColor={textColor} />
           </div>

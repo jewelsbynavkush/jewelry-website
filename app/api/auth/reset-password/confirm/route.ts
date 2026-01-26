@@ -13,15 +13,23 @@ import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } fro
 import { logError } from '@/lib/security/error-handler';
 import { sanitizeString } from '@/lib/security/sanitize';
 import { formatZodError } from '@/lib/utils/zod-error';
+import { SECURITY_CONFIG } from '@/lib/security/constants';
 import type { ConfirmResetPasswordRequest, ConfirmResetPasswordResponse } from '@/types/api';
 import { z } from 'zod';
 
 /**
- * Schema for password reset confirmation
+ * Schema for password reset confirmation with industry-standard validation
  */
 const resetPasswordConfirmSchema = z.object({
-  token: z.string().min(1, 'Reset token is required'),
-  password: z.string().min(6, 'Password must be at least 6 characters').max(100, 'Password too long'),
+  token: z
+    .string()
+    .min(1, 'Reset token is required')
+    .max(200, 'Reset token is too long'),
+  password: z
+    .string()
+    .min(6, 'Password must be at least 6 characters')
+    .max(100, 'Password must not exceed 100 characters')
+    .regex(/^[\S]+$/, 'Password cannot contain spaces'),
 });
 
 /**
@@ -31,7 +39,7 @@ const resetPasswordConfirmSchema = z.object({
 export async function POST(request: NextRequest) {
   // Apply security (CORS, CSRF, rate limiting)
   const securityResponse = applyApiSecurity(request, {
-    rateLimitConfig: { windowMs: 15 * 60 * 1000, maxRequests: 10 }, // 10 attempts per 15 minutes
+    rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.AUTH_RESET,
     requireContentType: true,
   });
   if (securityResponse) return securityResponse;
@@ -39,11 +47,14 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
 
-    // Parse and validate request body - ensures reset token and new password are provided
+    // Validate reset token and new password format before processing
+    // Ensures token is valid format and password meets security requirements
     const body = await request.json() as ConfirmResetPasswordRequest;
     const validatedData = resetPasswordConfirmSchema.parse(body);
 
-    // Find user by reset token - Optimize: Only select fields needed
+    // Lookup user by reset token with expiration check
+    // Only select required fields to minimize data transfer
+    // Note: Cannot use .lean() here as we need to call .save() on the document
     const user = await User.findOne({
       resetPasswordToken: sanitizeString(validatedData.token),
       resetPasswordExpires: { $gt: new Date() }, // Token not expired
@@ -53,8 +64,8 @@ export async function POST(request: NextRequest) {
       return createSecureErrorResponse('Invalid or expired reset token', 400, request);
     }
 
-    // Update password - pre-save hook will automatically hash it
-    // Password change timestamp is tracked for security auditing
+    // Update password - pre-save hook automatically hashes with bcrypt
+    // Password change timestamp tracked for security auditing and compliance
     user.password = validatedData.password; // Will be hashed by pre-save hook
     user.passwordChangedAt = new Date();
     user.resetPasswordToken = undefined;

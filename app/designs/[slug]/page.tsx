@@ -28,6 +28,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!product) {
     return {
       title: 'Product Not Found',
+      description: 'The requested product could not be found.',
+      robots: {
+        index: false,
+        follow: false,
+      },
     };
   }
 

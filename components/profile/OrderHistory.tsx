@@ -60,7 +60,10 @@ export default function OrderHistory() {
   if (isLoading && orders.length === 0) {
     return (
       <Card>
-        <p className="text-[var(--text-secondary)] text-center py-8">Loading orders...</p>
+        <div className="text-center py-8 space-y-4">
+          <div className="inline-block w-8 h-8 border-4 border-[var(--beige)] border-t-transparent rounded-full animate-spin" aria-label="Loading orders" role="status" />
+          <p className="text-[var(--text-secondary)]">Loading orders...</p>
+        </div>
       </Card>
     );
   }

@@ -11,6 +11,7 @@ import Product from '@/models/Product';
 import { requireAdmin } from '@/lib/auth/middleware';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
+import { SECURITY_CONFIG } from '@/lib/security/constants';
 import type { GetLowStockResponse, LowStockProduct } from '@/types/api';
 
 /**
@@ -19,9 +20,8 @@ import type { GetLowStockResponse, LowStockProduct } from '@/types/api';
  */
 export async function GET(request: NextRequest) {
   // Apply security (CORS, CSRF, rate limiting)
-  // Industry standard: 100 requests per 15 minutes for admin/inventory read endpoints
   const securityResponse = applyApiSecurity(request, {
-    rateLimitConfig: { windowMs: 15 * 60 * 1000, maxRequests: 100 }, // 100 requests per 15 minutes (industry standard)
+    rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.INVENTORY_READ,
   });
   if (securityResponse) return securityResponse;
 
@@ -35,8 +35,12 @@ export async function GET(request: NextRequest) {
     await connectDB();
 
     // Extract query parameters for pagination and threshold customization
+    // Sanitize and validate limit parameter to prevent DoS attacks
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '50', 10);
+    const limitParam = searchParams.get('limit');
+    const limit = limitParam 
+      ? Math.min(Math.max(parseInt(limitParam, 10), 1), 100) // 1-100 per page
+      : 50; // Default to 50
 
     // Fetch products with stock below threshold for inventory management
     // Only includes active products that track quantity

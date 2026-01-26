@@ -64,7 +64,7 @@ E-commerce product with comprehensive inventory management.
 - `Product.restoreStock()` - Atomic stock restoration
 - `Product.restock()` - Atomic restocking
 
-**See:** `INVENTORY_MANAGEMENT_DEEP_DIVE.md` for detailed inventory flow
+**See:** [Inventory Guide](./INVENTORY_GUIDE.md) for detailed inventory flow and operations
 
 ---
 

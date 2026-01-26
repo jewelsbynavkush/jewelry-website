@@ -76,10 +76,10 @@ export default function EmailVerification({ email, emailVerified }: EmailVerific
 
   if (emailVerified) {
     return (
-      <Card className="p-4 flex items-center justify-between bg-green-50 border border-green-200">
+      <Card className="p-4 flex items-center justify-between bg-[var(--success-bg)] border border-[var(--success-border)]">
         <div className="flex items-center space-x-2">
           <svg
-            className="h-6 w-6 text-green-600 flex-shrink-0"
+            className="h-6 w-6 text-[var(--success-text)] flex-shrink-0"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -92,7 +92,7 @@ export default function EmailVerification({ email, emailVerified }: EmailVerific
               d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <p className="text-green-800 font-medium">Email ({email}) is verified.</p>
+          <p className="text-[var(--success-text)] font-medium">Email ({email}) is verified.</p>
         </div>
       </Card>
     );
@@ -141,7 +141,7 @@ export default function EmailVerification({ email, emailVerified }: EmailVerific
             <button
               type="button"
               onClick={handleResend}
-              className={`text-[var(--text-secondary)] text-sm hover:text-[var(--text-on-cream)] underline ${resendCooldown > 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`text-[var(--text-secondary)] text-sm hover:text-[var(--text-on-cream)] underline transition-colors ${resendCooldown > 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} disabled:cursor-not-allowed disabled:opacity-50`}
               disabled={isLoading || resendCooldown > 0}
             >
               {resendCooldown > 0

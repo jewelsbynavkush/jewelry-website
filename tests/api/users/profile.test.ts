@@ -28,7 +28,7 @@ describe('User Profile API', () => {
     it('should get user profile', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'GET',
         'http://localhost:3000/api/users/profile'
@@ -40,7 +40,7 @@ describe('User Profile API', () => {
       expectStatus(response, 200);
       expect(data.user).toBeDefined();
       expect(data.user.id).toBe(testUser._id.toString());
-      expect(data.user.mobile).toBe(testUser.mobile);
+      expect(data.user.email).toBe(testUser.email);
       expect(data.user.firstName).toBe(testUser.firstName);
     });
 
@@ -57,7 +57,7 @@ describe('User Profile API', () => {
     it('should update profile fields', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'PATCH',
         'http://localhost:3000/api/users/profile',
@@ -83,7 +83,7 @@ describe('User Profile API', () => {
       const newEmail = randomEmail();
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'PATCH',
         'http://localhost:3000/api/users/profile',
@@ -111,7 +111,7 @@ describe('User Profile API', () => {
 
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'PATCH',
         'http://localhost:3000/api/users/profile',
@@ -133,7 +133,7 @@ describe('User Profile API', () => {
 
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'PATCH',
         'http://localhost:3000/api/users/profile',
@@ -152,7 +152,7 @@ describe('User Profile API', () => {
     it('should validate email format', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'PATCH',
         'http://localhost:3000/api/users/profile',

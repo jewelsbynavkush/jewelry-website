@@ -34,7 +34,7 @@ This comprehensive audit report consolidates all quality, security, code, and be
 - ✅ All dev dependencies verified
 - ✅ No unused packages
 
-**See:** [CODE_QUALITY_CLEANUP_FINAL_REPORT.md](./CODE_QUALITY_CLEANUP_FINAL_REPORT.md) for detailed findings
+**See:** [Code Quality Report](./CODE_QUALITY_REPORT.md) for detailed findings
 
 ---
 
@@ -90,7 +90,7 @@ This comprehensive audit report consolidates all quality, security, code, and be
 - ✅ Request/response schemas
 - ✅ Swagger UI at `/api/docs`
 
-**See:** `BACKEND_AUDIT_SUMMARY.md` and `BACKEND_STANDARDS_COMPLIANCE.md` for detailed findings
+**See:** [Comprehensive Audit Report](./AUDIT_REPORT_2025.md) for detailed findings
 
 ---
 

@@ -6,42 +6,15 @@
  */
 
 import jwt from 'jsonwebtoken';
-import { logError } from '@/lib/security/error-handler';
+import { getJwtSecret, getAccessTokenExpiresIn } from '@/lib/utils/env';
 
 // Industry standard OAuth 2.0: Short-lived access tokens
 // Access tokens expire quickly (15m-1h) to limit exposure if compromised
 // Refresh tokens (stored separately) handle long-term session management
-const ACCESS_TOKEN_EXPIRES_IN = process.env.ACCESS_TOKEN_EXPIRES_IN || '1h'; // 1 hour default (industry standard: 15m-1h)
-
-/**
- * Get JWT secret for token signing
- * 
- * Returns the JWT secret from environment variables.
- * Throws an error in production if not set, warns in development.
- * 
- * @returns JWT secret string
- * @throws Error if JWT_SECRET is not set in production
- */
-function getJwtSecret(): string {
-  const secret = process.env.JWT_SECRET;
-  
-  if (!secret) {
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('JWT_SECRET environment variable is not set in production');
-    }
-    // Use logError for consistent logging (only in development)
-    if (process.env.NODE_ENV === 'development') {
-      logError('JWT_SECRET environment variable is not set. Using a default for development.', new Error('Missing JWT_SECRET'));
-    }
-    return 'dev-secret-key-do-not-use-in-production';
-  }
-  
-  return secret;
-}
 
 export interface JWTPayload {
   userId: string;
-  mobile: string;
+  email: string;
   role: 'customer' | 'admin' | 'staff';
   iat?: number;
   exp?: number;
@@ -52,21 +25,21 @@ export interface JWTPayload {
  * Industry standard: Access tokens are short-lived (15m-1h) for security
  * 
  * @param userId - User ID from MongoDB
- * @param mobile - User mobile number
+ * @param email - User email address
  * @param role - User role
  * @returns JWT access token string
  */
-export function generateAccessToken(userId: string, mobile: string, role: 'customer' | 'admin' | 'staff' = 'customer'): string {
+export function generateAccessToken(userId: string, email: string, role: 'customer' | 'admin' | 'staff' = 'customer'): string {
   const JWT_SECRET = getJwtSecret();
 
   const payload: JWTPayload = {
     userId,
-    mobile,
+    email,
     role,
   };
 
   const token = jwt.sign(payload, JWT_SECRET, {
-    expiresIn: ACCESS_TOKEN_EXPIRES_IN as string,
+    expiresIn: getAccessTokenExpiresIn(),
     issuer: 'jewelry-website',
     audience: 'jewelry-website-users',
   } as jwt.SignOptions);
@@ -82,8 +55,8 @@ export function generateAccessToken(userId: string, mobile: string, role: 'custo
  * Generate JWT token (backward compatibility - now generates access token)
  * @deprecated Use generateAccessToken instead
  */
-export function generateToken(userId: string, mobile: string, role: 'customer' | 'admin' | 'staff' = 'customer'): string {
-  return generateAccessToken(userId, mobile, role);
+export function generateToken(userId: string, email: string, role: 'customer' | 'admin' | 'staff' = 'customer'): string {
+  return generateAccessToken(userId, email, role);
 }
 
 /**

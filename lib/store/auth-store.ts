@@ -16,12 +16,12 @@ import { apiPost, apiGet, ApiResponse } from '@/lib/api/client';
 
 export interface User {
   id: string;
-  mobile: string;
-  email?: string;
+  email: string;
+  mobile?: string;
+  countryCode?: string;
   firstName: string;
   lastName: string;
   role: 'customer' | 'admin' | 'staff';
-  mobileVerified: boolean;
   emailVerified: boolean;
 }
 
@@ -35,9 +35,8 @@ interface AuthState {
   login: (identifier: string, password: string) => Promise<ApiResponse>;
   register: (data: RegisterData) => Promise<ApiResponse>;
   logout: () => Promise<void>;
-  verifyMobile: (otp: string, mobile?: string) => Promise<ApiResponse>;
-  resendOTP: (mobile?: string) => Promise<ApiResponse>;
   verifyEmail: (otp: string, email?: string) => Promise<ApiResponse>;
+  resendOTP: (email?: string) => Promise<ApiResponse>;
   resendEmailOTP: () => Promise<ApiResponse>;
   resetPassword: (identifier: string) => Promise<ApiResponse>;
   confirmResetPassword: (token: string, password: string) => Promise<ApiResponse>;
@@ -46,11 +45,11 @@ interface AuthState {
 }
 
 export interface RegisterData {
-  mobile: string;
-  countryCode: string;
+  email: string;
   firstName: string;
   lastName: string;
-  email?: string;
+  mobile?: string;
+  countryCode?: string;
   password: string;
 }
 
@@ -73,7 +72,8 @@ export const useAuthStore = create<AuthState>()(
           
           if (response.success && response.data) {
             // Token is set in HTTP-only cookie by server
-            // Set user data from login response (profile will be fetched by AuthProvider if needed)
+            // Store user data from login response in Zustand store
+            // AuthProvider will fetch full profile data separately if needed
             set({
               user: response.data.user,
               isAuthenticated: true,
@@ -145,34 +145,47 @@ export const useAuthStore = create<AuthState>()(
           isLoading: false,
           error: null,
         });
+
+        // Clear persisted state from localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('auth-storage');
+          // Clear any other auth-related storage
+          sessionStorage.clear();
+        }
+
+        // Redirect to login page with full page reload to clear all state
+        // Using window.location.href ensures cookies are cleared and page is fully refreshed
+        if (typeof window !== 'undefined') {
+          window.location.href = '/auth/login';
+        }
       },
 
-      verifyMobile: async (otp: string, mobile?: string) => {
+      verifyEmail: async (otp: string, email?: string) => {
         set({ isLoading: true, error: null });
         
         try {
-          // Always include mobile number from store if available (for expired token scenarios)
+          // Always include email from store if available (for expired token scenarios)
           // This is critical for post-registration verification when token might be expired
-          const requestBody: { otp: string; mobile?: string } = { otp };
+          const requestBody: { otp: string; email?: string } = { otp };
           const currentUser = get().user;
           
-          // Priority: explicit parameter > store user mobile
-          // Always include mobile if available (required for unauthenticated verification)
+          // Priority: explicit parameter > store user email
+          // Always include email if available (required for unauthenticated verification)
           // Get fresh user state at call time to ensure we have the latest data
-          const mobileToUse = mobile || currentUser?.mobile;
+          const emailToUse = email || currentUser?.email;
           
-          if (!mobileToUse) {
-            // If no mobile available, this is an error state
+          if (!emailToUse) {
+            // If no email available, this is an error state
             set({
               isLoading: false,
-              error: 'Mobile number is required for verification. Please try registering again.',
+              error: 'Email is required for verification. Please try registering again.',
             });
-            return { success: false, error: 'Mobile number is required for verification' };
+            return { success: false, error: 'Email is required for verification' };
           }
           
-          requestBody.mobile = mobileToUse;
+          requestBody.email = emailToUse;
           
-          const response = await apiPost<{ user: User }>('/api/auth/verify-mobile', requestBody);
+          const response = await apiPost<{ user: User }>('/api/auth/verify-email', requestBody);
           
           if (response.success && response.data) {
             set({
@@ -202,18 +215,18 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      resendOTP: async (mobile?: string) => {
+      resendOTP: async (email?: string) => {
         set({ isLoading: true, error: null });
         
         try {
-          // Include mobile number if provided or if user exists in store (for post-registration flow)
-          const requestBody: { mobile?: string } = {};
+          // Include email if provided or if user exists in store (for post-registration flow)
+          const requestBody: { email?: string } = {};
           const currentUser = get().user;
           
-          // Priority: explicit parameter > store user mobile
-          const mobileToUse = mobile || currentUser?.mobile;
-          if (mobileToUse) {
-            requestBody.mobile = mobileToUse;
+          // Priority: explicit parameter > store user email
+          const emailToUse = email || currentUser?.email;
+          if (emailToUse) {
+            requestBody.email = emailToUse;
           }
           
           const response = await apiPost('/api/auth/resend-otp', requestBody);
@@ -221,45 +234,6 @@ export const useAuthStore = create<AuthState>()(
           return response;
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Failed to resend OTP';
-          set({ isLoading: false, error: errorMessage });
-          return { success: false, error: errorMessage };
-        }
-      },
-
-      verifyEmail: async (otp: string, email?: string) => {
-        set({ isLoading: true, error: null });
-        
-        try {
-          const requestBody: { otp: string; email?: string } = { otp };
-          if (email) {
-            requestBody.email = email;
-          }
-          
-          const response = await apiPost<{ user: { id: string; email?: string; emailVerified: boolean } }>('/api/auth/verify-email', requestBody);
-          
-          if (response.success && response.data) {
-            // Update user email verification status
-            const currentUser = get().user;
-            if (currentUser) {
-              const updatedUser = { ...currentUser, emailVerified: response.data.user.emailVerified };
-              set({
-                user: updatedUser as User,
-                isLoading: false,
-                error: null,
-              });
-            } else {
-              set({ isLoading: false, error: null });
-            }
-          } else {
-            set({
-              isLoading: false,
-              error: response.error || 'Email verification failed',
-            });
-          }
-          
-          return response;
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Email verification failed';
           set({ isLoading: false, error: errorMessage });
           return { success: false, error: errorMessage };
         }

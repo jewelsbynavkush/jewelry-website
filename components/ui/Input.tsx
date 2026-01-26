@@ -20,7 +20,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(({
   ...props 
 }, ref) => {
   const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
-  const baseStyles = 'w-full px-4 py-2 border border-[var(--border-light)] rounded-lg focus:outline-none focus:border-[var(--text-on-cream)] bg-[var(--cream)] text-[var(--text-on-cream)] min-h-[44px] text-base';
+  const baseStyles = 'w-full px-4 py-2 border border-[var(--border-light)] rounded-lg focus:outline-none focus:border-[var(--text-on-cream)] bg-[var(--cream)] text-[var(--text-on-cream)] min-h-[44px] text-base disabled:opacity-50 disabled:cursor-not-allowed';
 
   return (
     <FormField id={inputId} label={label} error={error} required={required}>

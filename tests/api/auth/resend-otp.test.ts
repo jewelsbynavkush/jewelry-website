@@ -13,7 +13,7 @@ import { POST } from '@/app/api/auth/resend-otp/route';
 import { createAuthenticatedRequest, getJsonResponse, expectStatus, expectSuccess, expectError } from '../../helpers/api-helpers';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
-import { createTestUser } from '../../helpers/test-utils';
+import { createTestUser, randomEmail } from '../../helpers/test-utils';
 
 describe('POST /api/auth/resend-otp', () => {
   let testUser: any;
@@ -27,7 +27,7 @@ describe('POST /api/auth/resend-otp', () => {
     it('should resend OTP for unverified user (authenticated)', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/auth/resend-otp'
@@ -41,14 +41,14 @@ describe('POST /api/auth/resend-otp', () => {
       expect(data.message).toContain('OTP sent successfully');
 
       const updated = await User.findById(testUser._id);
-      expect(updated?.mobileVerificationOTP).toBeDefined();
-      expect(updated?.mobileVerificationOTPExpires).toBeDefined();
+      expect(updated?.emailVerificationOTP).toBeDefined();
+      expect(updated?.emailVerificationOTPExpires).toBeDefined();
     });
 
     it('should resend OTP for unverified user (unauthenticated - post-registration flow)', async () => {
       const { createGuestRequest } = await import('../../helpers/api-helpers');
       const request = createGuestRequest('POST', 'http://localhost:3000/api/auth/resend-otp', {
-        mobile: testUser.mobile,
+        email: testUser.email,
       });
 
       const response = await POST(request);
@@ -59,35 +59,35 @@ describe('POST /api/auth/resend-otp', () => {
       expect(data.message).toContain('OTP sent successfully');
 
       const updated = await User.findById(testUser._id);
-      expect(updated?.mobileVerificationOTP).toBeDefined();
-      expect(updated?.mobileVerificationOTPExpires).toBeDefined();
+      expect(updated?.emailVerificationOTP).toBeDefined();
+      expect(updated?.emailVerificationOTPExpires).toBeDefined();
     });
 
     it('should generate new OTP (invalidates previous OTP)', async () => {
-      const oldOtp = testUser.generateMobileOTP();
+      const oldOtp = testUser.generateEmailOTP();
       await testUser.save();
 
       const { createGuestRequest } = await import('../../helpers/api-helpers');
       const request = createGuestRequest('POST', 'http://localhost:3000/api/auth/resend-otp', {
-        mobile: testUser.mobile,
+        email: testUser.email,
       });
 
       await POST(request);
 
       const updated = await User.findById(testUser._id);
-      expect(updated?.mobileVerificationOTP).toBeDefined();
-      expect(updated?.mobileVerificationOTP).not.toBe(oldOtp);
+      expect(updated?.emailVerificationOTP).toBeDefined();
+      expect(updated?.emailVerificationOTP).not.toBe(oldOtp);
     });
   });
 
   describe('Already Verified', () => {
     it('should reject resend for already verified user', async () => {
-      testUser.mobileVerified = true;
+      testUser.emailVerified = true;
       await testUser.save();
 
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/auth/resend-otp'
@@ -97,25 +97,25 @@ describe('POST /api/auth/resend-otp', () => {
       const data = await getJsonResponse(response);
 
       expectStatus(response, 400);
-      expectError(data, 'Mobile number is already verified');
+      expectError(data, 'Email is already verified');
     });
   });
 
   describe('Security Checks', () => {
-    it('should require mobile number when not authenticated', async () => {
+    it('should require email when not authenticated', async () => {
       const { createGuestRequest } = await import('../../helpers/api-helpers');
       const request = createGuestRequest('POST', 'http://localhost:3000/api/auth/resend-otp');
 
       const response = await POST(request);
       const data = await getJsonResponse(response);
       expectStatus(response, 400);
-      expectError(data, 'Mobile number required');
+      expectError(data, 'Email required when not authenticated');
     });
 
     it('should not reveal if user exists (security best practice)', async () => {
       const { createGuestRequest } = await import('../../helpers/api-helpers');
       const request = createGuestRequest('POST', 'http://localhost:3000/api/auth/resend-otp', {
-        mobile: '9999999999', // Non-existent mobile
+        email: randomEmail(), // Non-existent email
       });
 
       const response = await POST(request);
@@ -126,7 +126,7 @@ describe('POST /api/auth/resend-otp', () => {
     it('should apply stricter rate limiting', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/auth/resend-otp'

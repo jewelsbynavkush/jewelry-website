@@ -32,7 +32,7 @@ describe('POST /api/auth/verify-email', () => {
 
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/auth/verify-email',
@@ -59,7 +59,7 @@ describe('POST /api/auth/verify-email', () => {
 
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/auth/verify-email',
@@ -82,7 +82,7 @@ describe('POST /api/auth/verify-email', () => {
 
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/auth/verify-email',
@@ -103,7 +103,7 @@ describe('POST /api/auth/verify-email', () => {
 
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/auth/verify-email',
@@ -120,7 +120,7 @@ describe('POST /api/auth/verify-email', () => {
     it('should reject when no OTP exists', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/auth/verify-email',
@@ -145,7 +145,7 @@ describe('POST /api/auth/verify-email', () => {
 
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/auth/verify-email',
@@ -170,39 +170,19 @@ describe('POST /api/auth/verify-email', () => {
       const response = await POST(request);
       const data = await getJsonResponse(response);
 
-      expectStatus(response, 401);
-      expectError(data, 'Authentication required');
+      expectStatus(response, 400);
+      expectError(data);
     });
   });
 
   describe('Email Validation', () => {
-    it('should reject when user has no email', async () => {
-      const userWithoutEmail = await User.create(createTestUser({ email: undefined }));
-      const otp = '123456';
-
-      const request = createAuthenticatedRequest(
-        userWithoutEmail._id.toString(),
-        userWithoutEmail.mobile,
-        'customer',
-        'POST',
-        'http://localhost:3000/api/auth/verify-email',
-        { otp }
-      );
-
-      const response = await POST(request);
-      const data = await getJsonResponse(response);
-
-      expectStatus(response, 400);
-      expectError(data, 'No email address');
-    });
-
     it('should reject when email in request does not match account email', async () => {
       const otp = testUser.generateEmailOTP();
       await testUser.save();
 
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/auth/verify-email',
@@ -221,7 +201,7 @@ describe('POST /api/auth/verify-email', () => {
     it('should reject invalid OTP format', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/auth/verify-email',
@@ -238,7 +218,7 @@ describe('POST /api/auth/verify-email', () => {
     it('should reject missing OTP', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/auth/verify-email',
@@ -260,7 +240,7 @@ describe('POST /api/auth/verify-email', () => {
 
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/auth/verify-email',

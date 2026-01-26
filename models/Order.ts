@@ -24,7 +24,8 @@ export interface IOrderAddress {
   state: string;
   zipCode: string;
   country: string;
-  phone?: string;
+  phone: string; // Required for order delivery
+  countryCode: string; // Required for order delivery
 }
 
 export interface IOrder extends Document {
@@ -120,7 +121,8 @@ const OrderAddressSchema = new Schema<IOrderAddress>(
     state: { type: String, required: true },
     zipCode: { type: String, required: true },
     country: { type: String, required: true, default: 'India' },
-    phone: String,
+    phone: { type: String, required: true },
+    countryCode: { type: String, required: true, default: '+91' },
   },
   { _id: false }
 );

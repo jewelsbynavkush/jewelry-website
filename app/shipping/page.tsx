@@ -5,6 +5,8 @@ import SectionHeading from '@/components/ui/SectionHeading';
 import ScrollReveal from '@/components/ui/ScrollReveal';
 import { generateStandardMetadata } from '@/lib/seo/metadata';
 import { getBaseUrl } from '@/lib/utils/env';
+import { formatPrice } from '@/lib/utils/price-formatting';
+import { ECOMMERCE } from '@/lib/constants';
 
 export const metadata: Metadata = generateStandardMetadata({
   title: 'Shipping & Returns - Jewelry Delivery Information',
@@ -41,7 +43,7 @@ export default function ShippingPage() {
                 </ul>
               </Card>
               <p>
-                Shipping costs are calculated at checkout based on your location and selected shipping method. Free shipping may be available for orders over a certain amount.
+                Shipping costs are calculated at checkout based on your location and selected shipping method. Free shipping is available for orders over {formatPrice(ECOMMERCE.freeShippingThreshold, { currencyCode: ECOMMERCE.currency })}.
               </p>
             </div>
           </section>

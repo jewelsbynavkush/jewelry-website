@@ -74,7 +74,7 @@ describe('Order Detail API', () => {
     it('should get order details for owner', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'GET',
         `http://localhost:3000/api/orders/${testOrder._id.toString()}`
@@ -110,7 +110,7 @@ describe('Order Detail API', () => {
     it('should reject invalid orderId', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'GET',
         `http://localhost:3000/api/orders/${createObjectId()}`
@@ -224,7 +224,7 @@ describe('Order Detail API', () => {
     it('should reject non-admin access', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'PATCH',
         `http://localhost:3000/api/orders/${testOrder._id.toString()}`,

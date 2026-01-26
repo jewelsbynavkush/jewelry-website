@@ -10,12 +10,12 @@ import { verifyToken, extractTokenFromHeader, JWTPayload } from './jwt';
 import { getAccessTokenFromCookie } from './session';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
-import { getSecurityHeaders } from '@/lib/security/api-headers';
+import { createSecureErrorResponse } from '@/lib/security/api-security';
 
 export interface AuthenticatedRequest extends NextRequest {
   user?: {
     userId: string;
-    mobile: string;
+    email: string;
     role: 'customer' | 'admin' | 'staff';
   };
 }
@@ -29,11 +29,12 @@ export interface AuthenticatedRequest extends NextRequest {
  * @returns User info if authenticated, null otherwise
  */
 export async function authenticateRequest(request: NextRequest): Promise<JWTPayload | null> {
-  // Try Authorization header first (for API clients)
+  // Extract token from Authorization header (standard for API clients)
   const authHeader = request.headers.get('authorization');
   let token = extractTokenFromHeader(authHeader);
 
-  // If no token in header, check cookie (for browser clients)
+  // Fallback to cookie-based authentication for browser clients
+  // Supports both API clients (header) and browser clients (cookie) for flexibility
   if (!token) {
     token = getAccessTokenFromCookie(request.cookies);
   }
@@ -47,16 +48,19 @@ export async function authenticateRequest(request: NextRequest): Promise<JWTPayl
     return null;
   }
 
-  // Verify user still exists and is active
+  // Verify user account status and role consistency
+  // Security: Ensures token is invalidated if user is deactivated, blocked, or role changes
   try {
     await connectDB();
     const user = await User.findById(payload.userId).select('isActive isBlocked role').lean();
     
+    // Reject authentication if user doesn't exist, is inactive, or is blocked
     if (!user || !user.isActive || user.isBlocked) {
       return null;
     }
 
-    // Verify role hasn't changed
+    // Reject authentication if user role changed since token was issued
+    // Prevents privilege escalation if admin role is revoked
     if (user.role !== payload.role) {
       return null;
     }
@@ -82,13 +86,7 @@ export async function requireAuth(request: NextRequest): Promise<{ user: JWTPayl
 
   if (!user) {
     return {
-      error: NextResponse.json(
-        { error: 'Authentication required' },
-        {
-          status: 401,
-          headers: getSecurityHeaders(),
-        }
-      ),
+      error: createSecureErrorResponse('Authentication required', 401, request),
     };
   }
 
@@ -111,13 +109,7 @@ export async function requireAdmin(request: NextRequest): Promise<{ user: JWTPay
 
   if (authResult.user.role !== 'admin') {
     return {
-      error: NextResponse.json(
-        { error: 'Admin access required' },
-        {
-          status: 403,
-          headers: getSecurityHeaders(),
-        }
-      ),
+      error: createSecureErrorResponse('Admin access required', 403, request),
     };
   }
 

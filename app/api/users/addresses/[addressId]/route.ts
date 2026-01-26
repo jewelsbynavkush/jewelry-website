@@ -14,23 +14,17 @@ import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } fro
 import { logError } from '@/lib/security/error-handler';
 import { sanitizeString, sanitizePhone } from '@/lib/security/sanitize';
 import { formatZodError } from '@/lib/utils/zod-error';
+import { SECURITY_CONFIG } from '@/lib/security/constants';
+import { indianAddressSchema } from '@/lib/validations/address';
+import type { UpdateAddressRequest, UpdateAddressResponse, DeleteAddressResponse } from '@/types/api';
 import { z } from 'zod';
 
 /**
- * Schema for updating address
+ * Schema for updating address with Indian address validation
+ * All fields are optional for partial updates
  */
-const updateAddressSchema = z.object({
+const updateAddressSchema = indianAddressSchema.partial().extend({
   type: z.enum(['shipping', 'billing', 'both']).optional(),
-  firstName: z.string().min(1).max(50).optional(),
-  lastName: z.string().min(1).max(50).optional(),
-  company: z.string().max(100).optional(),
-  addressLine1: z.string().min(1).max(200).optional(),
-  addressLine2: z.string().max(200).optional(),
-  city: z.string().min(1).max(100).optional(),
-  state: z.string().min(1).max(100).optional(),
-  zipCode: z.string().min(1).max(20).optional(),
-  country: z.string().min(1).max(100).optional(),
-  phone: z.string().max(20).optional(),
   isDefault: z.boolean().optional(),
 });
 
@@ -42,10 +36,9 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ addressId: string }> }
 ) {
-  // Apply security (CORS, CSRF, rate limiting)
-  // Industry standard: 50 write operations per 15 minutes for address modifications
+  // Apply security (CORS, CSRF) - rate limiting done after auth with user ID
   const securityResponse = applyApiSecurity(request, {
-    rateLimitConfig: { windowMs: 15 * 60 * 1000, maxRequests: 50 }, // 50 requests per 15 minutes (industry standard)
+    enableRateLimit: false, // Disable IP-based rate limiting, use user-based instead
     requireContentType: true,
   });
   if (securityResponse) return securityResponse;
@@ -57,13 +50,23 @@ export async function PATCH(
     }
 
     const { user } = authResult;
+
+    // Industry standard: Per-user rate limiting for authenticated endpoints
+    const { checkUserRateLimit } = await import('@/lib/security/api-security');
+    const userRateLimitResponse = checkUserRateLimit(
+      request,
+      user.userId,
+      SECURITY_CONFIG.RATE_LIMIT.USER_PROFILE_WRITE
+    );
+    if (userRateLimitResponse) return userRateLimitResponse;
+
     const { addressId } = await params;
     const sanitizedAddressId = sanitizeString(addressId);
 
     await connectDB();
 
-    // Parse and validate request body - ensures address data is valid before updating
-    const body = await request.json();
+    // Validate address data before update to ensure required fields and format compliance
+    const body = await request.json() as UpdateAddressRequest;
     const validatedData = updateAddressSchema.parse(body);
 
     // Optimize: Only select fields needed for address operations
@@ -80,8 +83,8 @@ export async function PATCH(
       return createSecureErrorResponse('Address not found', 404, request);
     }
 
-    // Update address fields with sanitized input to prevent XSS
-    // Only updates fields that are provided in request
+    // Update only provided fields with sanitized input to prevent XSS attacks
+    // Partial updates allow flexible address modifications without requiring all fields
     const address = userDoc.addresses[addressIndex];
     if (validatedData.type !== undefined) address.type = validatedData.type;
     if (validatedData.firstName !== undefined) address.firstName = sanitizeString(validatedData.firstName);
@@ -93,7 +96,9 @@ export async function PATCH(
     if (validatedData.state !== undefined) address.state = sanitizeString(validatedData.state);
     if (validatedData.zipCode !== undefined) address.zipCode = sanitizeString(validatedData.zipCode);
     if (validatedData.country !== undefined) address.country = sanitizeString(validatedData.country);
-    if (validatedData.phone !== undefined) address.phone = validatedData.phone ? sanitizePhone(validatedData.phone) : undefined;
+    if (validatedData.phone !== undefined && validatedData.phone) {
+      address.phone = sanitizePhone(validatedData.phone);
+    }
     if (validatedData.isDefault !== undefined) {
       address.isDefault = validatedData.isDefault;
       
@@ -118,18 +123,45 @@ export async function PATCH(
     address.updatedAt = new Date();
     await userDoc.save();
 
-    return createSecureResponse(
-      {
-        success: true,
-        message: 'Address updated successfully',
-        address,
-        addresses: userDoc.addresses,
-        defaultShippingAddressId: userDoc.defaultShippingAddressId,
-        defaultBillingAddressId: userDoc.defaultBillingAddressId,
+    const responseData: UpdateAddressResponse = {
+      success: true,
+      message: 'Address updated successfully',
+      address: {
+        id: address.id,
+        type: address.type,
+        firstName: address.firstName,
+        lastName: address.lastName,
+        company: address.company,
+        addressLine1: address.addressLine1,
+        addressLine2: address.addressLine2,
+        city: address.city,
+        state: address.state,
+        zipCode: address.zipCode,
+        country: address.country,
+        phone: address.phone,
+        countryCode: address.countryCode,
+        isDefault: address.isDefault,
       },
-      200,
-      request
-    );
+      addresses: userDoc.addresses.map((addr) => ({
+        id: addr.id,
+        type: addr.type,
+        firstName: addr.firstName,
+        lastName: addr.lastName,
+        company: addr.company,
+        addressLine1: addr.addressLine1,
+        addressLine2: addr.addressLine2,
+        city: addr.city,
+        state: addr.state,
+        zipCode: addr.zipCode,
+        country: addr.country,
+        phone: addr.phone,
+        countryCode: addr.countryCode,
+        isDefault: addr.isDefault,
+      })),
+      defaultShippingAddressId: userDoc.defaultShippingAddressId?.toString(),
+      defaultBillingAddressId: userDoc.defaultBillingAddressId?.toString(),
+    };
+    return createSecureResponse(responseData, 200, request);
   } catch (error) {
     const zodError = formatZodError(error);
     if (zodError) {
@@ -149,10 +181,9 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ addressId: string }> }
 ) {
-  // Apply security (CORS, CSRF, rate limiting)
-  // Industry standard: 50 write operations per 15 minutes for address modifications
+  // Apply security (CORS, CSRF) - rate limiting done after auth with user ID
   const securityResponse = applyApiSecurity(request, {
-    rateLimitConfig: { windowMs: 15 * 60 * 1000, maxRequests: 50 }, // 50 requests per 15 minutes (industry standard)
+    enableRateLimit: false, // Disable IP-based rate limiting, use user-based instead
   });
   if (securityResponse) return securityResponse;
 
@@ -163,6 +194,16 @@ export async function DELETE(
     }
 
     const { user } = authResult;
+
+    // Industry standard: Per-user rate limiting for authenticated endpoints
+    const { checkUserRateLimit } = await import('@/lib/security/api-security');
+    const userRateLimitResponse = checkUserRateLimit(
+      request,
+      user.userId,
+      SECURITY_CONFIG.RATE_LIMIT.USER_PROFILE_WRITE
+    );
+    if (userRateLimitResponse) return userRateLimitResponse;
+
     const { addressId } = await params;
     const sanitizedAddressId = sanitizeString(addressId);
 
@@ -194,17 +235,27 @@ export async function DELETE(
     userDoc.addresses.splice(addressIndex, 1);
     await userDoc.save();
 
-    return createSecureResponse(
-      {
-        success: true,
-        message: 'Address deleted successfully',
-        addresses: userDoc.addresses,
-        defaultShippingAddressId: userDoc.defaultShippingAddressId,
-        defaultBillingAddressId: userDoc.defaultBillingAddressId,
-      },
-      200,
-      request
-    );
+    const responseData: DeleteAddressResponse = {
+      success: true,
+      message: 'Address deleted successfully',
+      addresses: userDoc.addresses.map((addr) => ({
+        id: addr.id,
+        type: addr.type,
+        firstName: addr.firstName,
+        lastName: addr.lastName,
+        company: addr.company,
+        addressLine1: addr.addressLine1,
+        addressLine2: addr.addressLine2,
+        city: addr.city,
+        state: addr.state,
+        zipCode: addr.zipCode,
+        country: addr.country,
+        phone: addr.phone,
+        countryCode: addr.countryCode,
+        isDefault: addr.isDefault,
+      })),
+    };
+    return createSecureResponse(responseData, 200, request);
   } catch (error) {
     logError('user address DELETE API', error);
     return createSecureErrorResponse('Failed to delete address', 500, request);

@@ -1,14 +1,15 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 import bcrypt from 'bcryptjs';
+import { SECURITY_CONFIG } from '@/lib/security/constants';
 
 /**
- * User Schema - Mobile Number Based Authentication
+ * User Schema - Email Based Authentication
  * 
  * E-commerce User Management:
- * - Mobile number as primary identifier (required)
- * - Email optional
+ * - Email as primary identifier (required)
+ * - Mobile optional (required during order)
  * - Password authentication
- * - OTP verification for mobile
+ * - OTP verification for email
  * - User roles and permissions
  * - Address management
  * - Order history
@@ -26,25 +27,23 @@ export interface IAddress {
   state: string;
   zipCode: string;
   country: string;
-  phone?: string;
+  phone: string;
+  countryCode: string;
   isDefault: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface IUser extends Document {
-  // Primary Identification (Mobile-based)
-  mobile: string; // Required - Primary identifier
-  countryCode: string; // e.g., '+91' for India
-  mobileVerified: boolean;
-  mobileVerificationOTP?: string;
-  mobileVerificationOTPExpires?: Date;
-  
-  // Optional Email
-  email?: string;
+  // Primary Identification (Email-based)
+  email: string; // Required - Primary identifier
   emailVerified: boolean;
   emailVerificationOTP?: string;
   emailVerificationOTPExpires?: Date;
+  
+  // Optional Mobile (required during order)
+  mobile?: string; // Optional - Used in shipping/billing address
+  countryCode?: string; // e.g., '+91' for India
   
   // Personal Information
   firstName: string;
@@ -95,8 +94,6 @@ export interface IUser extends Document {
   
   // Instance Methods
   comparePassword(candidatePassword: string): Promise<boolean>;
-  generateMobileOTP(): string;
-  verifyMobileOTP(otp: string): boolean;
   generateEmailOTP(): string;
   verifyEmailOTP(otp: string): boolean;
   incLoginAttempts(): Promise<IUser | null>;
@@ -107,7 +104,7 @@ export interface IUser extends Document {
   
   // Virtual Properties
   fullName: string;
-  fullMobile: string;
+  fullMobile?: string;
   isLocked: boolean;
 }
 
@@ -174,6 +171,13 @@ const AddressSchema = new Schema<IAddress>(
     },
     phone: {
       type: String,
+      required: true,
+      trim: true,
+    },
+    countryCode: {
+      type: String,
+      required: true,
+      default: '+91',
       trim: true,
     },
     isDefault: {
@@ -188,46 +192,14 @@ const AddressSchema = new Schema<IAddress>(
 
 const UserSchema = new Schema<IUser>(
   {
-    mobile: {
+    email: {
       type: String,
       required: true,
       unique: true,
-      trim: true,
-      // Index defined via UserSchema.index() below (compound with countryCode)
-      validate: {
-        validator: function(v: string) {
-          // Basic mobile number validation (10 digits)
-          return /^[0-9]{10}$/.test(v);
-        },
-        message: 'Mobile number must be 10 digits',
-      },
-    },
-    countryCode: {
-      type: String,
-      required: true,
-      default: '+91',
-      trim: true,
-    },
-    mobileVerified: {
-      type: Boolean,
-      default: false,
-    },
-    mobileVerificationOTP: {
-      type: String,
-    },
-    mobileVerificationOTPExpires: {
-      type: Date,
-    },
-    email: {
-      type: String,
-      required: false, // Explicitly optional
-      unique: true, // Unique when provided
-      sparse: true, // Allow null, but unique if present
       lowercase: true,
       trim: true,
       validate: {
         validator: function(v: string) {
-          if (!v) return true; // Optional
           return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
         },
         message: 'Invalid email format',
@@ -242,6 +214,24 @@ const UserSchema = new Schema<IUser>(
     },
     emailVerificationOTPExpires: {
       type: Date,
+    },
+    mobile: {
+      type: String,
+      required: false,
+      trim: true,
+      validate: {
+        validator: function(v: string) {
+          if (!v) return true; // Optional
+          return /^[0-9]{10}$/.test(v);
+        },
+        message: 'Mobile number must be 10 digits',
+      },
+    },
+    countryCode: {
+      type: String,
+      required: false,
+      default: '+91',
+      trim: true,
     },
     firstName: {
       type: String,
@@ -358,8 +348,8 @@ const UserSchema = new Schema<IUser>(
 );
 
 // Indexes
-UserSchema.index({ mobile: 1, countryCode: 1 }); // Mobile lookup
-// email index created by unique: true
+// Email index created automatically by unique: true
+UserSchema.index({ mobile: 1, countryCode: 1 }, { sparse: true }); // Mobile lookup (sparse for optional field)
 UserSchema.index({ role: 1, isActive: 1 }); // Admin queries
 UserSchema.index({ createdAt: -1 }); // New users
 
@@ -370,6 +360,7 @@ UserSchema.virtual('fullName').get(function() {
 
 // Virtual for full mobile number
 UserSchema.virtual('fullMobile').get(function() {
+  if (!this.mobile || !this.countryCode) return undefined;
   return `${this.countryCode}${this.mobile}`;
 });
 
@@ -402,25 +393,6 @@ UserSchema.methods.comparePassword = async function(candidatePassword: string): 
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-// Method to generate OTP for mobile verification
-UserSchema.methods.generateMobileOTP = function(): string {
-  const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
-  this.mobileVerificationOTP = otp;
-  this.mobileVerificationOTPExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-  return otp;
-};
-
-// Method to verify mobile OTP
-UserSchema.methods.verifyMobileOTP = function(otp: string): boolean {
-  if (!this.mobileVerificationOTP || !this.mobileVerificationOTPExpires) {
-    return false;
-  }
-  if (this.mobileVerificationOTPExpires < new Date()) {
-    return false; // OTP expired
-  }
-  return this.mobileVerificationOTP === otp;
-};
-
 // Method to generate email OTP
 UserSchema.methods.generateEmailOTP = function(): string {
   if (!this.email) {
@@ -428,7 +400,7 @@ UserSchema.methods.generateEmailOTP = function(): string {
   }
   const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
   this.emailVerificationOTP = otp;
-  this.emailVerificationOTPExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+  this.emailVerificationOTPExpires = new Date(Date.now() + SECURITY_CONFIG.OTP_EXPIRATION_MS);
   return otp;
 };
 
@@ -460,7 +432,8 @@ UserSchema.statics.incrementLoginAttempts = async function(
   const user = await this.findById(userId);
   if (!user) return null;
 
-  // If previous lock expired, reset attempts
+  // Reset login attempts if previous lock period has expired
+  // Allows user to attempt login again after lockout period ends
   if (user.lockUntil && user.lockUntil < new Date()) {
     return await this.findByIdAndUpdate(
       userId,
@@ -512,7 +485,7 @@ UserSchema.methods.incLoginAttempts = async function(): Promise<IUser | null> {
   const User = this.constructor as IUserModel;
   const updated = await User.incrementLoginAttempts(this._id);
   if (updated) {
-    // Update current instance
+    // Synchronize instance with database state to reflect updated login attempts
     this.loginAttempts = updated.loginAttempts;
     this.lockUntil = updated.lockUntil;
   }
@@ -524,7 +497,7 @@ UserSchema.methods.resetLoginAttempts = async function(): Promise<IUser | null> 
   const User = this.constructor as IUserModel;
   const updated = await User.resetLoginAttempts(this._id);
   if (updated) {
-    // Update current instance
+    // Synchronize instance with database state to reflect reset login attempts
     this.loginAttempts = updated.loginAttempts;
     this.lockUntil = updated.lockUntil;
   }
@@ -541,7 +514,8 @@ UserSchema.methods.addAddress = function(addressData: Omit<IAddress, 'id' | 'cre
     updatedAt: new Date(),
   };
   
-  // If this is the first address or marked as default, set as default
+  // Set as default address if this is the first address or explicitly marked as default
+  // E-commerce best practice: Ensures users always have at least one default address for checkout
   if (this.addresses.length === 0 || addressData.isDefault) {
     if (addressData.type === 'shipping' || addressData.type === 'both') {
       this.defaultShippingAddressId = addressId;
@@ -577,7 +551,8 @@ UserSchema.methods.getDefaultBillingAddress = function(): IAddress | null {
   return this.addresses.find((addr: IAddress) => addr.type === 'billing' || addr.type === 'both') || null;
 };
 
-// Export model with proper typing
+// Export Mongoose model with connection caching and proper TypeScript typing
+// Prevents duplicate model compilation and ensures type safety
 const User = (mongoose.models.User as IUserModel) || mongoose.model<IUser, IUserModel>('User', UserSchema);
 
 export default User;

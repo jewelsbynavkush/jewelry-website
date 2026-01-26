@@ -6,6 +6,7 @@
  */
 
 import { NextResponse } from 'next/server';
+import { isDevelopment, getBaseUrl, getCorsAllowedOrigins } from '@/lib/utils/env';
 
 export interface CorsConfig {
   /** Allowed origins (use '*' for all, or specific domains) */
@@ -40,22 +41,25 @@ function getAllowedOrigin(requestOrigin: string | null, config: CorsConfig): str
     return null;
   }
 
-  // If no origins specified, allow same-origin only
+  // Default security: If no origins specified, reject all cross-origin requests
+  // Only same-origin requests are allowed when no CORS origins are configured
   if (!config.allowedOrigins || config.allowedOrigins.length === 0) {
     return null;
   }
 
-  // Allow all origins (use with caution)
+  // Allow all origins when wildcard is specified (use with extreme caution)
+  // Security risk: Enables requests from any domain, should only be used in development
   if (config.allowedOrigins.includes('*')) {
     return '*';
   }
 
-  // Check if request origin is in allowed list
+  // Check if request origin exactly matches an allowed origin
   if (config.allowedOrigins.includes(requestOrigin)) {
     return requestOrigin;
   }
 
-  // Check for wildcard subdomain matching (e.g., *.example.com)
+  // Check for wildcard subdomain matching (e.g., *.example.com matches api.example.com)
+  // Allows all subdomains of a specified domain for flexible CORS configuration
   for (const allowedOrigin of config.allowedOrigins) {
     if (allowedOrigin.startsWith('*.')) {
       const domain = allowedOrigin.slice(2);
@@ -160,14 +164,15 @@ export function handleCorsPreflight(
 export function getCorsConfig(): CorsConfig {
   const allowedOrigins: string[] = [];
 
-  // Get allowed origins from environment
-  const envOrigins = process.env.CORS_ALLOWED_ORIGINS;
-  if (envOrigins) {
-    allowedOrigins.push(...envOrigins.split(',').map((origin) => origin.trim()));
+  // Load allowed CORS origins from environment variables
+  // Supports multiple origins separated by commas for different environments
+  const envOrigins = getCorsAllowedOrigins();
+  if (envOrigins.length > 0) {
+    allowedOrigins.push(...envOrigins);
   } else {
     // Default: allow same-origin and localhost in development
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-    if (baseUrl) {
+    const baseUrl = getBaseUrl();
+    if (baseUrl && baseUrl !== 'https://yourdomain.com') {
       try {
         const url = new URL(baseUrl);
         allowedOrigins.push(url.origin);
@@ -177,7 +182,7 @@ export function getCorsConfig(): CorsConfig {
     }
 
     // Allow localhost in development
-    if (process.env.NODE_ENV === 'development') {
+    if (isDevelopment()) {
       allowedOrigins.push('http://localhost:3000', 'http://127.0.0.1:3000');
     }
   }

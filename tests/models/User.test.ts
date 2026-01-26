@@ -33,9 +33,9 @@ describe('User Model', () => {
       expect(user.isActive).toBe(true);
     });
 
-    it('should require mobile number', async () => {
+    it('should require email', async () => {
       const userData = createTestUser();
-      delete (userData as any).mobile;
+      delete (userData as any).email;
 
       await expect(User.create(userData)).rejects.toThrow();
     });
@@ -54,15 +54,16 @@ describe('User Model', () => {
       await expect(User.create(userData)).rejects.toThrow();
     });
 
-    it('should enforce unique mobile number', async () => {
+    it('should enforce unique email', async () => {
+      const email = randomEmail();
       const userData = createTestUser({
-        mobile: '1234567890',
+        email,
       });
 
       await User.create(userData);
 
       const userData2 = createTestUser({
-        mobile: '1234567890',
+        email,
       });
 
       await expect(User.create(userData2)).rejects.toThrow();
@@ -79,15 +80,16 @@ describe('User Model', () => {
       await expect(User.create(userData2)).rejects.toThrow();
     });
 
-    it('should allow multiple users without email', async () => {
-      const userData1 = createTestUser({ email: undefined });
-      const userData2 = createTestUser({ email: undefined });
+    it('should allow multiple users with different emails', async () => {
+      const userData1 = createTestUser();
+      const userData2 = createTestUser();
 
       const user1 = await User.create(userData1);
       const user2 = await User.create(userData2);
 
       expect(user1).toBeDefined();
       expect(user2).toBeDefined();
+      expect(user1.email).not.toBe(user2.email);
     });
   });
 
@@ -120,53 +122,6 @@ describe('User Model', () => {
   });
 
   describe('OTP Generation and Verification', () => {
-    it('should generate OTP', async () => {
-      const userData = createTestUser();
-      const user = await User.create(userData);
-
-      const otp = user.generateMobileOTP();
-      await user.save();
-
-      expect(otp).toBeDefined();
-      expect(otp.length).toBe(6);
-      expect(/^\d{6}$/.test(otp)).toBe(true);
-      expect(user.mobileVerificationOTP).toBe(otp);
-      expect(user.mobileVerificationOTPExpires).toBeDefined();
-    });
-
-    it('should verify valid OTP', async () => {
-      const userData = createTestUser();
-      const user = await User.create(userData);
-
-      const otp = user.generateMobileOTP();
-      await user.save();
-
-      const isValid = user.verifyMobileOTP(otp);
-      expect(isValid).toBe(true);
-    });
-
-    it('should reject invalid OTP', async () => {
-      const userData = createTestUser();
-      const user = await User.create(userData);
-
-      user.generateMobileOTP();
-      await user.save();
-
-      const isValid = user.verifyMobileOTP('000000');
-      expect(isValid).toBe(false);
-    });
-
-    it('should reject expired OTP', async () => {
-      const userData = createTestUser();
-      const user = await User.create(userData);
-
-      const otp = user.generateMobileOTP();
-      user.mobileVerificationOTPExpires = new Date(Date.now() - 1000); // Expired
-      await user.save();
-
-      const isValid = user.verifyMobileOTP(otp);
-      expect(isValid).toBe(false);
-    });
 
     it('should generate email OTP', async () => {
       const userData = createTestUser({ email: randomEmail() });
@@ -182,11 +137,17 @@ describe('User Model', () => {
       expect(user.emailVerificationOTPExpires).toBeDefined();
     });
 
-    it('should throw error when generating email OTP without email', async () => {
-      const userData = createTestUser({ email: undefined });
+    it('should require email to generate email OTP', async () => {
+      // Email is required in schema, so we can't create a user without email
+      // This test verifies that generateEmailOTP works when email is present
+      const userData = createTestUser({ email: randomEmail() });
       const user = await User.create(userData);
 
-      expect(() => user.generateEmailOTP()).toThrow('Email is required');
+      const otp = user.generateEmailOTP();
+      await user.save();
+
+      expect(otp).toBeDefined();
+      expect(user.emailVerificationOTP).toBe(otp);
     });
 
     it('should verify valid email OTP', async () => {
@@ -278,6 +239,8 @@ describe('User Model', () => {
         state: 'Test State',
         zipCode: '12345',
         country: 'India',
+        phone: '9876543210',
+        countryCode: '+91',
         isDefault: true,
       });
 
@@ -302,6 +265,8 @@ describe('User Model', () => {
         state: 'Test State',
         zipCode: '12345',
         country: 'India',
+        phone: '9876543210',
+        countryCode: '+91',
         isDefault: true,
       });
 
@@ -334,6 +299,8 @@ describe('User Model', () => {
         state: 'Test State',
         zipCode: '12345',
         country: 'India',
+        phone: '9876543210',
+        countryCode: '+91',
         isDefault: true,
       });
 
@@ -350,9 +317,9 @@ describe('User Model', () => {
   });
 
   describe('Edge Cases', () => {
-    it('should handle very long mobile number', async () => {
+    it('should handle invalid mobile number format', async () => {
       const userData = createTestUser({
-        mobile: '12345678901234567890',
+        mobile: '12345', // Too short
       });
 
       await expect(User.create(userData)).rejects.toThrow();

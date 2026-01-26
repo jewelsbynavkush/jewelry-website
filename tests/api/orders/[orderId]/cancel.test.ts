@@ -86,7 +86,7 @@ describe('POST /api/orders/[orderId]/cancel', () => {
     it('should cancel order and restore stock', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         `http://localhost:3000/api/orders/${testOrder._id.toString()}/cancel`,
@@ -117,7 +117,7 @@ describe('POST /api/orders/[orderId]/cancel', () => {
 
       const request1 = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         `http://localhost:3000/api/orders/${testOrder._id.toString()}/cancel`,
@@ -131,7 +131,7 @@ describe('POST /api/orders/[orderId]/cancel', () => {
       // Try to cancel again with same key
       const request2 = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         `http://localhost:3000/api/orders/${testOrder._id.toString()}/cancel`,
@@ -155,7 +155,7 @@ describe('POST /api/orders/[orderId]/cancel', () => {
 
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         `http://localhost:3000/api/orders/${testOrder._id.toString()}/cancel`
@@ -174,7 +174,7 @@ describe('POST /api/orders/[orderId]/cancel', () => {
 
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         `http://localhost:3000/api/orders/${testOrder._id.toString()}/cancel`
@@ -194,7 +194,7 @@ describe('POST /api/orders/[orderId]/cancel', () => {
 
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         `http://localhost:3000/api/orders/${testOrder._id.toString()}/cancel`
@@ -243,7 +243,7 @@ describe('POST /api/orders/[orderId]/cancel', () => {
     it('should handle invalid orderId', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         `http://localhost:3000/api/orders/${createObjectId()}/cancel`
@@ -262,7 +262,7 @@ describe('POST /api/orders/[orderId]/cancel', () => {
 
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         `http://localhost:3000/api/orders/${testOrder._id.toString()}/cancel`

@@ -11,6 +11,8 @@ import { NextRequest } from 'next/server';
 import { getCategories } from '@/lib/data/categories';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
+import { SECURITY_CONFIG } from '@/lib/security/constants';
+import type { GetCategoriesResponse } from '@/types/api';
 
 /**
  * GET /api/categories
@@ -18,20 +20,26 @@ import { logError } from '@/lib/security/error-handler';
  */
 export async function GET(request: NextRequest) {
   // Apply security (CORS, CSRF, rate limiting)
-  // Industry standard: 200 requests per 15 minutes for public browsing endpoints
   const securityResponse = applyApiSecurity(request, {
-    rateLimitConfig: { windowMs: 15 * 60 * 1000, maxRequests: 200 }, // 200 requests per 15 minutes (industry standard)
+    rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.PUBLIC_BROWSING,
   });
   if (securityResponse) return securityResponse;
 
   try {
-    const categories = await getCategories();
+    const categoriesData = await getCategories();
 
-    const response = createSecureResponse(
-      { categories },
-      200,
-      request
-    );
+    // Map to API response format with id field
+    const categories = categoriesData.map(cat => ({
+      id: cat.slug, // Use slug as id for API consistency
+      name: cat.name,
+      slug: cat.slug,
+      description: cat.description,
+      image: cat.image,
+      active: cat.active ?? true,
+    }));
+
+    const responseData: GetCategoriesResponse = { categories };
+    const response = createSecureResponse(responseData, 200, request);
     
     response.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
     return response;

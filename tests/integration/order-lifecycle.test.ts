@@ -82,7 +82,7 @@ describe('Order Lifecycle Integration', () => {
       // Step 1: Create order
       const createRequest = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/orders',
@@ -95,6 +95,8 @@ describe('Order Lifecycle Integration', () => {
             state: 'Test State',
             zipCode: '12345',
             country: 'India',
+            phone: '9876543210',
+            countryCode: '+91',
           },
           billingAddress: {
             firstName: 'Test',
@@ -104,6 +106,8 @@ describe('Order Lifecycle Integration', () => {
             state: 'Test State',
             zipCode: '12345',
             country: 'India',
+            phone: '9876543210',
+            countryCode: '+91',
           },
           paymentMethod: 'cod',
         }
@@ -111,6 +115,8 @@ describe('Order Lifecycle Integration', () => {
 
       const createResponse = await POSTOrder(createRequest);
       const createData = await getJsonResponse(createResponse);
+      expectStatus(createResponse, 200);
+      expect(createData.order).toBeDefined();
       const orderId = createData.order.id;
 
       expectStatus(createResponse, 200);
@@ -119,7 +125,7 @@ describe('Order Lifecycle Integration', () => {
       // Step 2: Confirm order (admin)
       const confirmRequest = createAdminRequest(
         testAdmin._id.toString(),
-        testAdmin.mobile,
+        testAdmin.email,
         'PATCH',
         `http://localhost:3000/api/orders/${orderId}`,
         {
@@ -138,7 +144,7 @@ describe('Order Lifecycle Integration', () => {
       // Step 3: Ship order (admin)
       const shipRequest = createAdminRequest(
         testAdmin._id.toString(),
-        testAdmin.mobile,
+        testAdmin.email,
         'PATCH',
         `http://localhost:3000/api/orders/${orderId}`,
         {
@@ -160,7 +166,7 @@ describe('Order Lifecycle Integration', () => {
       // Step 4: Deliver order (admin)
       const deliverRequest = createAdminRequest(
         testAdmin._id.toString(),
-        testAdmin.mobile,
+        testAdmin.email,
         'PATCH',
         `http://localhost:3000/api/orders/${orderId}`,
         {
@@ -184,7 +190,7 @@ describe('Order Lifecycle Integration', () => {
       // Create order
       const createRequest = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/orders',
@@ -197,6 +203,8 @@ describe('Order Lifecycle Integration', () => {
             state: 'Test State',
             zipCode: '12345',
             country: 'India',
+            phone: '9876543210',
+            countryCode: '+91',
           },
           billingAddress: {
             firstName: 'Test',
@@ -206,6 +214,8 @@ describe('Order Lifecycle Integration', () => {
             state: 'Test State',
             zipCode: '12345',
             country: 'India',
+            phone: '9876543210',
+            countryCode: '+91',
           },
           paymentMethod: 'cod',
         }
@@ -213,6 +223,8 @@ describe('Order Lifecycle Integration', () => {
 
       const createResponse = await POSTOrder(createRequest);
       const createData = await getJsonResponse(createResponse);
+      expectStatus(createResponse, 200);
+      expect(createData.order).toBeDefined();
       const orderId = createData.order.id;
 
       // Verify stock reduced
@@ -222,7 +234,7 @@ describe('Order Lifecycle Integration', () => {
       // Cancel order
       const cancelRequest = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         `http://localhost:3000/api/orders/${orderId}/cancel`,

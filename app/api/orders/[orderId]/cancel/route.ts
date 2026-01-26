@@ -15,15 +15,24 @@ import { sanitizeString } from '@/lib/security/sanitize';
 import { formatZodError } from '@/lib/utils/zod-error';
 import { cancelOrderAndRestoreStock, retryWithBackoff, isTransientError } from '@/lib/inventory/inventory-service';
 import { generateIdempotencyKey } from '@/lib/utils/idempotency';
+import { SECURITY_CONFIG } from '@/lib/security/constants';
+import type { CancelOrderResponse } from '@/types/api';
 import { z } from 'zod';
 import mongoose from 'mongoose';
 
 /**
- * Schema for canceling order
+ * Schema for canceling order with industry-standard validation
  */
 const cancelOrderSchema = z.object({
-  reason: z.string().max(500).optional(),
-  idempotencyKey: z.string().optional(),
+  reason: z
+    .string()
+    .max(500, 'Reason must not exceed 500 characters')
+    .trim()
+    .optional(),
+  idempotencyKey: z
+    .string()
+    .max(100, 'Idempotency key is too long')
+    .optional(),
 });
 
 /**
@@ -36,9 +45,8 @@ export async function POST(
 ) {
   try {
     // Apply security (CORS, CSRF, rate limiting)
-    // Industry standard: 10 cancel operations per 15 minutes (sensitive operation)
     const securityResponse = applyApiSecurity(request, {
-      rateLimitConfig: { windowMs: 15 * 60 * 1000, maxRequests: 10 }, // 10 requests per 15 minutes (industry standard)
+      rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.ORDER_CANCEL,
       requireContentType: true,
     });
     if (securityResponse) {
@@ -53,17 +61,19 @@ export async function POST(
 
     const { user } = authResult;
     const { orderId } = await params;
-    const sanitizedOrderId = sanitizeString(orderId);
 
     await connectDB();
     
     // Validate ObjectId format using centralized validation utility
-    const { isValidObjectId } = await import('@/lib/utils/validation');
-    if (!isValidObjectId(sanitizedOrderId)) {
-      return createSecureErrorResponse('Invalid order ID format', 400, request);
+    const { validateObjectIdParam } = await import('@/lib/utils/api-helpers');
+    const validationResult = await validateObjectIdParam(orderId, 'order ID', request);
+    if ('error' in validationResult) {
+      return validationResult.error;
     }
+    const sanitizedOrderId = validationResult.value;
 
-    // Parse and validate request body BEFORE starting transaction
+    // Validate request body BEFORE starting transaction to avoid unnecessary DB operations
+    // Transaction overhead is expensive, so fail fast on invalid input
     const body = await request.json().catch(() => ({}));
     const validatedData = cancelOrderSchema.parse(body);
     
@@ -76,21 +86,44 @@ export async function POST(
         if (existingOrder.userId.toString() !== user.userId) {
           return createSecureErrorResponse('Unauthorized access to order', 403, request);
         }
-        // Return previous result even if order is now cancelled (idempotent operation)
-        return createSecureResponse(
-          {
-            success: true,
-            message: 'Order cancellation already processed',
-            order: {
-              id: existingOrder._id.toString(),
-              orderNumber: existingOrder.orderNumber,
-              status: existingOrder.status,
-              cancelledAt: existingOrder.cancelledAt,
-            },
+        // Return previous cancellation result for idempotency
+        // Allows safe retry of cancellation requests without side effects
+        const idempotentResponseData: CancelOrderResponse = {
+          success: true,
+          message: 'Order cancellation already processed',
+          order: {
+            id: existingOrder._id.toString(),
+            orderNumber: existingOrder.orderNumber,
+            status: existingOrder.status as CancelOrderResponse['order']['status'],
+            paymentStatus: existingOrder.paymentStatus as CancelOrderResponse['order']['paymentStatus'],
+            items: existingOrder.items.map((item) => ({
+              productId: item.productId.toString(),
+              sku: item.productSku,
+              title: item.productTitle,
+              image: item.image,
+              quantity: item.quantity,
+              price: item.price,
+              total: item.total,
+            })),
+            subtotal: existingOrder.subtotal,
+            tax: existingOrder.tax,
+            shipping: existingOrder.shipping,
+            discount: existingOrder.discount,
+            total: existingOrder.total,
+            currency: existingOrder.currency,
+            shippingAddress: existingOrder.shippingAddress,
+            billingAddress: existingOrder.billingAddress,
+            paymentMethod: existingOrder.paymentMethod,
+            trackingNumber: existingOrder.trackingNumber,
+            carrier: existingOrder.carrier,
+            customerNotes: existingOrder.customerNotes,
+            createdAt: existingOrder.createdAt.toISOString(),
+            updatedAt: existingOrder.updatedAt.toISOString(),
+            shippedAt: existingOrder.shippedAt?.toISOString(),
+            deliveredAt: existingOrder.deliveredAt?.toISOString(),
           },
-          200,
-          request
-        );
+        };
+        return createSecureResponse(idempotentResponseData, 200, request);
       }
     }
     
@@ -174,20 +207,42 @@ export async function POST(
       await session.commitTransaction();
       session.endSession();
 
-      return createSecureResponse(
-        {
-          success: true,
-          message: 'Order cancelled successfully',
-          order: {
-            id: order._id.toString(),
-            orderNumber: order.orderNumber,
-            status: order.status,
-            cancelledAt: order.cancelledAt,
-          },
+      const responseData: CancelOrderResponse = {
+        success: true,
+        message: 'Order cancelled successfully',
+        order: {
+          id: order._id.toString(),
+          orderNumber: order.orderNumber,
+          status: order.status as CancelOrderResponse['order']['status'],
+          paymentStatus: order.paymentStatus as CancelOrderResponse['order']['paymentStatus'],
+          items: order.items.map((item) => ({
+            productId: item.productId.toString(),
+            sku: item.productSku,
+            title: item.productTitle,
+            image: item.image,
+            quantity: item.quantity,
+            price: item.price,
+            total: item.total,
+          })),
+          subtotal: order.subtotal,
+          tax: order.tax,
+          shipping: order.shipping,
+          discount: order.discount,
+          total: order.total,
+          currency: order.currency,
+          shippingAddress: order.shippingAddress,
+          billingAddress: order.billingAddress,
+          paymentMethod: order.paymentMethod,
+          trackingNumber: order.trackingNumber,
+          carrier: order.carrier,
+          customerNotes: order.customerNotes,
+          createdAt: order.createdAt.toISOString(),
+          updatedAt: order.updatedAt.toISOString(),
+          shippedAt: order.shippedAt?.toISOString(),
+          deliveredAt: order.deliveredAt?.toISOString(),
         },
-        200,
-        request
-      );
+      };
+      return createSecureResponse(responseData, 200, request);
       }); // Uses default retry settings (automatically adjusted for test environment)
     } catch (error) {
     // Re-throw transient errors to trigger retry (if not already retried)

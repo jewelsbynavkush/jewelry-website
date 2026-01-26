@@ -16,35 +16,30 @@ import Product from '@/models/Product';
 import { optionalAuth } from '@/lib/auth/middleware';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
-import { sanitizeString } from '@/lib/security/sanitize';
 import { formatZodError } from '@/lib/utils/zod-error';
+import { getSessionId } from '@/lib/utils/api-helpers';
 import { ECOMMERCE } from '@/lib/constants';
+import { SECURITY_CONFIG } from '@/lib/security/constants';
 import type { GetCartResponse, AddToCartRequest, AddToCartResponse } from '@/types/api';
 import { z } from 'zod';
 import mongoose from 'mongoose';
+import { reserveStockForCart, releaseReservedStock } from '@/lib/inventory/inventory-service';
 
 /**
- * Schema for adding item to cart
+ * Schema for adding item to cart with industry-standard validation
  */
 const addToCartSchema = z.object({
-  productId: z.string().min(1, 'Product ID is required'),
-  quantity: z.number().int().min(1, 'Quantity must be at least 1').max(100, 'Quantity cannot exceed 100'),
+  productId: z
+    .string()
+    .min(1, 'Product ID is required')
+    .max(100, 'Product ID is too long')
+    .regex(/^[a-zA-Z0-9_-]+$/, 'Product ID contains invalid characters'),
+  quantity: z
+    .number()
+    .int('Quantity must be an integer')
+    .min(1, 'Quantity must be at least 1')
+    .max(100, 'Quantity cannot exceed 100'),
 });
-
-/**
- * Generate or get session ID for guest carts
- */
-function getSessionId(request: NextRequest): string {
-  // Try to get from cookie first
-  const sessionCookie = request.cookies.get('session-id');
-  if (sessionCookie?.value) {
-    return sessionCookie.value;
-  }
-
-  // Generate new session ID
-  const newSessionId = new mongoose.Types.ObjectId().toString();
-  return newSessionId;
-}
 
 /**
  * GET /api/cart
@@ -52,9 +47,8 @@ function getSessionId(request: NextRequest): string {
  */
 export async function GET(request: NextRequest) {
   // Apply security (CORS, CSRF, rate limiting)
-  // Industry standard: 100 requests per 15 minutes for user-specific endpoints
   const securityResponse = applyApiSecurity(request, {
-    rateLimitConfig: { windowMs: 15 * 60 * 1000, maxRequests: 100 }, // 100 requests per 15 minutes (industry standard)
+    rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.CART,
   });
   if (securityResponse) return securityResponse;
 
@@ -68,10 +62,10 @@ export async function GET(request: NextRequest) {
     let cart;
 
     if (user) {
-      // Authenticated user - get by userId
+      // Authenticated users have persistent carts tied to their account
       cart = await Cart.findOne({ userId: user.userId }).lean();
     } else {
-      // Guest user - get by sessionId
+      // Guest users have temporary carts tied to session for cart persistence
       cart = await Cart.findOne({ sessionId }).lean();
     }
 
@@ -95,11 +89,149 @@ export async function GET(request: NextRequest) {
     );
     }
 
+    // E-commerce best practice: Validate cart items on retrieval
+    // Ensures cart reflects current product availability, status, and pricing
+    // Removes invalid items and updates prices if changed
+    const validItems: Array<{
+      productId: mongoose.Types.ObjectId;
+      sku: string;
+      title: string;
+      image: string;
+      price: number;
+      quantity: number;
+      subtotal: number;
+    }> = [];
+    let cartNeedsUpdate = false;
+
+    for (const item of cart.items) {
+      const product = await Product.findById(item.productId)
+        .select('status inventory.quantity inventory.reservedQuantity inventory.trackQuantity inventory.allowBackorder price sku title primaryImage images')
+        .lean();
+
+      // Remove items for products that no longer exist or are inactive
+      // E-commerce best practice: Keep cart synchronized with current product availability
+      if (!product || product.status !== 'active') {
+        cartNeedsUpdate = true;
+        // Release reserved stock for removed items to prevent inventory lockup
+        // Attempt to release stock if product exists and tracks quantity
+        if (item.productId && product?.inventory?.trackQuantity) {
+          // Release reserved stock immediately if product still exists
+          // If product was deleted, stock will be released via cart expiration cleanup job
+          if (product?.inventory?.trackQuantity) {
+            try {
+              const { releaseReservedStock } = await import('@/lib/inventory/inventory-service');
+              await releaseReservedStock(
+                item.productId.toString(),
+                item.quantity,
+                user?.userId
+              );
+            } catch (error) {
+              // Log but don't fail - stock release is best effort
+              // Stock will be released via cart expiration cleanup if product was deleted
+              logError('cart GET: failed to release stock for removed item', error);
+            }
+          }
+        }
+        continue;
+      }
+
+      let itemQuantity = item.quantity;
+      let itemPrice = item.price;
+      let itemSubtotal = item.subtotal;
+
+      // Verify stock availability before including item in validated cart
+      // Prevents displaying out-of-stock items to users
+      if (product.inventory.trackQuantity) {
+        const availableQuantity = Math.max(0, product.inventory.quantity - product.inventory.reservedQuantity);
+        // Adjust quantity if more than available (unless backorder allowed)
+        if (availableQuantity < item.quantity && !product.inventory.allowBackorder) {
+          cartNeedsUpdate = true;
+          // Reduce quantity to available amount
+          itemQuantity = availableQuantity;
+          itemSubtotal = itemPrice * availableQuantity;
+          // Release excess reserved stock
+          if (availableQuantity > 0) {
+            try {
+              const { releaseReservedStock } = await import('@/lib/inventory/inventory-service');
+              await releaseReservedStock(
+                item.productId.toString(),
+                item.quantity - availableQuantity,
+                user?.userId
+              );
+            } catch (error) {
+              logError('cart GET: failed to release excess stock', error);
+            }
+          } else {
+            // Item is out of stock - remove it
+            try {
+              const { releaseReservedStock } = await import('@/lib/inventory/inventory-service');
+              await releaseReservedStock(
+                item.productId.toString(),
+                item.quantity,
+                user?.userId
+              );
+            } catch (error) {
+              logError('cart GET: failed to release stock for out of stock item', error);
+            }
+            continue;
+          }
+        }
+      }
+
+      // Update price if changed significantly (allow 10% variance to avoid frequent updates)
+      // E-commerce best practice: Update prices to reflect current product pricing
+      const priceVariance = Math.abs(product.price - item.price) / item.price;
+      if (priceVariance > 0.1) {
+        cartNeedsUpdate = true;
+        itemPrice = product.price;
+        itemSubtotal = product.price * itemQuantity;
+      }
+
+      // Update product metadata (SKU, title, image) if changed to keep cart synchronized
+      // Ensures cart displays current product information
+      const itemSku = item.sku !== product.sku ? product.sku : item.sku;
+      const itemTitle = item.title !== product.title ? product.title : item.title;
+      const newImage = product.primaryImage || product.images[0] || '';
+      const itemImage = item.image !== newImage ? newImage : item.image;
+
+      if (item.sku !== itemSku || item.title !== itemTitle || item.image !== itemImage) {
+        cartNeedsUpdate = true;
+      }
+
+      validItems.push({
+        productId: item.productId,
+        sku: itemSku,
+        title: itemTitle,
+        image: itemImage,
+        price: itemPrice,
+        quantity: itemQuantity,
+        subtotal: itemSubtotal,
+      });
+    }
+
+    // Persist cart changes if items were removed or modified during validation
+    // Ensures cart state reflects current product availability and pricing
+    if (cartNeedsUpdate) {
+      // Load cart as document (not lean) to save changes
+      const cartDoc = await Cart.findById(cart._id);
+      if (cartDoc) {
+        cartDoc.items = validItems;
+        cartDoc.calculateTotals(ECOMMERCE.freeShippingThreshold, ECOMMERCE.defaultShippingCost);
+        if (ECOMMERCE.calculateTax && ECOMMERCE.taxRate > 0) {
+          cartDoc.tax = Math.round(cartDoc.subtotal * ECOMMERCE.taxRate * 100) / 100;
+          cartDoc.calculateTotals(ECOMMERCE.freeShippingThreshold, ECOMMERCE.defaultShippingCost);
+        }
+        await cartDoc.save();
+        // Use updated cart document for response to ensure consistency
+        cart = cartDoc.toObject();
+      }
+    }
+
     // Transform MongoDB document to API response format
-    // Excludes internal fields and formats ObjectIds as strings
+    // Excludes internal fields (_id, __v) and converts ObjectIds to strings for JSON serialization
     const cartResponse = {
       id: cart._id.toString(),
-      items: cart.items.map((item) => ({
+      items: (cartNeedsUpdate ? validItems : cart.items).map((item) => ({
         productId: item.productId.toString(),
         sku: item.sku,
         title: item.title,
@@ -130,9 +262,10 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   // Apply security (CORS, CSRF, rate limiting)
-  // Industry standard: 50 write operations per 15 minutes for cart modifications
+  // Higher limit for cart operations - 200 requests per 15 minutes
+  // Cart operations are frequent during shopping, so we allow more requests
   const securityResponse = applyApiSecurity(request, {
-    rateLimitConfig: { windowMs: 15 * 60 * 1000, maxRequests: 50 }, // 50 requests per 15 minutes (industry standard)
+    rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.CART,
     requireContentType: true,
   });
   if (securityResponse) return securityResponse;
@@ -140,18 +273,17 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
 
-    // Parse and validate request body - ensures productId and quantity are provided and valid
+    // Validate request body to ensure productId format and quantity constraints before processing
     const body = await request.json() as AddToCartRequest;
     const validatedData = addToCartSchema.parse(body);
 
     // Sanitize and validate productId
-    const productId = sanitizeString(validatedData.productId);
-    
-    // Validate ObjectId format using centralized validation utility
-    const { isValidObjectId } = await import('@/lib/utils/validation');
-    if (!isValidObjectId(productId)) {
-      return createSecureErrorResponse('Invalid product ID format', 400, request);
+    const { validateObjectIdParam } = await import('@/lib/utils/api-helpers');
+    const validationResult = await validateObjectIdParam(validatedData.productId, 'product ID', request);
+    if ('error' in validationResult) {
+      return validationResult.error;
     }
+    const productId = validationResult.value;
 
     // Fetch product with only required fields for validation to reduce data transfer
     // Verifies product exists, is active, and has sufficient stock before adding to cart
@@ -185,7 +317,8 @@ export async function POST(request: NextRequest) {
     );
 
     if (!cart) {
-      // Initialize new cart with default currency from constants for consistency
+      // Initialize new cart with default currency from constants
+      // Ensures consistent currency across all cart operations
       cart = new Cart({
         userId: user?.userId,
         sessionId: user ? undefined : sessionId,
@@ -194,18 +327,36 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Check if product already exists in cart to update quantity instead of creating duplicate entry
+    // Check for existing cart item to update quantity instead of creating duplicates
+    // Prevents multiple cart entries for the same product
     const existingItemIndex = cart.items.findIndex(
       (item) => item.productId.toString() === productId
     );
 
+    const quantityToReserve = validatedData.quantity;
+
     if (existingItemIndex >= 0) {
-      // Increment quantity for existing item and recalculate subtotal with current product price
+      // Increment quantity for existing item
+      // E-commerce best practice: Update price to current product price if changed significantly (>10%)
+      // Maintains price consistency while allowing minor price fluctuations
+      const priceVariance = Math.abs(product.price - cart.items[existingItemIndex].price) / cart.items[existingItemIndex].price;
+      if (priceVariance > 0.1) {
+        // Price changed significantly - update to current price
+        cart.items[existingItemIndex].price = product.price;
+        cart.items[existingItemIndex].sku = product.sku;
+        cart.items[existingItemIndex].title = product.title;
+        const newImage = product.primaryImage || product.images[0] || '';
+        if (cart.items[existingItemIndex].image !== newImage) {
+          cart.items[existingItemIndex].image = newImage;
+        }
+      }
+      
       const newQuantity = cart.items[existingItemIndex].quantity + validatedData.quantity;
       cart.items[existingItemIndex].quantity = newQuantity;
       cart.items[existingItemIndex].subtotal = cart.items[existingItemIndex].price * newQuantity;
     } else {
       // Add new item to cart with current product price and metadata
+      // Ensures cart always reflects current product information
       cart.items.push({
         productId: new mongoose.Types.ObjectId(productId),
         sku: product.sku,
@@ -217,19 +368,50 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Calculate totals with free shipping threshold and tax
+    // E-commerce best practice: Reserve stock when item is added to cart
+    // Prevents overselling by reserving inventory atomically
+    // Stock is released when item is removed from cart or cart expires
+    // Retry logic is handled internally by reserveStockForCart for MongoDB lock timeouts
+    if (product.inventory.trackQuantity) {
+      const reservationResult = await reserveStockForCart(
+        productId,
+        quantityToReserve,
+        user?.userId
+      );
+
+      if (!reservationResult.success) {
+        // Rollback cart changes if stock reservation fails
+        if (existingItemIndex >= 0) {
+          cart.items[existingItemIndex].quantity -= validatedData.quantity;
+          cart.items[existingItemIndex].subtotal = cart.items[existingItemIndex].price * cart.items[existingItemIndex].quantity;
+        } else {
+          cart.items.pop();
+        }
+        return createSecureErrorResponse(
+          reservationResult.error || 'Failed to reserve stock',
+          400,
+          request
+        );
+      }
+    }
+
+    // Calculate cart totals including tax and shipping
+    // Applies free shipping threshold and tax rate from e-commerce constants
     // E-commerce best practice: Apply free shipping when subtotal meets threshold
     cart.calculateTotals(ECOMMERCE.freeShippingThreshold, ECOMMERCE.defaultShippingCost);
     
-    // Calculate tax if enabled
+    // Calculate tax based on e-commerce configuration (18% GST in India)
+    // Tax calculation is configurable and can be disabled for tax-exempt regions
     if (ECOMMERCE.calculateTax && ECOMMERCE.taxRate > 0) {
-      cart.tax = Math.round(cart.subtotal * ECOMMERCE.taxRate * 100) / 100; // Round to 2 decimal places
-      cart.calculateTotals(ECOMMERCE.freeShippingThreshold, ECOMMERCE.defaultShippingCost); // Recalculate total with tax
+      // Round tax to 2 decimal places for financial precision
+      cart.tax = Math.round(cart.subtotal * ECOMMERCE.taxRate * 100) / 100;
+      // Recalculate cart totals including tax to ensure accurate final amount
+      cart.calculateTotals(ECOMMERCE.freeShippingThreshold, ECOMMERCE.defaultShippingCost);
     }
     
     await cart.save();
 
-    // Set session cookie for guest users
+    // Prepare response with updated cart data
     const responseData: AddToCartResponse = {
       success: true,
       message: 'Item added to cart',
@@ -254,13 +436,15 @@ export async function POST(request: NextRequest) {
     };
     const response = createSecureResponse(responseData, 200, request);
 
-    // Set session cookie for guest users to maintain cart persistence across sessions
+    // Set session cookie for guest users to persist cart across browser sessions
+    // E-commerce best practice: Enables cart recovery when user returns without requiring authentication
     if (!user) {
+      const { TIME_DURATIONS } = await import('@/lib/security/constants');
       response.cookies.set('session-id', sessionId, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: (await import('@/lib/utils/env')).isProduction(),
         sameSite: 'strict',
-        maxAge: 30 * 24 * 60 * 60, // 30 days
+        maxAge: TIME_DURATIONS.THIRTY_DAYS,
         path: '/',
       });
     }
@@ -283,9 +467,9 @@ export async function POST(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   // Apply security (CORS, CSRF, rate limiting)
-  // Industry standard: 50 write operations per 15 minutes for cart modifications
+  // Higher limit for cart operations - 200 requests per 15 minutes
   const securityResponse = applyApiSecurity(request, {
-    rateLimitConfig: { windowMs: 15 * 60 * 1000, maxRequests: 50 }, // 50 requests per 15 minutes (industry standard)
+    rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.CART,
   });
   if (securityResponse) return securityResponse;
 
@@ -301,6 +485,26 @@ export async function DELETE(request: NextRequest) {
 
     if (!cart) {
       return createSecureResponse({ success: true, message: 'Cart is already empty' }, 200, request);
+    }
+
+    // E-commerce best practice: Release all reserved stock before clearing cart
+    // Ensures inventory is available for other customers
+    if (cart.items.length > 0) {
+      for (const item of cart.items) {
+        if (item.productId) {
+          const product = await Product.findById(item.productId)
+            .select('inventory.trackQuantity')
+            .lean();
+          
+          if (product?.inventory.trackQuantity) {
+            await releaseReservedStock(
+              item.productId.toString(),
+              item.quantity,
+              user?.userId
+            );
+          }
+        }
+      }
     }
 
     // Clear items and reset totals

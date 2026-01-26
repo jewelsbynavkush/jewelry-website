@@ -30,7 +30,7 @@ describe('PATCH /api/users/password', () => {
     it('should change password with valid current password', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'PATCH',
         'http://localhost:3000/api/users/password',
@@ -58,7 +58,7 @@ describe('PATCH /api/users/password', () => {
       
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'PATCH',
         'http://localhost:3000/api/users/password',
@@ -81,7 +81,7 @@ describe('PATCH /api/users/password', () => {
     it('should reject wrong current password', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'PATCH',
         'http://localhost:3000/api/users/password',
@@ -103,7 +103,7 @@ describe('PATCH /api/users/password', () => {
     it('should reject missing current password', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'PATCH',
         'http://localhost:3000/api/users/password',
@@ -122,7 +122,7 @@ describe('PATCH /api/users/password', () => {
     it('should reject missing new password', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'PATCH',
         'http://localhost:3000/api/users/password',
@@ -141,7 +141,7 @@ describe('PATCH /api/users/password', () => {
     it('should reject short new password', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'PATCH',
         'http://localhost:3000/api/users/password',
@@ -174,7 +174,7 @@ describe('PATCH /api/users/password', () => {
     it('should apply rate limiting', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'PATCH',
         'http://localhost:3000/api/users/password',

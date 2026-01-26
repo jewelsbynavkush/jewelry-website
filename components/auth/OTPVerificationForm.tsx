@@ -3,12 +3,11 @@
 /**
  * OTP Verification Form Component
  * 
- * Handles mobile OTP verification after registration.
+ * Handles email OTP verification after registration.
  * Integrates with auth store and API.
  */
 
 import { useState, FormEvent, useRef, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/auth-store';
 import { useFormError } from '@/lib/hooks/useFormError';
 import Button from '@/components/ui/Button';
@@ -17,9 +16,7 @@ import ErrorMessage from '@/components/ui/ErrorMessage';
 import OTPInput, { OTPInputRef } from '@/components/ui/OTPInput';
 
 function OTPVerificationFormContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { verifyMobile, resendOTP, isLoading, error, clearError, user } = useAuthStore();
+  const { verifyEmail, resendOTP, isLoading, error, clearError, user } = useAuthStore();
   const { displayError, setError, clearError: clearLocalError } = useFormError({ 
     storeError: error, 
     onErrorClear: clearError 
@@ -45,15 +42,23 @@ function OTPVerificationFormContent() {
       return;
     }
 
-    // Always pass mobile number from store (auth store will use it if token is expired)
+    // Always pass email from store (auth store will use it if token is expired)
     // This ensures verification works even if the session token expired
-    const response = await verifyMobile(otp, user?.mobile);
+    const response = await verifyEmail(otp, user?.email);
 
     if (response.success) {
-      // Redirect to original destination or profile
-      const redirect = searchParams.get('redirect') || '/profile';
-      router.push(redirect);
-      router.refresh();
+      // Dispatch event to notify verify-email page that verification succeeded
+      // This prevents the page from redirecting back
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('otp:verification-success'));
+      }
+      
+      // Wait for auth state to fully update before redirecting
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Always redirect to profile page after successful email verification
+      // Use window.location for reliable navigation
+      window.location.href = '/profile';
     } else {
       setError(response.error || 'OTP verification failed');
       // Clear OTP on error
@@ -66,8 +71,8 @@ function OTPVerificationFormContent() {
     
     clearLocalError();
     
-    // Include mobile number from store for post-registration flow
-    const response = await resendOTP(user?.mobile);
+    // Include email from store for post-registration flow
+    const response = await resendOTP(user?.email);
     
     if (response.success) {
       setResendCooldown(60); // 60 second cooldown
@@ -81,11 +86,13 @@ function OTPVerificationFormContent() {
       <div className="space-y-6">
         <div className="text-center space-y-2">
           <h3 className="text-[var(--text-on-cream)] text-xl font-bold">
-            Verify Mobile Number
+            Verify Email Address
           </h3>
           <p className="text-[var(--text-secondary)] text-sm">
             Enter the 6-digit OTP sent to{' '}
-            <span className="font-medium">{user?.mobile || 'your mobile number'}</span>
+            <span className="font-medium">
+              {user?.email || 'your email address'}
+            </span>
           </p>
         </div>
 
@@ -117,7 +124,7 @@ function OTPVerificationFormContent() {
               type="button"
               onClick={handleResend}
               disabled={isLoading || resendCooldown > 0}
-              className="text-[var(--text-secondary)] text-sm hover:text-[var(--text-on-cream)] underline disabled:opacity-50 disabled:cursor-not-allowed"
+              className="text-[var(--text-secondary)] text-sm hover:text-[var(--text-on-cream)] underline cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
             >
               {resendCooldown > 0
                 ? `Resend OTP in ${resendCooldown}s`

@@ -23,10 +23,12 @@ All documentation is organized in the [`docs/`](./docs/) folder.
 - [Quick Start Guide](./docs/SETUP_QUICK_START.md) - Get started in minutes
 - [Development Guide](./docs/DEVELOPMENT_GUIDE.md) - Complete development workflow
 - [MongoDB Atlas Setup](./docs/MONGODB_ATLAS_COMPLETE_GUIDE.md) - Database setup ⭐ **READ THIS FIRST**
+- [Email Setup Guide](./docs/EMAIL_SETUP.md) - Gmail and Zoho Mail configuration
 - [Overall Best Practices](./docs/OVERALL_BEST_PRACTICES_FINAL_2025.md) - Complete best practices verification
 - [E-commerce Best Practices](./docs/E_COMMERCE_BEST_PRACTICES_FINAL.md) - E-commerce implementation
 - [Comprehensive Audit Report](./docs/AUDIT_REPORT_2025.md) - All audits consolidated
 - [Models Guide](./docs/MODELS_GUIDE.md) - Database models
+- [Inventory Guide](./docs/INVENTORY_GUIDE.md) - Complete inventory management
 - [API Guide](./docs/API_GUIDE.md) - API documentation
 - [3D Animations Guide](./docs/3D_ANIMATIONS_GUIDE.md) - Animation system
 - [Vercel Deployment](./docs/VERCEL_DEPLOYMENT.md) - Deployment guide

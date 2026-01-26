@@ -1,6 +1,8 @@
 'use client';
 
 import SmoothLink from './SmoothLink';
+import { formatPrice } from '@/lib/utils/price-formatting';
+import { ECOMMERCE } from '@/lib/constants';
 
 /**
  * Trust badges component for e-commerce credibility
@@ -41,7 +43,7 @@ export default function TrustBadges() {
             d="M5 13l4 4L19 7"
           />
         </svg>
-        <span>Free Shipping Over $100</span>
+        <span>Free Shipping Over {formatPrice(ECOMMERCE.freeShippingThreshold, { currencyCode: ECOMMERCE.currency })}</span>
       </div>
       <div className="flex items-center gap-2 text-[var(--text-secondary)] text-body-xs sm:text-body-sm">
         <svg

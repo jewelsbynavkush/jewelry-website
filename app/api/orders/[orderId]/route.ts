@@ -14,18 +14,31 @@ import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } fro
 import { logError } from '@/lib/security/error-handler';
 import { sanitizeString } from '@/lib/security/sanitize';
 import { formatZodError } from '@/lib/utils/zod-error';
+import { SECURITY_CONFIG } from '@/lib/security/constants';
 import type { GetOrderResponse } from '@/types/api';
 import { z } from 'zod';
 
 /**
- * Schema for updating order status
+ * Schema for updating order status with industry-standard validation
  */
 const updateOrderSchema = z.object({
   status: z.enum(['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded']).optional(),
   paymentStatus: z.enum(['pending', 'paid', 'failed', 'refunded', 'partially_refunded']).optional(),
-  trackingNumber: z.string().max(100).optional(),
-  carrier: z.string().max(100).optional(),
-  notes: z.string().max(1000).optional(),
+  trackingNumber: z
+    .string()
+    .max(100, 'Tracking number must not exceed 100 characters')
+    .trim()
+    .optional(),
+  carrier: z
+    .string()
+    .max(100, 'Carrier name must not exceed 100 characters')
+    .trim()
+    .optional(),
+  notes: z
+    .string()
+    .max(1000, 'Notes must not exceed 1000 characters')
+    .trim()
+    .optional(),
 });
 
 /**
@@ -37,9 +50,8 @@ export async function GET(
   { params }: { params: Promise<{ orderId: string }> }
 ) {
   // Apply security (CORS, CSRF, rate limiting)
-  // Industry standard: 100 requests per 15 minutes for user-specific read endpoints
   const securityResponse = applyApiSecurity(request, {
-    rateLimitConfig: { windowMs: 15 * 60 * 1000, maxRequests: 100 }, // 100 requests per 15 minutes (industry standard)
+    rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.ORDER_READ,
   });
   if (securityResponse) return securityResponse;
 
@@ -51,15 +63,16 @@ export async function GET(
 
     const { user } = authResult;
     const { orderId } = await params;
-    const sanitizedOrderId = sanitizeString(orderId);
 
     await connectDB();
     
     // Validate ObjectId format using centralized validation utility
-    const { isValidObjectId } = await import('@/lib/utils/validation');
-    if (!isValidObjectId(sanitizedOrderId)) {
-      return createSecureErrorResponse('Invalid order ID format', 400, request);
+    const { validateObjectIdParam } = await import('@/lib/utils/api-helpers');
+    const validationResult = await validateObjectIdParam(orderId, 'order ID', request);
+    if ('error' in validationResult) {
+      return validationResult.error;
     }
+    const sanitizedOrderId = validationResult.value;
 
     // Fetch order with user filter to enforce access control
     // Users can only access their own orders, preventing unauthorized data access
@@ -133,7 +146,7 @@ export async function PATCH(
   // Apply security (CORS, CSRF, rate limiting)
   // Industry standard: 50 write operations per 15 minutes for order updates
   const securityResponse = applyApiSecurity(request, {
-    rateLimitConfig: { windowMs: 15 * 60 * 1000, maxRequests: 50 }, // 50 requests per 15 minutes (industry standard)
+    rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.AUTH,
     requireContentType: true,
   });
   if (securityResponse) return securityResponse;
@@ -146,15 +159,16 @@ export async function PATCH(
     }
 
     const { orderId } = await params;
-    const sanitizedOrderId = sanitizeString(orderId);
 
     await connectDB();
     
     // Validate ObjectId format using centralized validation utility
-    const { isValidObjectId } = await import('@/lib/utils/validation');
-    if (!isValidObjectId(sanitizedOrderId)) {
-      return createSecureErrorResponse('Invalid order ID format', 400, request);
+    const { validateObjectIdParam } = await import('@/lib/utils/api-helpers');
+    const validationResult = await validateObjectIdParam(orderId, 'order ID', request);
+    if ('error' in validationResult) {
+      return validationResult.error;
     }
+    const sanitizedOrderId = validationResult.value;
 
     const body = await request.json();
     const validatedData = updateOrderSchema.parse(body);

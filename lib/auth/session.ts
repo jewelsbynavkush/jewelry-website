@@ -10,11 +10,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateAccessToken } from './jwt';
 import RefreshToken from '@/models/RefreshToken';
+import { isProduction } from '@/lib/utils/env';
+import { TIME_DURATIONS } from '@/lib/security/constants';
 
 const ACCESS_TOKEN_COOKIE = 'auth-token'; // Short-lived access token
 const REFRESH_TOKEN_COOKIE = 'refresh-token'; // Long-lived refresh token
-const ACCESS_TOKEN_MAX_AGE = 60 * 60; // 1 hour in seconds
-const REFRESH_TOKEN_MAX_AGE = 30 * 24 * 60 * 60; // 30 days in seconds
+const ACCESS_TOKEN_MAX_AGE = TIME_DURATIONS.ONE_HOUR; // 1 hour in seconds
+const REFRESH_TOKEN_MAX_AGE = TIME_DURATIONS.THIRTY_DAYS; // 30 days in seconds
 
 /**
  * Get client device/user agent info for token tracking
@@ -35,7 +37,7 @@ function getClientInfo(request?: NextRequest): { userAgent?: string; ipAddress?:
  * Industry standard: Issues both short-lived access token and long-lived refresh token
  * 
  * @param userId - User ID
- * @param mobile - User mobile number
+ * @param email - User email address
  * @param role - User role
  * @param response - Next.js response object
  * @param request - Next.js request object (for device tracking)
@@ -43,13 +45,13 @@ function getClientInfo(request?: NextRequest): { userAgent?: string; ipAddress?:
  */
 export async function createSession(
   userId: string,
-  mobile: string,
+  email: string,
   role: 'customer' | 'admin' | 'staff' = 'customer',
   response: NextResponse,
   request?: NextRequest
 ): Promise<NextResponse> {
   // Generate short-lived access token (1 hour)
-  const accessToken = generateAccessToken(userId, mobile, role);
+  const accessToken = generateAccessToken(userId, email, role);
   
   // Generate refresh token and store in database
   const clientInfo = getClientInfo(request);
@@ -60,19 +62,21 @@ export async function createSession(
     clientInfo.ipAddress
   );
   
-  // Set access token cookie (short-lived)
+  // Set short-lived access token cookie (1 hour) for API authentication
+  // Short expiration limits exposure if token is compromised
   response.cookies.set(ACCESS_TOKEN_COOKIE, accessToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: isProduction(),
     sameSite: 'strict',
     maxAge: ACCESS_TOKEN_MAX_AGE,
     path: '/',
   });
   
-  // Set refresh token cookie (long-lived)
+  // Set long-lived refresh token cookie (30 days) for automatic token renewal
+  // Separate from access token to limit refresh token usage
   response.cookies.set(REFRESH_TOKEN_COOKIE, refreshToken, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: isProduction(),
     sameSite: 'strict',
     maxAge: REFRESH_TOKEN_MAX_AGE,
     path: '/',

@@ -59,8 +59,8 @@ export default function CartSummary({ cart }: CartSummaryProps) {
             )}
           </div>
           {cart.subtotal > 0 && cart.subtotal < ECOMMERCE.freeShippingThreshold && (
-            <div className="text-[var(--text-muted)] text-sm">
-              Add {formatPrice(ECOMMERCE.freeShippingThreshold - cart.subtotal, { currencyCode: cart.currency })} more for free shipping
+            <div className="text-[var(--text-muted)] text-sm bg-[var(--beige)] bg-opacity-10 p-2 rounded border border-[var(--border-light)]">
+              <span className="font-medium">Free shipping available!</span> Add {formatPrice(ECOMMERCE.freeShippingThreshold - cart.subtotal, { currencyCode: cart.currency })} more to qualify.
             </div>
           )}
 

@@ -106,6 +106,13 @@ export default function OrderDetailsPage() {
     }
   }, [isAuthenticated, authLoading, orderId, router, fetchOrderDetails]);
 
+  // Redirect if user becomes unauthenticated (e.g., after logout)
+  useEffect(() => {
+    if (!isAuthenticated && !authLoading) {
+      router.push('/auth/login');
+    }
+  }, [isAuthenticated, authLoading, router]);
+
   const getStatusColor = (status: string) => {
     const statusColors: Record<string, string> = {
       pending: 'text-[var(--accent-warning)]',
@@ -132,9 +139,12 @@ export default function OrderDetailsPage() {
     return (
       <PageContainer maxWidth="4xl">
         <SectionHeading as="h2">ORDER DETAILS</SectionHeading>
-        <div className="text-center py-12">
-          <p className="text-[var(--text-secondary)]">Loading order details...</p>
-        </div>
+        <Card className="text-center py-12">
+          <div className="space-y-4">
+            <div className="inline-block w-8 h-8 border-4 border-[var(--beige)] border-t-transparent rounded-full animate-spin" aria-label="Loading order details" role="status" />
+            <p className="text-[var(--text-secondary)]">Loading order details...</p>
+          </div>
+        </Card>
       </PageContainer>
     );
   }
@@ -294,16 +304,18 @@ export default function OrderDetailsPage() {
             <Card>
               <h3 className="text-[var(--text-on-cream)] text-lg font-semibold mb-4">Shipping Address</h3>
               <div className="space-y-2 text-[var(--text-secondary)] text-sm">
-                <p className="font-medium text-[var(--text-on-cream)]">
+                <p className="font-medium text-[var(--text-on-cream)] break-words">
                   {order.shippingAddress.firstName} {order.shippingAddress.lastName}
                 </p>
-                <p>{order.shippingAddress.addressLine1}</p>
-                {order.shippingAddress.addressLine2 && <p>{order.shippingAddress.addressLine2}</p>}
-                <p>
+                <p className="break-words overflow-wrap-anywhere">{order.shippingAddress.addressLine1}</p>
+                {order.shippingAddress.addressLine2 && (
+                  <p className="break-words overflow-wrap-anywhere">{order.shippingAddress.addressLine2}</p>
+                )}
+                <p className="break-words">
                   {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.zipCode}
                 </p>
-                <p>{order.shippingAddress.country}</p>
-                {order.shippingAddress.phone && <p>Phone: {order.shippingAddress.phone}</p>}
+                <p className="break-words">{order.shippingAddress.country}</p>
+                {order.shippingAddress.phone && <p className="break-words">Phone: {order.shippingAddress.phone}</p>}
               </div>
             </Card>
           </ScrollReveal>
@@ -312,16 +324,18 @@ export default function OrderDetailsPage() {
             <Card>
               <h3 className="text-[var(--text-on-cream)] text-lg font-semibold mb-4">Billing Address</h3>
               <div className="space-y-2 text-[var(--text-secondary)] text-sm">
-                <p className="font-medium text-[var(--text-on-cream)]">
+                <p className="font-medium text-[var(--text-on-cream)] break-words">
                   {order.billingAddress.firstName} {order.billingAddress.lastName}
                 </p>
-                <p>{order.billingAddress.addressLine1}</p>
-                {order.billingAddress.addressLine2 && <p>{order.billingAddress.addressLine2}</p>}
-                <p>
+                <p className="break-words overflow-wrap-anywhere">{order.billingAddress.addressLine1}</p>
+                {order.billingAddress.addressLine2 && (
+                  <p className="break-words overflow-wrap-anywhere">{order.billingAddress.addressLine2}</p>
+                )}
+                <p className="break-words">
                   {order.billingAddress.city}, {order.billingAddress.state} {order.billingAddress.zipCode}
                 </p>
-                <p>{order.billingAddress.country}</p>
-                {order.billingAddress.phone && <p>Phone: {order.billingAddress.phone}</p>}
+                <p className="break-words">{order.billingAddress.country}</p>
+                {order.billingAddress.phone && <p className="break-words">Phone: {order.billingAddress.phone}</p>}
               </div>
             </Card>
           </ScrollReveal>

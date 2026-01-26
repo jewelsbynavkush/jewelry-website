@@ -1,5 +1,20 @@
 @import "tailwindcss";
 
+/* Global cursor styles for interactive elements */
+a, button, [role="button"], [onclick], input[type="submit"], input[type="button"], input[type="reset"], select, label[for] {
+  cursor: pointer;
+}
+
+button:disabled, [role="button"][aria-disabled="true"], a[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+/* Global disabled state styling for inputs */
+input:disabled, textarea:disabled, select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Reduced Motion Support - Accessibility */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -38,6 +53,11 @@
   --white-opacity-30: rgba(255, 255, 255, 0.3);    /* White 30% opacity */
   --white-opacity-40: rgba(255, 255, 255, 0.4);    /* White 40% opacity */
   --white-opacity-60: rgba(255, 255, 255, 0.6);    /* White 60% opacity */
+  
+  /* Black with Opacity - Standardized for hover states on light backgrounds */
+  --black-opacity-4: rgba(0, 0, 0, 0.04);          /* Black 4% opacity - for subtle hover on cream */
+  --black-opacity-8: rgba(0, 0, 0, 0.08);          /* Black 8% opacity - for medium hover */
+  --black-opacity-12: rgba(0, 0, 0, 0.12);         /* Black 12% opacity - for stronger hover */
   
   /* Gradient Colors - Standardized for consistency */
   --gradient-beige-light: rgba(204, 196, 186, 0.15);  /* Light beige for gradients */
@@ -448,7 +468,7 @@ div[role="main"],
 
 /* Responsive Grid Utilities */
 .responsive-grid-2 {
-  @apply grid grid-cols-2 gap-4 sm:gap-6 md:gap-8 lg:gap-10;
+  @apply grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 md:gap-8 lg:gap-10;
 }
 
 .responsive-grid-3 {
@@ -456,7 +476,7 @@ div[role="main"],
 }
 
 .responsive-grid-4 {
-  @apply grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8 lg:gap-10;
+  @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8 lg:gap-10;
 }
 
 /* Touch Target - Minimum 44x44px for accessibility */

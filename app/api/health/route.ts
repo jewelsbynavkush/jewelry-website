@@ -8,29 +8,28 @@
 import { NextRequest } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import mongoose from 'mongoose';
-import { createSecureResponse } from '@/lib/security/api-security';
-
-interface HealthStatus {
-  status: 'healthy' | 'unhealthy';
-  timestamp: string;
-  uptime: number;
-  services: {
-    database: {
-      status: 'connected' | 'disconnected' | 'error';
-      responseTime?: number;
-      error?: string;
-    };
-  };
-  version: string;
-}
+import { applyApiSecurity, createSecureResponse } from '@/lib/security/api-security';
+import { TIME_DURATIONS_MS } from '@/lib/security/constants';
+import { getPackageVersion } from '@/lib/utils/env';
+import type { HealthResponse } from '@/types/api';
 
 /**
  * GET /api/health
  * Health check endpoint for monitoring
  */
 export async function GET(request: NextRequest) {
+  // Apply security (CORS, CSRF, rate limiting)
+  // Health endpoint is public but should be rate limited
+  const securityResponse = applyApiSecurity(request, {
+    rateLimitConfig: {
+      windowMs: TIME_DURATIONS_MS.ONE_MINUTE,
+      maxRequests: 60, // 60 requests per minute for health checks
+    },
+  });
+  if (securityResponse) return securityResponse;
+
   const startTime = Date.now();
-  const healthStatus: HealthStatus = {
+  const healthStatus: Omit<HealthResponse, 'responseTime'> = {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
@@ -39,7 +38,7 @@ export async function GET(request: NextRequest) {
         status: 'disconnected',
       },
     },
-    version: process.env.npm_package_version || '0.1.0',
+    version: getPackageVersion(),
   };
 
   // Verify database connectivity and measure response time
@@ -49,7 +48,8 @@ export async function GET(request: NextRequest) {
     await connectDB();
     const dbResponseTime = Date.now() - dbStartTime;
 
-    // Verify connection is actually working
+    // Verify database connection state (1 = connected, 0 = disconnected)
+    // Ensures health check accurately reflects actual database connectivity
     if (mongoose.connection.readyState === 1) {
       healthStatus.services.database = {
         status: 'connected',
@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
   const responseTime = Date.now() - startTime;
 
   // Include response time in health status for performance monitoring
-  const response = {
+  const responseData: HealthResponse = {
     ...healthStatus,
     responseTime,
   };
@@ -87,5 +87,5 @@ export async function GET(request: NextRequest) {
   // Allows load balancers to route traffic away from unhealthy instances
   const statusCode = healthStatus.status === 'healthy' ? 200 : 503;
 
-  return createSecureResponse(response, statusCode, request);
+  return createSecureResponse(responseData, statusCode, request);
 }

@@ -4,33 +4,32 @@ import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } fro
 import { sanitizeString, sanitizeEmail, sanitizePhone } from '@/lib/security/sanitize';
 import { logError } from '@/lib/security/error-handler';
 import { formatZodError } from '@/lib/utils/zod-error';
+import { SECURITY_CONFIG } from '@/lib/security/constants';
 import type { ContactRequest, ContactResponse } from '@/types/api';
-
-const MAX_REQUEST_SIZE = 10 * 1024;
 
 export async function POST(request: NextRequest) {
   // Apply security (CORS, CSRF, rate limiting) - stricter for contact form
   const securityResponse = applyApiSecurity(request, {
-    rateLimitConfig: { windowMs: 15 * 60 * 1000, maxRequests: 10 }, // 10 requests per 15 minutes
+    rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.CONTACT_FORM,
     requireContentType: true,
-    maxRequestSize: MAX_REQUEST_SIZE,
+    maxRequestSize: SECURITY_CONFIG.MAX_REQUEST_SIZE,
   });
   if (securityResponse) return securityResponse;
 
   try {
     // Validate request size from header to fail fast before parsing body
     const contentLength = request.headers.get('content-length');
-    if (contentLength && parseInt(contentLength) > MAX_REQUEST_SIZE) {
+    if (contentLength && parseInt(contentLength) > SECURITY_CONFIG.MAX_REQUEST_SIZE) {
       return createSecureErrorResponse('Request too large', 413, request);
     }
 
-    // Parse and validate request body - ensures all required contact form fields are present
+    // Validate contact form fields to ensure required data is present and properly formatted
     let body: ContactRequest;
     try {
       const bodyText = await request.text();
       
       // Double-check actual body size since Content-Length header can be spoofed
-      if (bodyText.length > MAX_REQUEST_SIZE) {
+      if (bodyText.length > SECURITY_CONFIG.MAX_REQUEST_SIZE) {
         return createSecureErrorResponse('Request too large', 413, request);
       }
       
@@ -65,7 +64,8 @@ export async function POST(request: NextRequest) {
     // Integration points: email service, database, webhook, or file storage
     
     // Log submission details only in development for debugging
-    if (process.env.NODE_ENV === 'development') {
+    const { isDevelopment } = await import('@/lib/utils/env');
+    if (isDevelopment()) {
       logError('contact form submission', {
         name: sanitizedData.name,
         email: sanitizedData.email,
@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
   return response;
 }
 
-// Handle all other HTTP methods
+// Reject unsupported HTTP methods (only POST is allowed for contact form)
 export async function PUT(request: NextRequest) {
   const securityResponse = applyApiSecurity(request, {
     allowedMethods: ['PUT'],

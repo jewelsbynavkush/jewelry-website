@@ -53,8 +53,8 @@ export async function generateOrganizationSchema() {
     organizationSchema.sameAs = sameAs;
   }
   
-  // Add contact point for Schema.org ContactPoint type if contact info exists
-  // Improves SEO by providing structured contact information to search engines
+  // Add Schema.org ContactPoint for enhanced search engine understanding
+  // SEO: Provides structured contact information that search engines can display in rich results
   if (settings.contact?.email || settings.contact?.phone) {
     organizationSchema.contactPoint = {
       '@type': 'ContactPoint',
@@ -71,9 +71,11 @@ export async function generateOrganizationSchema() {
  * Generate Product structured data (JSON-LD)
  */
 export function generateProductSchema(product: Product) {
+  // Use product image for structured data, or fallback to hero image
+  // SEO: Ensures structured data always includes an image for rich results
   const imageUrl = product.image 
     ? `${baseUrl}${product.image}`
-    : `${baseUrl}/og-image.jpg`;
+    : `${baseUrl}/hero-image.png`;
 
   const productUrl = `${baseUrl}/designs/${product.slug}`;
 

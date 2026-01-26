@@ -10,17 +10,24 @@ import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
-import { sanitizeString, sanitizeEmail } from '@/lib/security/sanitize';
+import { sanitizeEmail } from '@/lib/security/sanitize';
 import { formatZodError } from '@/lib/utils/zod-error';
+import { SECURITY_CONFIG, TIME_DURATIONS_MS } from '@/lib/security/constants';
 import { z } from 'zod';
 import crypto from 'crypto';
 import type { ResetPasswordRequest, ResetPasswordResponse } from '@/types/api';
 
 /**
- * Schema for password reset request
+ * Schema for password reset request with industry-standard validation
  */
 const resetPasswordRequestSchema = z.object({
-  identifier: z.string().min(1, 'Mobile number or email is required'),
+  identifier: z
+    .string()
+    .min(1, 'Email is required')
+    .max(254, 'Email must not exceed 254 characters')
+    .email('Invalid email format')
+    .toLowerCase()
+    .trim(),
 });
 
 /**
@@ -30,7 +37,7 @@ const resetPasswordRequestSchema = z.object({
 export async function POST(request: NextRequest) {
   // Apply security (CORS, CSRF, rate limiting)
   const securityResponse = applyApiSecurity(request, {
-    rateLimitConfig: { windowMs: 60 * 60 * 1000, maxRequests: 10 }, // 10 reset requests per hour
+    rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.AUTH_RESET_REQUEST,
     requireContentType: true,
   });
   if (securityResponse) return securityResponse;
@@ -38,18 +45,16 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
 
-    // Parse and validate request body
+    // Validate request body to ensure email format is correct before processing
     const body = await request.json() as ResetPasswordRequest;
     const validatedData = resetPasswordRequestSchema.parse(body);
 
-    // Determine if identifier is mobile or email
-    const isEmail = validatedData.identifier.includes('@');
-    const identifier = isEmail ? sanitizeEmail(validatedData.identifier) : sanitizeString(validatedData.identifier);
+    // Sanitize and validate email
+    const email = sanitizeEmail(validatedData.identifier);
 
-    // Find user - Optimize: Only select fields needed
-    const user = await User.findOne(
-      isEmail ? { email: identifier } : { mobile: identifier }
-    ).select('mobile email resetPasswordToken resetPasswordExpires');
+    // Lookup user by email (primary identifier for password reset)
+    const user = await User.findOne({ email })
+      .select('mobile countryCode email resetPasswordToken resetPasswordExpires');
 
     // Always return success (prevent user enumeration)
     if (!user) {
@@ -60,18 +65,24 @@ export async function POST(request: NextRequest) {
       return createSecureResponse(responseData, 200, request);
     }
 
-    // Generate reset token
+    // Generate cryptographically secure reset token for password reset link
+    // Token expires after 1 hour for security
     const resetToken = crypto.randomBytes(32).toString('hex');
-    const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    const resetTokenExpiry = new Date(Date.now() + TIME_DURATIONS_MS.ONE_HOUR);
 
     user.resetPasswordToken = resetToken;
     user.resetPasswordExpires = resetTokenExpiry;
     await user.save();
 
-    // TODO: Send password reset email/SMS
+    // TODO: Send password reset email
     // For now, log token in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[DEV] Password reset token for ${user.mobile}: ${resetToken}`);
+    const { isDevelopment } = await import('@/lib/utils/env');
+    if (isDevelopment()) {
+      const logger = (await import('@/lib/utils/logger')).default;
+      logger.debug('Password reset token generated', { 
+        email: user.email,
+        token: resetToken 
+      });
     }
 
     const responseData: ResetPasswordResponse = {
@@ -82,7 +93,7 @@ export async function POST(request: NextRequest) {
       {
         ...responseData,
         // Include token in development only
-        ...(process.env.NODE_ENV === 'development' && { resetToken }),
+        ...(isDevelopment() && { resetToken }),
       },
       200,
       request

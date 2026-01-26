@@ -357,6 +357,14 @@ CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
 
 # Zoho Mail (Dev)
 ZOHO_MAIL_API_KEY=your_dev_mail_key
+
+# Fast2SMS Quick SMS Service (Dev) - No DLT Required
+FAST2SMS_API_KEY=your_fast2sms_api_key
+
+# Gmail Email Service (Dev)
+GMAIL_USER=your-email@gmail.com
+GMAIL_APP_PASSWORD=your_16_char_app_password
+GMAIL_FROM_NAME=Jewels by NavKush
 ```
 
 #### **`.env.production.local`**
@@ -371,6 +379,14 @@ MONGODB_URI=mongodb+srv://username:password@prod-cluster.mongodb.net/jewelry-web
 
 # Zoho Mail (Prod)
 ZOHO_MAIL_API_KEY=your_prod_mail_key
+
+# Fast2SMS Quick SMS Service (Prod) - No DLT Required
+FAST2SMS_API_KEY=your_fast2sms_api_key
+
+# Gmail Email Service (Prod)
+GMAIL_USER=your-email@gmail.com
+GMAIL_APP_PASSWORD=your_16_char_app_password
+GMAIL_FROM_NAME=Jewels by NavKush
 ```
 
 #### **`.env.example`** (Template - commit this)
@@ -392,6 +408,14 @@ CORS_ALLOWED_ORIGINS=
 
 # Zoho Mail
 ZOHO_MAIL_API_KEY=
+
+# Fast2SMS Quick SMS Service (No DLT Required)
+FAST2SMS_API_KEY=
+
+# Gmail Email Service
+GMAIL_USER=
+GMAIL_APP_PASSWORD=
+GMAIL_FROM_NAME=Jewels by NavKush
 ```
 
 ### **5.2 Update .gitignore**

@@ -82,7 +82,7 @@ describe('Orders API', () => {
     it('should create order from cart', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/orders',
@@ -95,6 +95,8 @@ describe('Orders API', () => {
             state: 'Test State',
             zipCode: '12345',
             country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
           },
           billingAddress: {
             firstName: 'Test',
@@ -104,6 +106,8 @@ describe('Orders API', () => {
             state: 'Test State',
             zipCode: '12345',
             country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
           },
           paymentMethod: 'cod',
         }
@@ -125,7 +129,7 @@ describe('Orders API', () => {
 
       const request1 = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/orders',
@@ -139,6 +143,8 @@ describe('Orders API', () => {
             state: 'Test State',
             zipCode: '12345',
             country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
           },
           billingAddress: {
             firstName: 'Test',
@@ -148,6 +154,8 @@ describe('Orders API', () => {
             state: 'Test State',
             zipCode: '12345',
             country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
           },
           paymentMethod: 'cod',
         }
@@ -158,7 +166,7 @@ describe('Orders API', () => {
       // Try to create order with same idempotency key
       const request2 = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/orders',
@@ -172,6 +180,8 @@ describe('Orders API', () => {
             state: 'Test State',
             zipCode: '12345',
             country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
           },
           billingAddress: {
             firstName: 'Test',
@@ -181,6 +191,8 @@ describe('Orders API', () => {
             state: 'Test State',
             zipCode: '12345',
             country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
           },
           paymentMethod: 'cod',
         }
@@ -204,7 +216,7 @@ describe('Orders API', () => {
 
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/orders',
@@ -217,6 +229,8 @@ describe('Orders API', () => {
             state: 'Test State',
             zipCode: '12345',
             country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
           },
           billingAddress: {
             firstName: 'Test',
@@ -226,6 +240,8 @@ describe('Orders API', () => {
             state: 'Test State',
             zipCode: '12345',
             country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
           },
           paymentMethod: 'cod',
         }
@@ -247,7 +263,7 @@ describe('Orders API', () => {
 
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/orders',
@@ -260,6 +276,8 @@ describe('Orders API', () => {
             state: 'Test State',
             zipCode: '12345',
             country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
           },
           billingAddress: {
             firstName: 'Test',
@@ -269,6 +287,8 @@ describe('Orders API', () => {
             state: 'Test State',
             zipCode: '12345',
             country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
           },
           paymentMethod: 'cod',
         }
@@ -286,7 +306,7 @@ describe('Orders API', () => {
 
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/orders',
@@ -299,6 +319,8 @@ describe('Orders API', () => {
             state: 'Test State',
             zipCode: '12345',
             country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
           },
           billingAddress: {
             firstName: 'Test',
@@ -308,6 +330,8 @@ describe('Orders API', () => {
             state: 'Test State',
             zipCode: '12345',
             country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
           },
           paymentMethod: 'cod',
         }
@@ -322,7 +346,7 @@ describe('Orders API', () => {
     it('should clear cart after order creation', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/orders',
@@ -335,6 +359,8 @@ describe('Orders API', () => {
             state: 'Test State',
             zipCode: '12345',
             country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
           },
           billingAddress: {
             firstName: 'Test',
@@ -344,6 +370,8 @@ describe('Orders API', () => {
             state: 'Test State',
             zipCode: '12345',
             country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
           },
           paymentMethod: 'cod',
         }
@@ -388,6 +416,8 @@ describe('Orders API', () => {
           state: 'Test State',
           zipCode: '12345',
           country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
         },
         billingAddress: {
           firstName: 'Test',
@@ -397,12 +427,14 @@ describe('Orders API', () => {
           state: 'Test State',
           zipCode: '12345',
           country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
         },
       });
 
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'GET',
         'http://localhost:3000/api/orders'
@@ -446,6 +478,8 @@ describe('Orders API', () => {
           state: 'Test State',
           zipCode: '12345',
           country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
         },
         billingAddress: {
           firstName: 'Test',
@@ -455,6 +489,8 @@ describe('Orders API', () => {
           state: 'Test State',
           zipCode: '12345',
           country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
         },
       });
 
@@ -486,6 +522,8 @@ describe('Orders API', () => {
           state: 'Test State',
           zipCode: '12345',
           country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
         },
         billingAddress: {
           firstName: 'Test',
@@ -495,12 +533,14 @@ describe('Orders API', () => {
           state: 'Test State',
           zipCode: '12345',
           country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
         },
       });
 
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'GET',
         'http://localhost:3000/api/orders?status=pending'
@@ -544,6 +584,8 @@ describe('Orders API', () => {
             state: 'Test State',
             zipCode: '12345',
             country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
           },
           billingAddress: {
             firstName: 'Test',
@@ -553,13 +595,15 @@ describe('Orders API', () => {
             state: 'Test State',
             zipCode: '12345',
             country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
           },
         });
       }
 
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'GET',
         'http://localhost:3000/api/orders?limit=2&page=1'
@@ -580,7 +624,7 @@ describe('Orders API', () => {
       const requests = Array.from({ length: 3 }, () =>
         createAuthenticatedRequest(
           testUser._id.toString(),
-          testUser.mobile,
+          testUser.email,
           'customer',
           'POST',
           'http://localhost:3000/api/orders',
@@ -593,6 +637,8 @@ describe('Orders API', () => {
               state: 'Test State',
               zipCode: '12345',
               country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
             },
             billingAddress: {
               firstName: 'Test',
@@ -602,6 +648,8 @@ describe('Orders API', () => {
               state: 'Test State',
               zipCode: '12345',
               country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
             },
             paymentMethod: 'cod',
           }

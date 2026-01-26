@@ -13,15 +13,23 @@ import { requireAuth } from '@/lib/auth/middleware';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
 import { formatZodError } from '@/lib/utils/zod-error';
+import { SECURITY_CONFIG } from '@/lib/security/constants';
 import { z } from 'zod';
 import type { ChangePasswordRequest, ChangePasswordResponse } from '@/types/api';
 
 /**
- * Schema for changing password
+ * Schema for changing password with industry-standard validation
  */
 const changePasswordSchema = z.object({
-  currentPassword: z.string().min(1, 'Current password is required'),
-  newPassword: z.string().min(6, 'Password must be at least 6 characters').max(100, 'Password too long'),
+  currentPassword: z
+    .string()
+    .min(1, 'Current password is required')
+    .max(100, 'Password must not exceed 100 characters'),
+  newPassword: z
+    .string()
+    .min(6, 'Password must be at least 6 characters')
+    .max(100, 'Password must not exceed 100 characters')
+    .regex(/^[\S]+$/, 'Password cannot contain spaces'),
 });
 
 /**
@@ -29,9 +37,9 @@ const changePasswordSchema = z.object({
  * Change user password
  */
 export async function PATCH(request: NextRequest) {
-  // Apply security (CORS, CSRF, rate limiting)
+  // Apply security (CORS, CSRF) - rate limiting done after auth with user ID
   const securityResponse = applyApiSecurity(request, {
-    rateLimitConfig: { windowMs: 15 * 60 * 1000, maxRequests: 5 }, // 5 password change attempts per 15 minutes
+    enableRateLimit: false, // Disable IP-based rate limiting, use user-based instead
     requireContentType: true,
   });
   if (securityResponse) return securityResponse;
@@ -44,13 +52,22 @@ export async function PATCH(request: NextRequest) {
 
     const { user } = authResult;
 
+    // Industry standard: Per-user rate limiting for sensitive operations
+    const { checkUserRateLimit } = await import('@/lib/security/api-security');
+    const userRateLimitResponse = checkUserRateLimit(
+      request,
+      user.userId,
+      SECURITY_CONFIG.RATE_LIMIT.PASSWORD_CHANGE
+    );
+    if (userRateLimitResponse) return userRateLimitResponse;
+
     await connectDB();
 
     const body = await request.json() as ChangePasswordRequest;
     const validatedData = changePasswordSchema.parse(body);
 
-    // Fetch user with password field explicitly selected
-    // Password field is excluded by default for security, need to include it for verification
+    // Fetch user with password field explicitly selected for verification
+    // Password is excluded by default for security, but needed here to verify current password
     const userDoc = await User.findById(user.userId).select('+password');
     if (!userDoc) {
       return createSecureErrorResponse('User not found', 404, request);
@@ -70,8 +87,8 @@ export async function PATCH(request: NextRequest) {
       return createSecureErrorResponse('New password must be different from current password', 400, request);
     }
 
-    // Update password - pre-save hook will hash it automatically
-    // Track password change timestamp for security auditing
+    // Update password - pre-save hook automatically hashes it with bcrypt
+    // Password change timestamp tracked for security auditing and compliance
     userDoc.password = validatedData.newPassword;
     userDoc.passwordChangedAt = new Date();
     await userDoc.save();

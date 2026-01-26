@@ -77,6 +77,7 @@ export default function ContactForm() {
           label="Name"
           required
           error={errors.name?.message}
+          maxLength={100}
         />
 
         <Input
@@ -86,6 +87,7 @@ export default function ContactForm() {
           label="Email"
           required
           error={errors.email?.message}
+          maxLength={254}
         />
 
         <Input
@@ -93,6 +95,7 @@ export default function ContactForm() {
           type="tel"
           id="phone"
           label="Phone"
+          maxLength={10}
         />
 
         <Textarea
@@ -101,6 +104,7 @@ export default function ContactForm() {
           label="Message"
           required
           error={errors.message?.message}
+          maxLength={5000}
         />
 
         {submitStatus === 'success' && (

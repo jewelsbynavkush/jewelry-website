@@ -27,7 +27,7 @@ describe('User Addresses API', () => {
     it('should get empty addresses list', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'GET',
         'http://localhost:3000/api/users/addresses'
@@ -50,13 +50,15 @@ describe('User Addresses API', () => {
         state: 'Test State',
         zipCode: '12345',
         country: 'India',
+        phone: '9876543210',
+        countryCode: '+91',
         isDefault: true,
       });
       await testUser.save();
 
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'GET',
         'http://localhost:3000/api/users/addresses'
@@ -75,7 +77,7 @@ describe('User Addresses API', () => {
     it('should add shipping address', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/users/addresses',
@@ -88,6 +90,8 @@ describe('User Addresses API', () => {
           state: 'Test State',
           zipCode: '12345',
           country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
           isDefault: true,
         }
       );
@@ -105,7 +109,7 @@ describe('User Addresses API', () => {
     it('should add billing address', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/users/addresses',
@@ -118,6 +122,8 @@ describe('User Addresses API', () => {
           state: 'Test State',
           zipCode: '12345',
           country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
           isDefault: true,
         }
       );
@@ -132,7 +138,7 @@ describe('User Addresses API', () => {
     it('should validate required fields', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/users/addresses',

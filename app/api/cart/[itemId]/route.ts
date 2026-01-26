@@ -15,28 +15,23 @@ import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } fro
 import { logError } from '@/lib/security/error-handler';
 import { sanitizeString } from '@/lib/security/sanitize';
 import { formatZodError } from '@/lib/utils/zod-error';
+import { getSessionId } from '@/lib/utils/api-helpers';
 import { ECOMMERCE } from '@/lib/constants';
+import { SECURITY_CONFIG } from '@/lib/security/constants';
 import type { UpdateCartItemRequest, UpdateCartItemResponse } from '@/types/api';
 import { z } from 'zod';
-import mongoose from 'mongoose';
+import { reserveStockForCart, releaseReservedStock } from '@/lib/inventory/inventory-service';
 
 /**
- * Schema for updating item quantity
+ * Schema for updating item quantity with industry-standard validation
  */
 const updateQuantitySchema = z.object({
-  quantity: z.number().int().min(0, 'Quantity must be at least 0').max(100, 'Quantity cannot exceed 100'),
+  quantity: z
+    .number()
+    .int('Quantity must be an integer')
+    .min(0, 'Quantity must be at least 0')
+    .max(100, 'Quantity cannot exceed 100'),
 });
-
-/**
- * Get session ID for guest carts
- */
-function getSessionId(request: NextRequest): string {
-  const sessionCookie = request.cookies.get('session-id');
-  if (sessionCookie?.value) {
-    return sessionCookie.value;
-  }
-  return new mongoose.Types.ObjectId().toString();
-}
 
 /**
  * PATCH /api/cart/[itemId]
@@ -47,9 +42,8 @@ export async function PATCH(
   { params }: { params: Promise<{ itemId: string }> }
 ) {
   // Apply security (CORS, CSRF, rate limiting)
-  // Industry standard: 50 write operations per 15 minutes for cart modifications
   const securityResponse = applyApiSecurity(request, {
-    rateLimitConfig: { windowMs: 15 * 60 * 1000, maxRequests: 50 }, // 50 requests per 15 minutes (industry standard)
+    rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.CART,
     requireContentType: true,
   });
   if (securityResponse) return securityResponse;
@@ -60,7 +54,7 @@ export async function PATCH(
     const { itemId } = await params;
     const sanitizedItemId = sanitizeString(itemId);
 
-    // Parse and validate request body - ensures quantity is valid before updating cart
+    // Validate quantity constraints before updating cart to prevent invalid states
     const body = await request.json() as UpdateCartItemRequest;
     const validatedData = updateQuantitySchema.parse(body);
 
@@ -84,22 +78,86 @@ export async function PATCH(
       return createSecureErrorResponse('Item not found in cart', 404, request);
     }
 
+    const currentItem = cart.items[itemIndex];
+    const oldQuantity = currentItem.quantity;
+
     if (validatedData.quantity === 0) {
-      // Remove item when quantity set to 0 (user intent to remove)
+      // Quantity of 0 indicates user intent to remove item from cart
+      // E-commerce best practice: Release reserved stock when item is removed
+      if (currentItem.productId) {
+        const product = await Product.findById(currentItem.productId)
+          .select('inventory.trackQuantity')
+          .lean();
+        
+        if (product?.inventory.trackQuantity) {
+          await releaseReservedStock(
+            currentItem.productId.toString(),
+            oldQuantity,
+            user?.userId
+          );
+        }
+      }
       cart.items.splice(itemIndex, 1);
-          } else {
-            // Refresh product data to ensure cart reflects current pricing and availability
-            const product = await Product.findById(sanitizedItemId).lean();
+    } else {
+      // Refresh product data to ensure cart reflects current pricing and availability
+      const product = await Product.findById(sanitizedItemId)
+        .select('status inventory.quantity inventory.reservedQuantity inventory.trackQuantity inventory.allowBackorder price')
+        .lean();
       if (!product || product.status !== 'active') {
         return createSecureErrorResponse('Product is no longer available', 400, request);
       }
 
-            // Verify stock availability before updating quantity
-            // Prevents setting quantity higher than available stock unless backorder is allowed
-            if (product.inventory.trackQuantity) {
+      // Verify stock availability before updating quantity
+      // Prevents setting quantity higher than available stock unless backorder is allowed
+      if (product.inventory.trackQuantity) {
         const availableQuantity = Math.max(0, product.inventory.quantity - product.inventory.reservedQuantity);
         if (availableQuantity < validatedData.quantity && !product.inventory.allowBackorder) {
           return createSecureErrorResponse(`Only ${availableQuantity} items available in stock`, 400, request);
+        }
+      }
+
+      // E-commerce best practice: Update price to current product price if changed significantly (>10%)
+      // Maintains price consistency while allowing minor price fluctuations
+      const priceVariance = Math.abs(product.price - currentItem.price) / currentItem.price;
+      if (priceVariance > 0.1) {
+        // Price changed significantly - update to current price and metadata
+        cart.items[itemIndex].price = product.price;
+        cart.items[itemIndex].sku = product.sku;
+        cart.items[itemIndex].title = product.title;
+        const newImage = product.primaryImage || product.images[0] || '';
+        if (cart.items[itemIndex].image !== newImage) {
+          cart.items[itemIndex].image = newImage;
+        }
+      }
+
+      // E-commerce best practice: Adjust stock reservation when quantity changes
+      // Release old quantity and reserve new quantity atomically
+      // Retry logic is handled internally by reserveStockForCart for MongoDB lock timeouts
+      if (product.inventory.trackQuantity && currentItem.productId) {
+        const quantityDifference = validatedData.quantity - oldQuantity;
+        
+        if (quantityDifference > 0) {
+          // Increase quantity - reserve additional stock
+          const reservationResult = await reserveStockForCart(
+            currentItem.productId.toString(),
+            quantityDifference,
+            user?.userId
+          );
+          
+          if (!reservationResult.success) {
+            return createSecureErrorResponse(
+              reservationResult.error || 'Failed to reserve stock',
+              400,
+              request
+            );
+          }
+        } else if (quantityDifference < 0) {
+          // Decrease quantity - release excess stock
+          await releaseReservedStock(
+            currentItem.productId.toString(),
+            Math.abs(quantityDifference),
+            user?.userId
+          );
         }
       }
 
@@ -111,7 +169,8 @@ export async function PATCH(
     // Applies free shipping threshold and default shipping cost
     cart.calculateTotals(ECOMMERCE.freeShippingThreshold, ECOMMERCE.defaultShippingCost);
     
-    // Calculate tax if enabled (must recalculate totals after tax calculation)
+    // Calculate tax after cart totals to ensure tax is applied to correct subtotal
+    // Tax calculation depends on ECOMMERCE configuration (18% GST in India)
     if (ECOMMERCE.calculateTax && ECOMMERCE.taxRate > 0) {
       cart.tax = Math.round(cart.subtotal * ECOMMERCE.taxRate * 100) / 100;
       cart.calculateTotals(ECOMMERCE.freeShippingThreshold, ECOMMERCE.defaultShippingCost);
@@ -162,9 +221,9 @@ export async function DELETE(
   { params }: { params: Promise<{ itemId: string }> }
 ) {
   // Apply security (CORS, CSRF, rate limiting)
-  // Industry standard: 50 write operations per 15 minutes for cart modifications
+  // Higher limit for cart operations - 200 requests per 15 minutes
   const securityResponse = applyApiSecurity(request, {
-    rateLimitConfig: { windowMs: 15 * 60 * 1000, maxRequests: 50 }, // 50 requests per 15 minutes (industry standard)
+    rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.CART,
   });
   if (securityResponse) return securityResponse;
 
@@ -194,13 +253,32 @@ export async function DELETE(
       return createSecureErrorResponse('Item not found in cart', 404, request);
     }
 
+    const removedItem = cart.items[itemIndex];
+    
+    // E-commerce best practice: Release reserved stock when item is removed from cart
+    // Ensures inventory is available for other customers
+    if (removedItem.productId) {
+      const product = await Product.findById(removedItem.productId)
+        .select('inventory.trackQuantity')
+        .lean();
+      
+      if (product?.inventory.trackQuantity) {
+        await releaseReservedStock(
+          removedItem.productId.toString(),
+          removedItem.quantity,
+          user?.userId
+        );
+      }
+    }
+
     cart.items.splice(itemIndex, 1);
 
     // Recalculate totals after item removal
     // Applies free shipping threshold and default shipping cost
     cart.calculateTotals(ECOMMERCE.freeShippingThreshold, ECOMMERCE.defaultShippingCost);
     
-    // Calculate tax if enabled (must recalculate totals after tax calculation)
+    // Calculate tax after cart totals to ensure tax is applied to correct subtotal
+    // Tax calculation depends on ECOMMERCE configuration (18% GST in India)
     if (ECOMMERCE.calculateTax && ECOMMERCE.taxRate > 0) {
       cart.tax = Math.round(cart.subtotal * ECOMMERCE.taxRate * 100) / 100;
       cart.calculateTotals(ECOMMERCE.freeShippingThreshold, ECOMMERCE.defaultShippingCost);

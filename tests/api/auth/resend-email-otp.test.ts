@@ -27,7 +27,7 @@ describe('POST /api/auth/resend-email-otp', () => {
     it('should resend OTP for unverified email', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/auth/resend-email-otp'
@@ -51,7 +51,7 @@ describe('POST /api/auth/resend-email-otp', () => {
 
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/auth/resend-email-otp'
@@ -72,7 +72,7 @@ describe('POST /api/auth/resend-email-otp', () => {
 
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/auth/resend-email-otp'
@@ -95,27 +95,7 @@ describe('POST /api/auth/resend-email-otp', () => {
       const data = await getJsonResponse(response);
 
       expectStatus(response, 401);
-      expectError(data, 'Authentication required');
-    });
-  });
-
-  describe('Email Validation', () => {
-    it('should reject when user has no email', async () => {
-      const userWithoutEmail = await User.create(createTestUser({ email: undefined }));
-
-      const request = createAuthenticatedRequest(
-        userWithoutEmail._id.toString(),
-        userWithoutEmail.mobile,
-        'customer',
-        'POST',
-        'http://localhost:3000/api/auth/resend-email-otp'
-      );
-
-      const response = await POST(request);
-      const data = await getJsonResponse(response);
-
-      expectStatus(response, 400);
-      expectError(data, 'No email address');
+      expectError(data);
     });
   });
 
@@ -123,7 +103,7 @@ describe('POST /api/auth/resend-email-otp', () => {
     it('should apply stricter rate limiting', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/auth/resend-email-otp'

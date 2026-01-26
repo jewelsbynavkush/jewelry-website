@@ -7,6 +7,7 @@
 
 import { NextRequest } from 'next/server';
 import crypto from 'crypto';
+import { getBaseUrl, isDevelopment, isTest, isProduction } from '@/lib/utils/env';
 
 /**
  * Validate request origin for CSRF protection
@@ -26,7 +27,6 @@ export function validateOrigin(request: NextRequest, strict: boolean = true): bo
   // This handles cases where NEXT_PUBLIC_BASE_URL might differ slightly (www vs non-www)
   try {
     const requestUrl = request.nextUrl;
-    const requestOrigin = `${requestUrl.protocol}//${requestUrl.host}`;
     
     // If origin matches request URL, it's same-origin (always allowed)
     if (originToCheck) {
@@ -62,8 +62,9 @@ export function validateOrigin(request: NextRequest, strict: boolean = true): bo
     // Invalid request URL, continue with other validation
   }
   
-  // Check against NEXT_PUBLIC_BASE_URL if set
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+  // Validate against NEXT_PUBLIC_BASE_URL if configured
+  // Allows same-origin requests from the application's own domain
+  const baseUrl = getBaseUrl();
   if (baseUrl && originToCheck) {
     try {
       const baseUrlObj = new URL(baseUrl);
@@ -85,7 +86,7 @@ export function validateOrigin(request: NextRequest, strict: boolean = true): bo
   }
   
   // Allow localhost in development and test environments for local testing
-  if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+  if (isDevelopment() || isTest()) {
     if (!originToCheck) {
       return true; // Allow missing origin in dev/test
     }
@@ -100,7 +101,7 @@ export function validateOrigin(request: NextRequest, strict: boolean = true): bo
   }
   
   // Production: strict validation - only same-origin requests allowed
-  if (strict && process.env.NODE_ENV === 'production' && !originToCheck) {
+  if (strict && isProduction() && !originToCheck) {
     return false;
   }
   

@@ -59,13 +59,13 @@ export function createMockRequest(
  */
 export function createAuthenticatedRequest(
   userId: string,
-  mobile: string,
+  email: string,
   role: 'customer' | 'admin' | 'staff' = 'customer',
   method: string = 'GET',
   url: string = 'http://localhost:3000/api/test',
   body?: any
 ): NextRequest {
-  const token = generateToken(userId, mobile, role);
+  const token = generateToken(userId, email, role);
   return createMockRequest(method, url, body, {
     Authorization: `Bearer ${token}`,
   });
@@ -76,12 +76,12 @@ export function createAuthenticatedRequest(
  */
 export function createAdminRequest(
   userId: string,
-  mobile: string,
+  email: string,
   method: string = 'GET',
   url: string = 'http://localhost:3000/api/test',
   body?: any
 ): NextRequest {
-  return createAuthenticatedRequest(userId, mobile, 'admin', method, url, body);
+  return createAuthenticatedRequest(userId, email, 'admin', method, url, body);
 }
 
 /**

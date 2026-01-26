@@ -3,7 +3,7 @@
 /**
  * Register Form Component
  * 
- * Handles user registration with mobile, name, optional email, and password.
+ * Handles user registration with email (required), name, optional mobile, and password.
  * Integrates with auth store and API.
  */
 
@@ -15,6 +15,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import ErrorMessage from '@/components/ui/ErrorMessage';
+import CountryCodeSelect from '@/components/ui/CountryCodeSelect';
 
 function RegisterFormContent() {
   const router = useRouter();
@@ -26,11 +27,11 @@ function RegisterFormContent() {
   });
   
   const [formData, setFormData] = useState<RegisterData>({
-    mobile: '',
-    countryCode: '+91',
+    email: '',
     firstName: '',
     lastName: '',
-    email: '',
+    mobile: '',
+    countryCode: '+91',
     password: '',
   });
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -45,13 +46,18 @@ function RegisterFormContent() {
   };
 
   const validateForm = (): boolean => {
-    if (!formData.mobile.trim()) {
-      setError('Mobile number is required');
+    if (!formData.email.trim()) {
+      setError('Email is required');
       return false;
     }
 
-    if (formData.mobile.length < 10) {
-      setError('Mobile number must be at least 10 digits');
+    if (formData.email.length > 254) {
+      setError('Email must not exceed 254 characters');
+      return false;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setError('Invalid email format');
       return false;
     }
 
@@ -60,8 +66,28 @@ function RegisterFormContent() {
       return false;
     }
 
+    if (formData.firstName.length > 50) {
+      setError('First name must not exceed 50 characters');
+      return false;
+    }
+
+    if (!/^[a-zA-Z\s\-'\.]+$/.test(formData.firstName)) {
+      setError('First name can only contain letters, spaces, hyphens, apostrophes, and dots');
+      return false;
+    }
+
     if (!formData.lastName.trim()) {
       setError('Last name is required');
+      return false;
+    }
+
+    if (formData.lastName.length > 50) {
+      setError('Last name must not exceed 50 characters');
+      return false;
+    }
+
+    if (!/^[a-zA-Z\s\-'\.]+$/.test(formData.lastName)) {
+      setError('Last name can only contain letters, spaces, hyphens, apostrophes, and dots');
       return false;
     }
 
@@ -75,14 +101,27 @@ function RegisterFormContent() {
       return false;
     }
 
+    if (formData.password.length > 100) {
+      setError('Password must not exceed 100 characters');
+      return false;
+    }
+
+    if (/\s/.test(formData.password)) {
+      setError('Password cannot contain spaces');
+      return false;
+    }
+
     if (formData.password !== confirmPassword) {
       setError('Passwords do not match');
       return false;
     }
 
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      setError('Invalid email format');
-      return false;
+    // Validate mobile if provided
+    if (formData.mobile && formData.mobile.trim()) {
+      if (!/^[0-9]{10}$/.test(formData.mobile.trim())) {
+        setError('Mobile number must be exactly 10 digits');
+        return false;
+      }
     }
 
     return true;
@@ -96,10 +135,15 @@ function RegisterFormContent() {
       return;
     }
 
-    const { email, ...requiredData } = formData;
     const registrationData: RegisterData = {
-      ...requiredData,
-      ...(email && email.trim() ? { email: email.trim() } : {}),
+      email: formData.email.trim(),
+      firstName: formData.firstName.trim(),
+      lastName: formData.lastName.trim(),
+      password: formData.password,
+      ...(formData.mobile && formData.mobile.trim() ? { 
+        mobile: formData.mobile.trim(),
+        countryCode: formData.countryCode 
+      } : {}),
     };
 
     const response = await register(registrationData);
@@ -108,8 +152,8 @@ function RegisterFormContent() {
       // Preserve redirect parameter for post-verification redirect
       const redirect = searchParams.get('redirect');
       const verifyUrl = redirect 
-        ? `/auth/verify-mobile?redirect=${encodeURIComponent(redirect)}`
-        : '/auth/verify-mobile';
+        ? `/auth/verify-email?redirect=${encodeURIComponent(redirect)}`
+        : '/auth/verify-email';
       router.push(verifyUrl);
     } else {
       setError(response.error || 'Registration failed');
@@ -120,40 +164,31 @@ function RegisterFormContent() {
     <Card>
       <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
         <div className="space-y-4">
-          <div className="grid grid-cols-12 gap-3">
-            <div className="col-span-4">
-              <Input
-                type="text"
-                label="Country Code"
-                value={formData.countryCode}
-                onChange={(e) => handleChange('countryCode', e.target.value)}
-                required
-                disabled={isLoading}
-              />
-            </div>
-            <div className="col-span-8">
-              <Input
-                type="tel"
-                label="Mobile Number"
-                placeholder="Enter mobile number"
-                value={formData.mobile}
-                onChange={(e) => handleChange('mobile', e.target.value.replace(/\D/g, ''))}
-                required
-                disabled={isLoading}
-                aria-label="Mobile number"
-              />
-            </div>
-          </div>
+          <Input
+            type="email"
+            label="Email"
+            placeholder="Enter email address"
+            value={formData.email}
+            onChange={(e) => handleChange('email', e.target.value)}
+            required
+            disabled={isLoading}
+            maxLength={254}
+            aria-label="Email address"
+          />
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input
               type="text"
               label="First Name"
               placeholder="Enter first name"
               value={formData.firstName}
-              onChange={(e) => handleChange('firstName', e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value.replace(/[^a-zA-Z\s\-'\.]/g, '');
+                handleChange('firstName', value);
+              }}
               required
               disabled={isLoading}
+              maxLength={50}
             />
 
             <Input
@@ -161,31 +196,52 @@ function RegisterFormContent() {
               label="Last Name"
               placeholder="Enter last name"
               value={formData.lastName}
-              onChange={(e) => handleChange('lastName', e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value.replace(/[^a-zA-Z\s\-'\.]/g, '');
+                handleChange('lastName', value);
+              }}
               required
               disabled={isLoading}
+              maxLength={50}
             />
           </div>
 
-          <Input
-            type="email"
-            label="Email (Optional)"
-            placeholder="Enter email address"
-            value={formData.email}
-            onChange={(e) => handleChange('email', e.target.value)}
-            disabled={isLoading}
-            aria-label="Email address (optional)"
-          />
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+            <div className="sm:col-span-4">
+              <CountryCodeSelect
+                value={formData.countryCode || '+91'}
+                onChange={(value) => handleChange('countryCode', value)}
+                disabled={isLoading}
+                label="Country Code"
+              />
+            </div>
+            <div className="sm:col-span-8">
+              <Input
+                type="tel"
+                label="Mobile Number (Optional)"
+                placeholder="Enter mobile number"
+                value={formData.mobile}
+                onChange={(e) => handleChange('mobile', e.target.value.replace(/\D/g, ''))}
+                disabled={isLoading}
+                aria-label="Mobile number (optional)"
+                maxLength={10}
+              />
+            </div>
+          </div>
 
           <Input
             type="password"
             label="Password"
             placeholder="Enter password (min 6 characters)"
             value={formData.password}
-            onChange={(e) => handleChange('password', e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value.replace(/\s/g, '');
+              handleChange('password', value);
+            }}
             required
             disabled={isLoading}
             minLength={6}
+            maxLength={100}
             aria-label="Password"
           />
 
@@ -194,9 +250,14 @@ function RegisterFormContent() {
             label="Confirm Password"
             placeholder="Confirm your password"
             value={confirmPassword}
-            onChange={(e) => handleChange('confirmPassword', e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value.replace(/\s/g, '');
+              handleChange('confirmPassword', value);
+            }}
             required
             disabled={isLoading}
+            minLength={6}
+            maxLength={100}
             aria-label="Confirm password"
           />
         </div>
@@ -218,7 +279,7 @@ function RegisterFormContent() {
             <button
               type="button"
               onClick={() => router.push('/auth/login')}
-              className="text-[var(--text-on-cream)] hover:underline font-medium"
+              className="text-[var(--text-on-cream)] hover:underline font-medium cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
               disabled={isLoading}
             >
               Login

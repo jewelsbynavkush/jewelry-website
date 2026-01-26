@@ -61,6 +61,16 @@ function ConfirmResetPasswordContent() {
       return;
     }
 
+    if (password.length > 100) {
+      setError('Password must not exceed 100 characters');
+      return;
+    }
+
+    if (/\s/.test(password)) {
+      setError('Password cannot contain spaces');
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -120,12 +130,14 @@ function ConfirmResetPasswordContent() {
                     placeholder="Enter new password (min 6 characters)"
                     value={password}
                     onChange={(e) => {
-                      setPassword(e.target.value);
+                      const value = e.target.value.replace(/\s/g, '');
+                      setPassword(value);
                       clearLocalError();
                     }}
                     required
                     disabled={isLoading}
                     minLength={6}
+                    maxLength={100}
                     aria-label="New password"
                   />
 
@@ -135,12 +147,14 @@ function ConfirmResetPasswordContent() {
                     placeholder="Confirm new password"
                     value={confirmPassword}
                     onChange={(e) => {
-                      setConfirmPassword(e.target.value);
+                      const value = e.target.value.replace(/\s/g, '');
+                      setConfirmPassword(value);
                       clearLocalError();
                     }}
                     required
                     disabled={isLoading}
                     minLength={6}
+                    maxLength={100}
                     aria-label="Confirm new password"
                   />
 
@@ -159,7 +173,7 @@ function ConfirmResetPasswordContent() {
                     <button
                       type="button"
                       onClick={() => router.push('/auth/login')}
-                      className="text-[var(--text-secondary)] text-sm hover:text-[var(--text-on-cream)] underline"
+                      className="text-[var(--text-secondary)] text-sm hover:text-[var(--text-on-cream)] underline cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
                       disabled={isLoading}
                     >
                       Back to Login

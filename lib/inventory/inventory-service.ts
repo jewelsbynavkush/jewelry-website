@@ -22,7 +22,8 @@ export function isTransientError(error: unknown): boolean {
       message.includes('catalog changes') ||
       message.includes('Write conflict') ||
       message.includes('please retry') ||
-      message.includes('has been aborted')
+      message.includes('has been aborted') ||
+      message.includes('yielding is disabled')
     );
   }
   return false;
@@ -81,56 +82,67 @@ export async function reserveStockForCart(
   quantity: number,
   userId?: string
 ): Promise<{ success: boolean; product?: { _id: unknown; sku: string; title: string; inventory: { quantity: number; reservedQuantity: number } }; error?: string }> {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  // Use retry logic to handle MongoDB lock timeouts in test environment
+  // Test environment (MongoDB Memory Server) has 5ms lock timeout, requiring retries
+  return await retryWithBackoff(async () => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
-  try {
-    await connectDB();
+    try {
+      await connectDB();
 
-    // Use Product static method for atomic stock reservation
-    // Prevents race conditions when multiple users add same item to cart simultaneously
-    const product = await Product.reserveStock(productId, quantity, session);
+      // Use Product static method for atomic stock reservation
+      // Prevents race conditions when multiple users add same item to cart simultaneously
+      const product = await Product.reserveStock(productId, quantity, session);
 
-    if (!product) {
+      if (!product) {
+        await session.abortTransaction();
+        session.endSession();
+        return {
+          success: false,
+          error: 'Product not available or insufficient stock',
+        };
+      }
+
+      // Create audit log entry for stock reservation
+      // Tracks who reserved stock and when for inventory management
+      await InventoryLog.create([{
+        productId: product._id,
+        productSku: product.sku,
+        productTitle: product.title,
+        type: 'reserved',
+        quantity: quantity,
+        previousQuantity: product.inventory.quantity - product.inventory.reservedQuantity + quantity,
+        newQuantity: product.inventory.quantity - product.inventory.reservedQuantity,
+        performedBy: {
+          userId: userId ? new mongoose.Types.ObjectId(userId) : undefined,
+          type: userId ? 'customer' : 'system',
+        },
+      }], { session });
+
+      await session.commitTransaction();
+      session.endSession();
+
+      return {
+        success: true,
+        product: product.toObject(),
+      };
+    } catch (error) {
       await session.abortTransaction();
+      session.endSession();
+      
+      // Re-throw transient errors to trigger retry
+      if (isTransientError(error)) {
+        throw error;
+      }
+      
+      logError('reserveStockForCart', error);
       return {
         success: false,
-        error: 'Product not available or insufficient stock',
+        error: error instanceof Error ? error.message : 'Failed to reserve stock',
       };
     }
-
-    // Create audit log entry for stock reservation
-    // Tracks who reserved stock and when for inventory management
-    await InventoryLog.create([{
-      productId: product._id,
-      productSku: product.sku,
-      productTitle: product.title,
-      type: 'reserved',
-      quantity: quantity,
-      previousQuantity: product.inventory.quantity - product.inventory.reservedQuantity + quantity,
-      newQuantity: product.inventory.quantity - product.inventory.reservedQuantity,
-      performedBy: {
-        userId: userId ? new mongoose.Types.ObjectId(userId) : undefined,
-        type: userId ? 'customer' : 'system',
-      },
-    }], { session });
-
-    await session.commitTransaction();
-
-    return {
-      success: true,
-      product: product.toObject(),
-    };
-  } catch (error) {
-    await session.abortTransaction();
-    logError('reserveStockForCart', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Failed to reserve stock',
-    };
-  } finally {
-    session.endSession();
-  }
+  });
 }
 
 /**
@@ -340,6 +352,7 @@ export async function confirmOrderAndUpdateStock(
         }
       }
       // Re-throw transient errors to trigger retry
+      // This includes MongoDB lock timeouts and write conflicts
       if (isTransientError(error)) {
         throw error;
       }

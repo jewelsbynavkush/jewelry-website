@@ -42,7 +42,8 @@ export function generateStandardMetadata({
 }): Metadata {
   const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
   const optimizedDescription = optimizeDescription(description);
-  const imageUrl = image || `${baseUrl}/og-image.jpg`;
+  // Use provided image, or fallback to hero image (exists in public folder)
+  const imageUrl = image || `${baseUrl}/hero-image.png`;
   const pageUrl = url || baseUrl;
 
   return {
@@ -141,9 +142,10 @@ export function generateProductMetadata({
   url?: string;
   keywords?: string[];
 }): Metadata {
+  // Use provided image, or fallback to hero image (exists in public folder)
   const imageUrl = image 
     ? `${baseUrl}${image}`
-    : `${baseUrl}/og-image.jpg`;
+    : `${baseUrl}/hero-image.png`;
 
   return generateStandardMetadata({
     title,

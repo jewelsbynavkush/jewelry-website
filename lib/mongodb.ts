@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
 import { logError } from '@/lib/security/error-handler';
+import logger from '@/lib/utils/logger';
+import { isTest } from '@/lib/utils/env';
 
 /**
  * Global is used here to maintain a cached connection across hot reloads
@@ -18,37 +20,34 @@ const cached = global.mongoose;
 function configureMongoConnection() {
   // Connection event handlers for automatic reconnection
   mongoose.connection.on('connected', () => {
-    // Use console.log for connection status (infrastructure logging)
-    if (process.env.NODE_ENV !== 'test') {
-      console.log('MongoDB connected successfully');
+    if (!isTest()) {
+      logger.info('MongoDB connected successfully');
     }
   });
 
   mongoose.connection.on('error', (err) => {
-    // Use logError for consistent error logging
     logError('MongoDB connection error', err);
   });
 
   mongoose.connection.on('disconnected', () => {
-    // Use console.warn for connection status (infrastructure logging)
-    if (process.env.NODE_ENV !== 'test') {
-      console.warn('MongoDB disconnected. Will attempt to reconnect...');
+    if (!isTest()) {
+      logger.warn('MongoDB disconnected. Will attempt to reconnect...');
     }
   });
 
   // Handle process termination
   process.on('SIGINT', async () => {
     await mongoose.connection.close();
-    if (process.env.NODE_ENV !== 'test') {
-      console.log('MongoDB connection closed through app termination');
+    if (!isTest()) {
+      logger.info('MongoDB connection closed through app termination');
     }
     process.exit(0);
   });
 
   process.on('SIGTERM', async () => {
     await mongoose.connection.close();
-    if (process.env.NODE_ENV !== 'test') {
-      console.log('MongoDB connection closed through app termination');
+    if (!isTest()) {
+      logger.info('MongoDB connection closed through app termination');
     }
     process.exit(0);
   });

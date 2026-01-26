@@ -372,3 +372,24 @@ All SEO best practices are consistently applied:
 The application demonstrates **excellent SEO implementation** across all pages. All meta tags, structured data, sitemap, robots.txt, heading hierarchy, image SEO, and technical SEO elements are properly implemented and consistent.
 
 **Status:** ✅ **PRODUCTION READY**
+
+---
+
+## 📝 **Notes & Recommendations**
+
+### **OG Image:**
+- ✅ **Fallback Configured:** Metadata uses `/hero-image.png` as fallback (exists in public folder)
+- ✅ **Product Images:** Product pages use product images for OG tags
+- ✅ **Optimal Size:** OG images should be 1200x630px for best social sharing
+
+### **Heading Hierarchy:**
+- ✅ **Product Pages:** Use visible H1 (better for SEO than sr-only)
+- ✅ **Other Pages:** Use sr-only H1 + visible H2 (consistent pattern)
+- ✅ **All Pages:** Proper heading hierarchy maintained
+
+### **Structured Data:**
+- ✅ **6 Schema Types:** Organization, Website, Product, BreadcrumbList, CollectionPage, FAQPage
+- ✅ **All Validated:** JSON-LD properly formatted and sanitized
+- ✅ **Server-Rendered:** All structured data in initial HTML
+
+**Status:** ✅ **PRODUCTION READY**

@@ -2,22 +2,34 @@ import { NextRequest } from 'next/server';
 import { getSiteSettings } from '@/lib/data/site-settings';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
+import { SECURITY_CONFIG } from '@/lib/security/constants';
+import type { GetSiteSettingsResponse } from '@/types/api';
 
 export async function GET(request: NextRequest) {
   // Apply security (CORS, CSRF, rate limiting)
-  // Industry standard: 200 requests per 15 minutes for public content endpoints
   const securityResponse = applyApiSecurity(request, {
-    rateLimitConfig: { windowMs: 15 * 60 * 1000, maxRequests: 200 }, // 200 requests per 15 minutes (industry standard)
+    rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.PUBLIC_BROWSING,
   });
   if (securityResponse) return securityResponse;
 
   try {
-    const settings = await getSiteSettings();
-    const response = createSecureResponse(
-      { settings },
-      200,
-      request
-    );
+    const settingsData = await getSiteSettings();
+    
+    // Map to API response format
+    const settings: GetSiteSettingsResponse['settings'] = {
+      siteName: settingsData.brand.name,
+      siteDescription: settingsData.brand.tagline,
+      contactEmail: settingsData.contact.email,
+      contactPhone: settingsData.contact.phone,
+      socialMedia: {
+        facebook: settingsData.social.facebook,
+        instagram: settingsData.social.instagram,
+        twitter: settingsData.social.twitter,
+      },
+    };
+    
+    const responseData: GetSiteSettingsResponse = { settings };
+    const response = createSecureResponse(responseData, 200, request);
     
     response.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
     return response;

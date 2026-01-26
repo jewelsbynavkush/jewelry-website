@@ -79,7 +79,7 @@ describe('Checkout Flow Integration', () => {
     for (const product of testProducts) {
       const addRequest = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/cart',
@@ -96,7 +96,7 @@ describe('Checkout Flow Integration', () => {
     // Step 2: Verify cart
     const cartRequest = createAuthenticatedRequest(
       testUser._id.toString(),
-      testUser.mobile,
+      testUser.email,
       'customer',
       'GET',
       'http://localhost:3000/api/cart'
@@ -112,7 +112,7 @@ describe('Checkout Flow Integration', () => {
     // Step 3: Create order
     const orderRequest = createAuthenticatedRequest(
       testUser._id.toString(),
-      testUser.mobile,
+      testUser.email,
       'customer',
       'POST',
       'http://localhost:3000/api/orders',
@@ -125,6 +125,8 @@ describe('Checkout Flow Integration', () => {
           state: 'Test State',
           zipCode: '12345',
           country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
         },
         billingAddress: {
           firstName: 'Test',
@@ -134,6 +136,8 @@ describe('Checkout Flow Integration', () => {
           state: 'Test State',
           zipCode: '12345',
           country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
         },
         paymentMethod: 'cod',
       }
@@ -156,7 +160,7 @@ describe('Checkout Flow Integration', () => {
     // Step 5: Verify cart cleared
     const cartAfterRequest = createAuthenticatedRequest(
       testUser._id.toString(),
-      testUser.mobile,
+      testUser.email,
       'customer',
       'GET',
       'http://localhost:3000/api/cart'
@@ -171,7 +175,7 @@ describe('Checkout Flow Integration', () => {
     // Step 6: Verify order in orders list
     const ordersRequest = createAuthenticatedRequest(
       testUser._id.toString(),
-      testUser.mobile,
+      testUser.email,
       'customer',
       'GET',
       'http://localhost:3000/api/orders'
@@ -189,7 +193,7 @@ describe('Checkout Flow Integration', () => {
     // Add product to cart
     const addRequest = createAuthenticatedRequest(
       testUser._id.toString(),
-      testUser.mobile,
+      testUser.email,
       'customer',
       'POST',
       'http://localhost:3000/api/cart',
@@ -204,7 +208,7 @@ describe('Checkout Flow Integration', () => {
     // Try to create order with invalid data (should fail)
     const orderRequest = createAuthenticatedRequest(
       testUser._id.toString(),
-      testUser.mobile,
+      testUser.email,
       'customer',
       'POST',
       'http://localhost:3000/api/orders',
@@ -229,7 +233,7 @@ describe('Checkout Flow Integration', () => {
     // Verify cart still has items
     const cartRequest = createAuthenticatedRequest(
       testUser._id.toString(),
-      testUser.mobile,
+      testUser.email,
       'customer',
       'GET',
       'http://localhost:3000/api/cart'

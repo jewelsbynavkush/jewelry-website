@@ -9,12 +9,18 @@ import { NextRequest } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
+import { isProduction } from '@/lib/utils/env';
+import { SECURITY_CONFIG } from '@/lib/security/constants';
 
 export async function GET(request: NextRequest) {
+  // Disable this endpoint in production for security
+  if (isProduction()) {
+    return createSecureErrorResponse('Not found', 404, request);
+  }
+
   // Apply security (CORS, CSRF, rate limiting)
-  // Note: Consider disabling this endpoint in production or adding IP restrictions
   const securityResponse = applyApiSecurity(request, {
-    rateLimitConfig: { windowMs: 60 * 1000, maxRequests: 10 }, // 10 requests per minute
+    rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.TEST,
   });
   if (securityResponse) return securityResponse;
 

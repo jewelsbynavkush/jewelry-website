@@ -3,13 +3,14 @@
  * Prevents information leakage in production
  */
 
-const isDevelopment = process.env.NODE_ENV === 'development';
+import logger from '@/lib/utils/logger';
+import { isDevelopment, isTest } from '@/lib/utils/env';
 
 /**
  * Sanitize error messages for production
  */
 export function sanitizeError(error: unknown): { message: string; details?: unknown } {
-  if (isDevelopment) {
+  if (isDevelopment()) {
     // Full error details aid debugging in development
     if (error instanceof Error) {
       return {
@@ -74,10 +75,9 @@ export function logError(context: string, error: unknown, correlationId?: string
   const sanitized = sanitizeError(error);
   
   // Always log full error details in test environment for debugging
-  const isTest = process.env.NODE_ENV === 'test' || process.env.VITEST === 'true';
-  const shouldLogDetails = isDevelopment || isTest;
+  const shouldLogDetails = isDevelopment() || isTest();
   
-  console.error(`[${context}]${correlationId ? ` [${correlationId}]` : ''}`, {
+  const logData: Record<string, unknown> = {
     message: sanitized.message,
     ...(correlationId ? { correlationId } : {}),
     ...(shouldLogDetails && sanitized.details ? { details: sanitized.details } : {}),
@@ -86,7 +86,8 @@ export function logError(context: string, error: unknown, correlationId?: string
       name: error.name,
       message: error.message 
     } : {}),
-    timestamp: new Date().toISOString(),
-  });
+  };
+  
+  logger.error(`${context}${correlationId ? ` [${correlationId}]` : ''}`, error, logData);
 }
 

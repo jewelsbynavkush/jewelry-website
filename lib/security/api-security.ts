@@ -15,6 +15,8 @@ import { validateCsrf, requiresCsrfProtection } from './csrf';
 import { checkRateLimit, RateLimitConfig } from './rate-limit';
 import { getSecurityHeaders } from './api-headers';
 import { getCorrelationId } from './error-handler';
+import { SECURITY_CONFIG } from './constants';
+import { isTest } from '@/lib/utils/env';
 
 export interface ApiSecurityConfig {
   /** Enable CORS (default: true) */
@@ -40,10 +42,7 @@ const defaultConfig: ApiSecurityConfig = {
   enableCsrf: true,
   requireCsrfToken: false,
   enableRateLimit: true,
-  rateLimitConfig: {
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    maxRequests: 200, // 200 requests per 15 minutes (industry standard for general browsing)
-  },
+  rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.DEFAULT,
   allowedMethods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
   requireContentType: false,
   maxRequestSize: 10 * 1024 * 1024, // 10MB default
@@ -83,7 +82,8 @@ function validateContentType(request: NextRequest, requireContentType: boolean):
     return false;
   }
 
-  // Allow JSON and form data
+  // Validate Content-Type supports JSON, form-urlencoded, or multipart form data
+  // These are the standard content types for API requests
   return contentType.includes('application/json') || contentType.includes('application/x-www-form-urlencoded') || contentType.includes('multipart/form-data');
 }
 
@@ -117,7 +117,8 @@ export function applyApiSecurity(
 ): NextResponse | null {
   const securityConfig = { ...defaultConfig, ...config };
 
-  // Handle CORS preflight
+  // Handle CORS preflight requests (OPTIONS) before processing actual request
+  // Preflight allows browsers to check if cross-origin request is allowed
   if (securityConfig.enableCors) {
     const corsConfig = getCorsConfig();
     const preflightResponse = handleCorsPreflight(request, corsConfig);
@@ -126,7 +127,8 @@ export function applyApiSecurity(
     }
   }
 
-  // Validate HTTP method
+  // Validate HTTP method against allowed methods to prevent unauthorized operations
+  // Security: Restricts endpoints to specific HTTP verbs (GET, POST, etc.)
   if (securityConfig.allowedMethods && !validateMethod(request, securityConfig.allowedMethods)) {
     return NextResponse.json(
       { error: 'Method not allowed' },
@@ -141,7 +143,8 @@ export function applyApiSecurity(
     );
   }
 
-  // Validate Content-Type
+  // Validate Content-Type header when required to ensure proper request format
+  // Security: Prevents content-type confusion attacks
   if (securityConfig.requireContentType && !validateContentType(request, securityConfig.requireContentType)) {
     return NextResponse.json(
       { error: 'Content-Type header required' },
@@ -155,7 +158,8 @@ export function applyApiSecurity(
     );
   }
 
-  // Validate request size
+  // Validate request size to prevent DoS attacks from oversized payloads
+  // Security: Limits request body size to prevent memory exhaustion
   if (securityConfig.maxRequestSize && !validateRequestSize(request, securityConfig.maxRequestSize)) {
     return NextResponse.json(
       { error: 'Request too large' },
@@ -187,7 +191,7 @@ export function applyApiSecurity(
   }
 
   // Rate limiting (disabled in test environment)
-  if (securityConfig.enableRateLimit && process.env.NODE_ENV !== 'test') {
+  if (securityConfig.enableRateLimit && !isTest()) {
     const rateLimit = checkRateLimit(request, securityConfig.rateLimitConfig);
     if (!rateLimit.allowed) {
       return NextResponse.json(
@@ -283,4 +287,38 @@ export function createSecureErrorResponse(
 ): NextResponse {
   const headers = getApiSecurityHeaders(request, config);
   return NextResponse.json({ error }, { status, headers });
+}
+
+/**
+ * Check rate limit for authenticated user
+ * Industry standard: Per-user rate limiting for authenticated endpoints
+ * 
+ * @param request - Next.js request object
+ * @param userId - User ID from authentication
+ * @param config - Rate limit configuration
+ * @returns Rate limit response or null if allowed
+ */
+export function checkUserRateLimit(
+  request: NextRequest,
+  userId: string,
+  config: RateLimitConfig
+): NextResponse | null {
+  const rateLimit = checkRateLimit(request, config, userId);
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      {
+        status: 429,
+        headers: {
+          ...getSecurityHeaders(),
+          ...getCorsHeaders(request, getCorsConfig()),
+          'Retry-After': Math.ceil((rateLimit.resetTime - Date.now()) / 1000).toString(),
+          'X-RateLimit-Limit': config.maxRequests.toString(),
+          'X-RateLimit-Remaining': rateLimit.remaining.toString(),
+          'X-RateLimit-Reset': Math.ceil(rateLimit.resetTime / 1000).toString(),
+        },
+      }
+    );
+  }
+  return null;
 }

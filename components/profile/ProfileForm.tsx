@@ -5,8 +5,8 @@
  * 
  * Handles user profile updates:
  * - First name, last name
- * - Email (optional)
- * - Mobile number (read-only)
+ * - Email (non-editable if verified)
+ * - Mobile number (editable)
  */
 
 import { useState, useEffect, FormEvent } from 'react';
@@ -17,6 +17,7 @@ import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
 import ErrorMessage from '@/components/ui/ErrorMessage';
 import SuccessMessage from '@/components/ui/SuccessMessage';
+import CountryCodeSelect from '@/components/ui/CountryCodeSelect';
 
 export default function ProfileForm() {
   const { user, fetchProfile } = useAuthStore();
@@ -28,6 +29,8 @@ export default function ProfileForm() {
     firstName: '',
     lastName: '',
     email: '',
+    mobile: '',
+    countryCode: '+91',
   });
 
   useEffect(() => {
@@ -36,6 +39,8 @@ export default function ProfileForm() {
         firstName: user.firstName || '',
         lastName: user.lastName || '',
         email: user.email || '',
+        mobile: user.mobile || '',
+        countryCode: user.countryCode || '+91',
       });
     }
   }, [user]);
@@ -53,11 +58,90 @@ export default function ProfileForm() {
     setIsLoading(true);
 
     try {
-      const response = await apiPatch<{ user: { id: string; firstName: string; lastName: string; email?: string; mobile: string } }>('/api/users/profile', {
+      // Validate first name
+      if (!formData.firstName.trim()) {
+        setError('First name is required');
+        setIsLoading(false);
+        return;
+      }
+
+      if (formData.firstName.length > 50) {
+        setError('First name must not exceed 50 characters');
+        setIsLoading(false);
+        return;
+      }
+
+      if (!/^[a-zA-Z\s\-'\.]+$/.test(formData.firstName)) {
+        setError('First name can only contain letters, spaces, hyphens, apostrophes, and dots');
+        setIsLoading(false);
+        return;
+      }
+
+      // Validate last name
+      if (!formData.lastName.trim()) {
+        setError('Last name is required');
+        setIsLoading(false);
+        return;
+      }
+
+      if (formData.lastName.length > 50) {
+        setError('Last name must not exceed 50 characters');
+        setIsLoading(false);
+        return;
+      }
+
+      if (!/^[a-zA-Z\s\-'\.]+$/.test(formData.lastName)) {
+        setError('Last name can only contain letters, spaces, hyphens, apostrophes, and dots');
+        setIsLoading(false);
+        return;
+      }
+
+      // Validate email if provided and not verified
+      if (!user?.emailVerified && formData.email.trim()) {
+        if (formData.email.length > 254) {
+          setError('Email must not exceed 254 characters');
+          setIsLoading(false);
+          return;
+        }
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+          setError('Invalid email format');
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // Validate mobile if provided
+      if (formData.mobile && formData.mobile.trim()) {
+        if (!/^[0-9]{10}$/.test(formData.mobile.trim())) {
+          setError('Mobile number must be exactly 10 digits');
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      // Only include email in request if email is not verified (email field is disabled if verified)
+      const requestData: {
+        firstName: string;
+        lastName: string;
+        mobile?: string;
+        countryCode?: string;
+        email?: string;
+      } = {
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
-        ...(formData.email.trim() ? { email: formData.email.trim() } : {}),
-      });
+        ...(formData.mobile.trim() ? { 
+          mobile: formData.mobile.trim(),
+          countryCode: formData.countryCode 
+        } : {}),
+      };
+
+      // Only include email if not verified (email is disabled in UI if verified, but add extra safety)
+      if (!user?.emailVerified && formData.email.trim()) {
+        requestData.email = formData.email.trim();
+      }
+
+      const response = await apiPatch<{ user: { id: string; firstName: string; lastName: string; email?: string; mobile?: string; countryCode?: string } }>('/api/users/profile', requestData);
 
       if (response.success) {
         setSuccess(true);
@@ -94,42 +178,71 @@ export default function ProfileForm() {
     <Card>
       <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input
               type="text"
               label="First Name"
               value={formData.firstName}
-              onChange={(e) => handleChange('firstName', e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value.replace(/[^a-zA-Z\s\-'\.]/g, '');
+                handleChange('firstName', value);
+              }}
               required
               disabled={isLoading}
+              maxLength={50}
             />
             <Input
               type="text"
               label="Last Name"
               value={formData.lastName}
-              onChange={(e) => handleChange('lastName', e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value.replace(/[^a-zA-Z\s\-'\.]/g, '');
+                handleChange('lastName', value);
+              }}
               required
               disabled={isLoading}
+              maxLength={50}
             />
           </div>
 
-          <Input
-            type="tel"
-            label="Mobile Number"
-            value={user.mobile}
-            disabled
-            className="opacity-60"
-            aria-label="Mobile number (cannot be changed)"
-          />
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+            <div className="sm:col-span-4">
+              <CountryCodeSelect
+                value={formData.countryCode}
+                onChange={(value) => handleChange('countryCode', value)}
+                disabled={isLoading}
+                label="Country Code"
+              />
+            </div>
+            <div className="sm:col-span-8">
+              <Input
+                type="tel"
+                label="Mobile Number (Optional)"
+                placeholder="Enter 10-digit mobile number"
+                value={formData.mobile}
+                onChange={(e) => handleChange('mobile', e.target.value.replace(/\D/g, ''))}
+                disabled={isLoading}
+                maxLength={10}
+                aria-label="Mobile number (optional)"
+              />
+            </div>
+          </div>
 
           <Input
             type="email"
-            label="Email (Optional)"
+            label="Email"
             value={formData.email}
             onChange={(e) => handleChange('email', e.target.value)}
-            disabled={isLoading}
-            aria-label="Email address (optional)"
+            disabled={isLoading || (user?.emailVerified === true)}
+            className={user?.emailVerified ? 'opacity-60' : ''}
+            aria-label={user?.emailVerified ? 'Email address (verified, cannot be changed)' : 'Email address'}
+            required
           />
+          {user?.emailVerified && (
+            <p className="text-[var(--text-secondary)] text-xs -mt-2">
+              Email is verified and cannot be changed
+            </p>
+          )}
         </div>
 
         <ErrorMessage message={error} />

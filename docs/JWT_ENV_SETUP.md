@@ -1,17 +1,31 @@
-# JWT Environment Variables Setup
+# Environment Variables Setup
 
-**Quick guide to add JWT authentication environment variables to all environment files.**
+**Quick guide to add environment variables to all environment files (JWT, Fast2SMS, etc.).**
 
 ---
 
 ## 📋 **Environment Variables Required**
 
 ```bash
+# JWT Authentication
 JWT_SECRET=your-secure-random-secret-key-change-in-production
 JWT_EXPIRES_IN=5m
+
+# Fast2SMS Quick SMS Service (No DLT Required)
+FAST2SMS_API_KEY=your_fast2sms_api_key
+
+# Gmail Email Service
+GMAIL_USER=your-email@gmail.com
+GMAIL_APP_PASSWORD=your_16_char_app_password
+GMAIL_FROM_NAME=Jewels by NavKush
 ```
 
-**Note:** `JWT_EXPIRES_IN=5m` means tokens expire after 5 minutes.
+**Notes:**
+- `JWT_EXPIRES_IN=5m` means tokens expire after 5 minutes
+- `FAST2SMS_API_KEY` - Get from Fast2SMS dashboard after signup. No DLT registration required for Quick SMS route.
+- `GMAIL_USER` - Your Gmail address (e.g., your-email@gmail.com)
+- `GMAIL_APP_PASSWORD` - Gmail App Password (16 characters). Generate from Google Account → Security → 2-Step Verification → App passwords
+- `GMAIL_FROM_NAME` - Optional, defaults to "Jewels by NavKush"
 
 ---
 
@@ -25,6 +39,14 @@ Add these lines:
 # JWT Authentication
 JWT_SECRET=your-secure-random-secret-key-change-in-production
 JWT_EXPIRES_IN=5m
+
+# Fast2SMS Quick SMS Service (No DLT Required)
+FAST2SMS_API_KEY=your_fast2sms_api_key
+
+# Gmail Email Service
+GMAIL_USER=your-email@gmail.com
+GMAIL_APP_PASSWORD=your_16_char_app_password
+GMAIL_FROM_NAME=Jewels by NavKush
 ```
 
 ### **2. `.env.development.local`** (Development Environment)
@@ -35,6 +57,14 @@ Add these lines:
 # JWT Authentication
 JWT_SECRET=your-secure-random-secret-key-change-in-production
 JWT_EXPIRES_IN=5m
+
+# Fast2SMS Quick SMS Service (No DLT Required)
+FAST2SMS_API_KEY=your_fast2sms_api_key
+
+# Gmail Email Service
+GMAIL_USER=your-email@gmail.com
+GMAIL_APP_PASSWORD=your_16_char_app_password
+GMAIL_FROM_NAME=Jewels by NavKush
 ```
 
 ### **3. `.env.production.local`** (Production Environment)
@@ -45,6 +75,14 @@ Add these lines:
 # JWT Authentication
 JWT_SECRET=your-secure-random-secret-key-change-in-production
 JWT_EXPIRES_IN=5m
+
+# Fast2SMS Quick SMS Service (No DLT Required)
+FAST2SMS_API_KEY=your_fast2sms_api_key
+
+# Gmail Email Service
+GMAIL_USER=your-email@gmail.com
+GMAIL_APP_PASSWORD=your_16_char_app_password
+GMAIL_FROM_NAME=Jewels by NavKush
 ```
 
 **⚠️ Important:** Use a **different** `JWT_SECRET` for production than development!
@@ -99,6 +137,14 @@ JWT_EXPIRES_IN=5m
 
 # Zoho Mail (optional)
 ZOHO_MAIL_API_KEY=your_mail_key
+
+# Fast2SMS Quick SMS Service (No DLT Required)
+FAST2SMS_API_KEY=your_fast2sms_api_key
+
+# Gmail Email Service
+GMAIL_USER=your-email@gmail.com
+GMAIL_APP_PASSWORD=your_16_char_app_password
+GMAIL_FROM_NAME=Jewels by NavKush
 ```
 
 ### **`.env.development.local`** (Complete)
@@ -153,6 +199,14 @@ JWT_EXPIRES_IN=5m
 
 # Zoho Mail
 ZOHO_MAIL_API_KEY=
+
+# Fast2SMS Quick SMS Service (No DLT Required)
+FAST2SMS_API_KEY=
+
+# Gmail Email Service
+GMAIL_USER=
+GMAIL_APP_PASSWORD=
+GMAIL_FROM_NAME=Jewels by NavKush
 ```
 
 ---
@@ -165,6 +219,10 @@ ZOHO_MAIL_API_KEY=
 2. Add:
    - `JWT_SECRET` = `your-secure-random-secret-key-change-in-production`
    - `JWT_EXPIRES_IN` = `5m`
+   - `FAST2SMS_API_KEY` = `your_fast2sms_api_key`
+   - `GMAIL_USER` = `your-email@gmail.com`
+   - `GMAIL_APP_PASSWORD` = `your_16_char_app_password`
+   - `GMAIL_FROM_NAME` = `Jewels by NavKush` (optional)
 3. Select environments: **Production, Preview, Development**
 
 ### **Production Project**
@@ -173,6 +231,10 @@ ZOHO_MAIL_API_KEY=
 2. Add:
    - `JWT_SECRET` = `your-different-secure-random-secret-key-for-production`
    - `JWT_EXPIRES_IN` = `5m`
+   - `FAST2SMS_API_KEY` = `your_fast2sms_api_key`
+   - `GMAIL_USER` = `your-email@gmail.com`
+   - `GMAIL_APP_PASSWORD` = `your_16_char_app_password`
+   - `GMAIL_FROM_NAME` = `Jewels by NavKush` (optional)
 3. Select environments: **Production, Preview, Development**
 
 **⚠️ Important:** Use **different** `JWT_SECRET` values for dev and prod!

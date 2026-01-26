@@ -11,6 +11,8 @@ import InventoryLog from '@/models/InventoryLog';
 import { requireAdmin } from '@/lib/auth/middleware';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
+import { sanitizeString } from '@/lib/security/sanitize';
+import { SECURITY_CONFIG } from '@/lib/security/constants';
 import type { GetInventoryLogsResponse } from '@/types/api';
 
 /**
@@ -19,9 +21,8 @@ import type { GetInventoryLogsResponse } from '@/types/api';
  */
 export async function GET(request: NextRequest) {
   // Apply security middleware (CORS, CSRF, rate limiting) before processing request
-  // Industry standard: 100 requests per 15 minutes for admin/inventory read endpoints
   const securityResponse = applyApiSecurity(request, {
-    rateLimitConfig: { windowMs: 15 * 60 * 1000, maxRequests: 100 }, // 100 requests per 15 minutes (industry standard)
+    rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.INVENTORY_READ,
   });
   if (securityResponse) return securityResponse;
 
@@ -35,24 +36,40 @@ export async function GET(request: NextRequest) {
     await connectDB();
 
     const { searchParams } = new URL(request.url);
-    const productId = searchParams.get('productId');
-    const orderId = searchParams.get('orderId');
-    const type = searchParams.get('type');
-    const limit = parseInt(searchParams.get('limit') || '50', 10);
-    const page = parseInt(searchParams.get('page') || '1', 10);
+    const productIdParam = searchParams.get('productId');
+    const orderIdParam = searchParams.get('orderId');
+    const typeParam = searchParams.get('type');
+    const { getPaginationParams } = await import('@/lib/utils/api-helpers');
+    const { limit, page } = getPaginationParams(searchParams);
 
     const skip = (page - 1) * limit;
 
     // Build MongoDB query with optional filters for product, order, or log type
+    // Sanitize and validate all query parameters before use
     const query: Record<string, unknown> = {};
-    if (productId) {
-      query.productId = productId;
+    if (productIdParam) {
+      const sanitizedProductId = sanitizeString(productIdParam);
+      // Validate ObjectId format for productId
+      const { isValidObjectId } = await import('@/lib/utils/validation');
+      if (isValidObjectId(sanitizedProductId)) {
+        query.productId = sanitizedProductId;
+      }
     }
-    if (orderId) {
-      query.orderId = orderId;
+    if (orderIdParam) {
+      const sanitizedOrderId = sanitizeString(orderIdParam);
+      // Validate ObjectId format for orderId
+      const { isValidObjectId } = await import('@/lib/utils/validation');
+      if (isValidObjectId(sanitizedOrderId)) {
+        query.orderId = sanitizedOrderId;
+      }
     }
-    if (type) {
-      query.type = type;
+    if (typeParam) {
+      // Validate log type (whitelist approach)
+      const sanitizedType = sanitizeString(typeParam);
+      const validTypes = ['restock', 'sale', 'adjustment', 'return', 'cancellation'];
+      if (validTypes.includes(sanitizedType)) {
+        query.type = sanitizedType;
+      }
     }
 
     // Fetch logs with populated references for product, order, and user details

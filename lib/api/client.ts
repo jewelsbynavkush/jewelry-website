@@ -6,6 +6,8 @@
  * Industry standard: Automatic token refresh on 401 errors
  */
 
+import { getBaseUrl } from '@/lib/utils/env';
+
 /**
  * Get the API base URL for requests
  * Client-side: Uses relative URLs to avoid DNS resolution issues
@@ -18,7 +20,7 @@ function getApiBaseUrl(): string {
     return '';
   }
   // Server-side: Use base URL if available, otherwise relative
-  return process.env.NEXT_PUBLIC_BASE_URL || '';
+  return getBaseUrl();
 }
 
 export interface ApiError {
@@ -137,13 +139,13 @@ async function refreshToken(): Promise<boolean> {
   return refreshPromise;
 }
 
+import logger from '@/lib/utils/logger';
+
 /**
  * Log error (client-side safe)
  */
 function logError(message: string, error: unknown): void {
-  if (process.env.NODE_ENV === 'development') {
-    console.error(`[API Client] ${message}:`, error);
-  }
+  logger.error(`API Client: ${message}`, error);
 }
 
 /**
@@ -184,7 +186,7 @@ async function apiRequest<T = unknown>(
         '/api/auth/logout',
         '/api/auth/login',
         '/api/auth/register',
-        '/api/auth/verify-mobile',
+        '/api/auth/verify-email',
         '/api/auth/resend-otp',
       ];
       

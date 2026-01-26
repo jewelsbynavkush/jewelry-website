@@ -23,7 +23,7 @@ export default function ResetPasswordPage() {
     onErrorClear: clearError 
   });
   
-  const [identifier, setIdentifier] = useState('');
+  const [email, setEmail] = useState('');
   const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -31,12 +31,23 @@ export default function ResetPasswordPage() {
     clearLocalError();
     setSuccess(false);
 
-    if (!identifier.trim()) {
-      setError('Mobile number or email is required');
+    if (!email.trim()) {
+      setError('Email is required');
       return;
     }
 
-    const response = await resetPassword(identifier.trim());
+    if (email.length > 254) {
+      setError('Email must not exceed 254 characters');
+      return;
+    }
+
+    // Validate email format
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
+    const response = await resetPassword(email.trim());
     if (response.success) {
       setSuccess(true);
       // Redirect to login after 3 seconds
@@ -59,7 +70,7 @@ export default function ResetPasswordPage() {
           <div className="space-y-6">
             {success ? (
               <div className="space-y-4">
-                <SuccessMessage message="If an account exists with this mobile number or email, a password reset link has been sent. Please check your email or SMS." />
+                <SuccessMessage message="If an account exists with this email, a password reset link has been sent. Please check your email." />
                 <p className="text-[var(--text-secondary)] text-sm text-center">
                   Redirecting to login page...
                 </p>
@@ -68,23 +79,24 @@ export default function ResetPasswordPage() {
               <>
                 <div className="text-center space-y-2">
                   <p className="text-[var(--text-secondary)] text-sm">
-                    Enter your mobile number or email address to receive a password reset link.
+                    Enter your email address to receive a password reset link.
                   </p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <Input
-                    type="text"
-                    label="Mobile Number or Email"
-                    placeholder="Enter mobile number or email"
-                    value={identifier}
+                    type="email"
+                    label="Email Address"
+                    placeholder="Enter email address"
+                    value={email}
                     onChange={(e) => {
-                      setIdentifier(e.target.value);
+                      setEmail(e.target.value);
                       clearLocalError();
                     }}
                     required
                     disabled={isLoading}
-                    aria-label="Mobile number or email address"
+                    maxLength={254}
+                    aria-label="Email address"
                   />
 
                   <ErrorMessage message={displayError} />
@@ -92,7 +104,7 @@ export default function ResetPasswordPage() {
                   <Button
                     type="submit"
                     className="w-full min-h-[44px]"
-                    disabled={isLoading || !identifier.trim()}
+                    disabled={isLoading || !email.trim()}
                     aria-label={isLoading ? 'Sending reset link...' : 'Send Reset Link'}
                   >
                     {isLoading ? 'SENDING...' : 'SEND RESET LINK'}
@@ -102,7 +114,7 @@ export default function ResetPasswordPage() {
                     <button
                       type="button"
                       onClick={() => router.push('/auth/login')}
-                      className="text-[var(--text-secondary)] text-sm hover:text-[var(--text-on-cream)] underline"
+                      className="text-[var(--text-secondary)] text-sm hover:text-[var(--text-on-cream)] underline cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
                       disabled={isLoading}
                     >
                       Back to Login

@@ -124,7 +124,8 @@ InventoryLogSchema.pre('save', async function() {
   // Get session if available (for transaction support)
   const session = this.$session();
   
-  // Validate productId foreign key
+  // Validate productId foreign key to ensure data integrity
+  // Prevents orphaned inventory logs referencing non-existent products
   if (this.productId) {
     const Product = mongoose.model('Product');
     const product = await Product.findById(this.productId).session(session || null);
@@ -144,7 +145,8 @@ InventoryLogSchema.pre('save', async function() {
     }
   }
   
-  // Validate userId foreign key if provided
+  // Validate userId foreign key if provided to ensure data integrity
+  // Prevents inventory logs referencing non-existent users
   if (this.userId) {
     const User = mongoose.model('User');
     const user = await User.findById(this.userId).session(session || null);
@@ -159,12 +161,12 @@ InventoryLogSchema.index({ productId: 1, createdAt: -1 }); // Foreign key: Produ
 InventoryLogSchema.index({ productId: 1 }); // Foreign key index for Product
 InventoryLogSchema.index({ orderId: 1 }); // Foreign key index for Order
 InventoryLogSchema.index({ userId: 1 }); // Foreign key index for User
-InventoryLogSchema.index({ idempotencyKey: 1 }); // Idempotency key lookup
+// Idempotency key index created automatically by unique: true
 InventoryLogSchema.index({ type: 1, createdAt: -1 }); // Type-based queries
 InventoryLogSchema.index({ createdAt: -1 }); // Recent changes
 InventoryLogSchema.index({ productSku: 1, createdAt: -1 }); // SKU-based queries
 
-// Export model
+// Export Mongoose model with connection caching to prevent duplicate model compilation
 const InventoryLog: Model<IInventoryLog> = mongoose.models.InventoryLog || mongoose.model<IInventoryLog>('InventoryLog', InventoryLogSchema);
 
 export default InventoryLog;

@@ -19,7 +19,8 @@ export interface Address {
   state: string;
   zipCode: string;
   country: string;
-  phone?: string;
+  phone: string; // Required for order delivery
+  countryCode: string; // Required for order delivery
 }
 
 export interface CartItem {
@@ -79,12 +80,12 @@ export interface Order {
 
 export interface User {
   id: string;
-  mobile: string;
-  email?: string;
+  email: string;
+  mobile?: string;
+  countryCode?: string;
   firstName: string;
   lastName: string;
   role: 'customer' | 'admin' | 'staff';
-  mobileVerified: boolean;
   emailVerified: boolean;
 }
 
@@ -99,11 +100,11 @@ export interface UserAddress extends Address {
 // ============================================================================
 
 export interface RegisterRequest {
-  mobile: string;
-  countryCode: string;
+  email: string;
   firstName: string;
   lastName: string;
-  email?: string;
+  mobile?: string;
+  countryCode?: string;
   password: string;
 }
 
@@ -114,7 +115,7 @@ export interface RegisterResponse {
 }
 
 export interface LoginRequest {
-  identifier: string; // Mobile or email
+  identifier: string; // Email only
   password: string;
 }
 
@@ -126,16 +127,6 @@ export interface LoginResponse {
   // token: string; // Deprecated - tokens are in cookies
 }
 
-export interface VerifyMobileRequest {
-  otp: string;
-  mobile?: string; // Optional: required when not authenticated, ignored when authenticated
-}
-
-export interface VerifyMobileResponse {
-  success: boolean;
-  message: string;
-  user: User;
-}
 
 export interface ResendOTPResponse {
   success: boolean;
@@ -152,19 +143,21 @@ export interface VerifyEmailResponse {
   message: string;
   user: {
     id: string;
-    email?: string;
+    email: string;
     emailVerified: boolean;
+    firstName: string;
+    lastName: string;
+    role: 'customer' | 'admin' | 'staff';
   };
 }
 
 export interface ResendEmailOTPResponse {
   success: boolean;
   message: string;
-  otp?: string; // OTP included in response until email service is configured
 }
 
 export interface ResetPasswordRequest {
-  identifier: string; // Mobile or email
+  identifier: string; // Email only
 }
 
 export interface ResetPasswordResponse {
@@ -227,6 +220,8 @@ export interface CreateOrderRequest {
   paymentMethod: 'razorpay' | 'cod' | 'bank_transfer' | 'other';
   customerNotes?: string;
   idempotencyKey?: string;
+  saveShippingAddress?: boolean;
+  saveBillingAddress?: boolean;
 }
 
 export interface CreateOrderResponse {
@@ -298,6 +293,8 @@ export interface UpdateProfileResponse {
 
 export interface GetAddressesResponse {
   addresses: UserAddress[];
+  defaultShippingAddressId?: string;
+  defaultBillingAddressId?: string;
 }
 
 export interface AddAddressRequest {
@@ -320,6 +317,8 @@ export interface AddAddressResponse {
   message: string;
   addressId: string;
   addresses: UserAddress[];
+  defaultShippingAddressId?: string;
+  defaultBillingAddressId?: string;
 }
 
 export type UpdateAddressRequest = AddAddressRequest;
@@ -329,6 +328,8 @@ export interface UpdateAddressResponse {
   message: string;
   address: UserAddress;
   addresses: UserAddress[];
+  defaultShippingAddressId?: string;
+  defaultBillingAddressId?: string;
 }
 
 export interface DeleteAddressResponse {
@@ -371,6 +372,12 @@ export interface Product {
 
 export interface GetProductsResponse {
   products: Product[];
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 export interface GetProductResponse {
@@ -489,6 +496,55 @@ export interface SiteSettings {
 
 export interface GetSiteSettingsResponse {
   settings: SiteSettings;
+}
+
+// ============================================================================
+// Content API Types
+// ============================================================================
+
+export interface GetContentResponse {
+  content: {
+    title: string;
+    description?: string;
+    content: string[];
+  };
+}
+
+// ============================================================================
+// Health Check API Types
+// ============================================================================
+
+export interface HealthResponse {
+  status: 'healthy' | 'unhealthy';
+  timestamp: string;
+  uptime: number;
+  services: {
+    database: {
+      status: 'connected' | 'disconnected' | 'error';
+      responseTime?: number;
+      error?: string;
+    };
+  };
+  version: string;
+  responseTime: number;
+}
+
+// ============================================================================
+// Auth Logout API Types
+// ============================================================================
+
+export interface LogoutResponse {
+  success: boolean;
+  message: string;
+}
+
+// ============================================================================
+// Auth Refresh API Types
+// ============================================================================
+
+export interface RefreshTokenResponse {
+  success: boolean;
+  message: string;
 }
 
 // ============================================================================

@@ -33,6 +33,8 @@ describe('User Address Detail API', () => {
       state: 'Test State',
       zipCode: '12345',
       country: 'India',
+      phone: '9876543210',
+      countryCode: '+91',
       isDefault: true,
     });
     await testUser.save();
@@ -42,7 +44,7 @@ describe('User Address Detail API', () => {
     it('should update address fields', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'PATCH',
         `http://localhost:3000/api/users/addresses/${addressId}`,
@@ -72,13 +74,15 @@ describe('User Address Detail API', () => {
         state: 'Test State',
         zipCode: '12345',
         country: 'India',
+        phone: '9876543210',
+        countryCode: '+91',
         isDefault: false,
       });
       await testUser.save();
 
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'PATCH',
         `http://localhost:3000/api/users/addresses/${addressId2}`,
@@ -97,7 +101,7 @@ describe('User Address Detail API', () => {
     it('should reject invalid addressId', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'PATCH',
         'http://localhost:3000/api/users/addresses/invalid-id',
@@ -118,7 +122,7 @@ describe('User Address Detail API', () => {
     it('should delete address', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'DELETE',
         `http://localhost:3000/api/users/addresses/${addressId}`
@@ -136,7 +140,7 @@ describe('User Address Detail API', () => {
     it('should clear default address ID when deleting default', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'DELETE',
         `http://localhost:3000/api/users/addresses/${addressId}`
@@ -151,7 +155,7 @@ describe('User Address Detail API', () => {
     it('should reject invalid addressId', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'DELETE',
         'http://localhost:3000/api/users/addresses/invalid-id'

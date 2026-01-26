@@ -12,7 +12,7 @@ import connectDB from '@/lib/mongodb';
 import Product from '@/models/Product';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
-import { sanitizeString } from '@/lib/security/sanitize';
+import { SECURITY_CONFIG } from '@/lib/security/constants';
 import { getInventorySummary } from '@/lib/inventory/inventory-service';
 import type { GetInventoryStatusResponse, InventoryStatus } from '@/types/api';
 
@@ -25,9 +25,8 @@ export async function GET(
   { params }: { params: Promise<{ productId: string }> }
 ) {
   // Apply security (CORS, CSRF, rate limiting)
-  // Industry standard: 100 requests per 15 minutes for admin/inventory read endpoints
   const securityResponse = applyApiSecurity(request, {
-    rateLimitConfig: { windowMs: 15 * 60 * 1000, maxRequests: 100 }, // 100 requests per 15 minutes (industry standard)
+    rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.INVENTORY_READ,
   });
   if (securityResponse) return securityResponse;
 
@@ -35,7 +34,12 @@ export async function GET(
     await connectDB();
 
     const { productId } = await params;
-    const sanitizedProductId = sanitizeString(productId);
+    const { validateObjectIdParam } = await import('@/lib/utils/api-helpers');
+    const validationResult = await validateObjectIdParam(productId, 'product ID', request);
+    if ('error' in validationResult) {
+      return validationResult.error;
+    }
+    const sanitizedProductId = validationResult.value;
 
     // Fetch comprehensive inventory summary including available, reserved, and total quantities
     const inventorySummary = await getInventorySummary(sanitizedProductId);
@@ -44,7 +48,8 @@ export async function GET(
       return createSecureErrorResponse('Product not found', 404, request);
     }
 
-    // Get product to include required fields for InventoryStatus
+    // Fetch minimal product metadata for inventory status response
+    // Performance: Select only required fields (SKU, title) to minimize data transfer
     const product = await Product.findById(sanitizedProductId).select('_id sku title').lean();
     if (!product) {
       return createSecureErrorResponse('Product not found', 404, request);

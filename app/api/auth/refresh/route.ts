@@ -16,6 +16,9 @@ import RefreshToken from '@/models/RefreshToken';
 import { getRefreshTokenFromCookie } from '@/lib/auth/session';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
+import { isProduction } from '@/lib/utils/env';
+import { SECURITY_CONFIG, TIME_DURATIONS } from '@/lib/security/constants';
+import type { RefreshTokenResponse } from '@/types/api';
 
 /**
  * POST /api/auth/refresh
@@ -30,9 +33,8 @@ import { logError } from '@/lib/security/error-handler';
  */
 export async function POST(request: NextRequest) {
   // Apply security (CORS, CSRF, rate limiting)
-  // Stricter rate limiting for refresh to prevent abuse
   const securityResponse = applyApiSecurity(request, {
-    rateLimitConfig: { windowMs: 15 * 60 * 1000, maxRequests: 10 }, // 10 refreshes per 15 minutes
+    rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.REFRESH,
   });
   if (securityResponse) return securityResponse;
 
@@ -66,7 +68,8 @@ export async function POST(request: NextRequest) {
       return createSecureErrorResponse('Refresh token has been revoked. Please login again.', 401, request);
     }
 
-    // Check if token is expired or idle expired
+    // Verify token hasn't expired (absolute or idle timeout)
+    // Idle expiration enforces re-authentication after period of inactivity
     if (refreshTokenDoc.isExpired()) {
       return createSecureErrorResponse('Refresh token expired. Please login again.', 401, request);
     }
@@ -76,8 +79,8 @@ export async function POST(request: NextRequest) {
       return createSecureErrorResponse('Refresh token idle expired. Please login again.', 401, request);
     }
 
-    // Check if token was already replaced (reuse detection)
-    // Industry standard: If old token is used after rotation, it's a security issue
+    // Detect token reuse after rotation (security best practice)
+    // If old token is used after rotation, it indicates potential token theft
     if (refreshTokenDoc.replacedBy) {
       // Old token being reused - revoke entire family
       await RefreshToken.revokeTokenFamily(refreshTokenDoc.familyId);
@@ -87,7 +90,7 @@ export async function POST(request: NextRequest) {
 
     // Verify user still exists and is active
     const user = await User.findById(refreshTokenDoc.userId)
-      .select('isActive isBlocked role mobile')
+      .select('isActive isBlocked role email')
       .lean();
 
     if (!user || !user.isActive || user.isBlocked) {
@@ -107,7 +110,8 @@ export async function POST(request: NextRequest) {
     // Industry standard: Each refresh generates new refresh token, old one is revoked
     const oldFamilyId = refreshTokenDoc.familyId;
     
-    // Create new refresh token (rotation) - will generate new family ID
+    // Create new refresh token with rotation (industry security best practice)
+    // New token will initially have different family ID, which we'll update below
     const clientInfo = {
       userAgent: request.headers.get('user-agent') || undefined,
       ipAddress: request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
@@ -122,8 +126,8 @@ export async function POST(request: NextRequest) {
       clientInfo.ipAddress
     );
 
-    // Update new token's family ID to match old one (for reuse detection)
-    // Industry standard: Keep same family to detect reuse of old tokens
+    // Update new token's family ID to match old one for reuse detection
+    // Same family ID allows detection if old token is used after rotation (security breach)
     newRefreshTokenDoc.familyId = oldFamilyId;
     await newRefreshTokenDoc.save();
 
@@ -131,7 +135,7 @@ export async function POST(request: NextRequest) {
     await refreshTokenDoc.markRevoked(newRefreshTokenDoc._id);
 
     // Generate new access token and create session
-    const responseData = {
+    const responseData: RefreshTokenResponse = {
       success: true,
       message: 'Token refreshed successfully',
     };
@@ -139,21 +143,21 @@ export async function POST(request: NextRequest) {
     
     // Set new refresh token cookie manually (createSession creates new token, we want to use rotated one)
     const { generateAccessToken } = await import('@/lib/auth/jwt');
-    const newAccessToken = generateAccessToken(user._id.toString(), user.mobile, user.role);
+    const newAccessToken = generateAccessToken(user._id.toString(), user.email, user.role);
     
     response.cookies.set('auth-token', newAccessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProduction(),
       sameSite: 'strict',
-      maxAge: 60 * 60, // 1 hour
+      maxAge: TIME_DURATIONS.ONE_HOUR,
       path: '/',
     });
     
     response.cookies.set('refresh-token', newRefreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProduction(),
       sameSite: 'strict',
-      maxAge: 30 * 24 * 60 * 60, // 30 days
+      maxAge: TIME_DURATIONS.THIRTY_DAYS,
       path: '/',
     });
 

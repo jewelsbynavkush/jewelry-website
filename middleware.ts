@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getBaseUrl } from '@/lib/utils/env';
 
 export default function middleware(request: NextRequest) {
   // Skip security headers for internal Next.js routes and API endpoints
@@ -30,7 +31,7 @@ export default function middleware(request: NextRequest) {
   // Future enhancement: use nonces or hashes for stricter CSP
   // Include request origin and base URL in connect-src to allow API calls in Vercel deployments
   const origin = request.nextUrl.origin;
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+  const baseUrl = getBaseUrl();
   
   // Build connect-src directive with allowed origins
   const connectSrc = ["'self'", origin];

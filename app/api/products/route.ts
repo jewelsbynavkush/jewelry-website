@@ -3,6 +3,8 @@ import { getProducts } from '@/lib/data/products';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
 import { sanitizeString } from '@/lib/security/sanitize';
+import { SECURITY_CONFIG } from '@/lib/security/constants';
+import type { GetProductsResponse } from '@/types/api';
 import connectDB from '@/lib/mongodb';
 import Category from '@/models/Category';
 
@@ -24,9 +26,8 @@ async function getValidActiveCategories(): Promise<string[]> {
 
 export async function GET(request: NextRequest) {
   // Apply security (CORS, CSRF, rate limiting)
-  // Industry standard: 200 requests per 15 minutes for public browsing endpoints
   const securityResponse = applyApiSecurity(request, {
-    rateLimitConfig: { windowMs: 15 * 60 * 1000, maxRequests: 200 }, // 200 requests per 15 minutes (industry standard)
+    rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.PUBLIC_BROWSING,
   });
   if (securityResponse) return securityResponse;
 
@@ -49,17 +50,36 @@ export async function GET(request: NextRequest) {
     
     // Extract pagination parameters with validation and defaults
     // Limits page size to 1-100 items per page for performance
-    const limit = Math.min(Math.max(parseInt(searchParams.get('limit') || '20', 10), 1), 100); // 1-100 per page
-    const page = Math.max(parseInt(searchParams.get('page') || '1', 10), 1); // Minimum page 1
+    const { getPaginationParams } = await import('@/lib/utils/api-helpers');
+    const { limit, page } = getPaginationParams(searchParams);
 
     // getProducts() filters by active categories, featured, mostLoved, and handles pagination
     const result = await getProducts(category, featured || undefined, mostLoved || undefined, limit, page);
 
-    const response = createSecureResponse(
-      result,
-      200,
-      request
-    );
+    // Map to API response format
+    const products = result.products.map(productData => ({
+      id: productData.id,
+      slug: productData.slug,
+      title: productData.title,
+      description: productData.description,
+      shortDescription: productData.description.substring(0, 150),
+      sku: productData.slug.toUpperCase().replace(/-/g, ''),
+      price: productData.price ?? 0,
+      currency: productData.currency ?? 'INR',
+      category: productData.category ?? '',
+      material: productData.material ?? '',
+      images: productData.image ? [productData.image] : [],
+      primaryImage: productData.image ?? '',
+      inStock: productData.inStock ?? false,
+      featured: productData.featured ?? false,
+      mostLoved: productData.mostLoved ?? false,
+    }));
+
+    const responseData: GetProductsResponse = {
+      products,
+      pagination: result.pagination,
+    };
+    const response = createSecureResponse(responseData, 200, request);
     
     response.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
     return response;

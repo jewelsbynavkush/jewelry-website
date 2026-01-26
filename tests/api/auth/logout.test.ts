@@ -29,7 +29,7 @@ describe('POST /api/auth/logout', () => {
     it('should logout authenticated user', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/auth/logout'
@@ -46,7 +46,7 @@ describe('POST /api/auth/logout', () => {
     it('should clear both access and refresh token cookies', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/auth/logout'
@@ -68,7 +68,7 @@ describe('POST /api/auth/logout', () => {
       
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/auth/logout'

@@ -132,7 +132,8 @@ export async function mergeGuestCartToUser(
     userCart.calculateTotals(ECOMMERCE.freeShippingThreshold, ECOMMERCE.defaultShippingCost);
   }
 
-  // Save user cart
+  // Persist merged cart to database for user account
+  // Cart is now tied to user account instead of guest session
   await userCart.save();
 
   // Delete guest cart after successful merge

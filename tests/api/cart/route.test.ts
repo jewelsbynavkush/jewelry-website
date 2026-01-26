@@ -61,7 +61,7 @@ describe('Cart API', () => {
     it('should get empty cart for authenticated user', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer'
       );
 
@@ -95,7 +95,7 @@ describe('Cart API', () => {
 
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer'
       );
 
@@ -123,7 +123,7 @@ describe('Cart API', () => {
     it('should add item to cart for authenticated user', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/cart',
@@ -163,7 +163,7 @@ describe('Cart API', () => {
     it('should reject invalid productId', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/cart',
@@ -183,7 +183,7 @@ describe('Cart API', () => {
     it('should reject insufficient stock', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/cart',
@@ -210,7 +210,7 @@ describe('Cart API', () => {
 
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/cart',
@@ -230,7 +230,7 @@ describe('Cart API', () => {
     it('should validate quantity limits', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'POST',
         'http://localhost:3000/api/cart',
@@ -271,7 +271,7 @@ describe('Cart API', () => {
 
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'DELETE',
         'http://localhost:3000/api/cart'
@@ -329,7 +329,7 @@ describe('Cart API', () => {
       const requests = Array.from({ length: 5 }, () =>
         createAuthenticatedRequest(
           testUser._id.toString(),
-          testUser.mobile,
+          testUser.email,
           'customer',
           'POST',
           'http://localhost:3000/api/cart',

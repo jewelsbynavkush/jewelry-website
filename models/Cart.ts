@@ -181,7 +181,9 @@ CartSchema.methods.calculateTotals = function(
     }
   }
   
-  this.total = this.subtotal + this.tax + this.shipping - this.discount;
+  // E-commerce best practice: Round total to 2 decimal places to prevent floating-point precision issues
+  // Consistent with order total calculation in app/api/orders/route.ts
+  this.total = Math.round((this.subtotal + this.tax + this.shipping - this.discount) * 100) / 100;
 };
 
 // Export Mongoose model with connection caching to prevent duplicate model compilation

@@ -14,23 +14,16 @@ import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } fro
 import { logError } from '@/lib/security/error-handler';
 import { sanitizeString, sanitizePhone } from '@/lib/security/sanitize';
 import { formatZodError } from '@/lib/utils/zod-error';
+import { SECURITY_CONFIG } from '@/lib/security/constants';
+import { indianAddressSchema } from '@/lib/validations/address';
+import type { GetAddressesResponse, AddAddressRequest, AddAddressResponse } from '@/types/api';
 import { z } from 'zod';
 
 /**
- * Schema for adding address
+ * Schema for adding address with Indian address validation
  */
-const addAddressSchema = z.object({
+const addAddressSchema = indianAddressSchema.extend({
   type: z.enum(['shipping', 'billing', 'both']),
-  firstName: z.string().min(1, 'First name is required').max(50),
-  lastName: z.string().min(1, 'Last name is required').max(50),
-  company: z.string().max(100).optional(),
-  addressLine1: z.string().min(1, 'Address line 1 is required').max(200),
-  addressLine2: z.string().max(200).optional(),
-  city: z.string().min(1, 'City is required').max(100),
-  state: z.string().min(1, 'State is required').max(100),
-  zipCode: z.string().min(1, 'ZIP code is required').max(20),
-  country: z.string().min(1, 'Country is required').max(100),
-  phone: z.string().max(20).optional(),
   isDefault: z.boolean().default(false),
 });
 
@@ -39,10 +32,9 @@ const addAddressSchema = z.object({
  * Get user addresses
  */
 export async function GET(request: NextRequest) {
-  // Apply security (CORS, CSRF, rate limiting)
-  // Industry standard: 100 requests per 15 minutes for user-specific read endpoints
+  // Apply security (CORS, CSRF) - rate limiting done after auth with user ID
   const securityResponse = applyApiSecurity(request, {
-    rateLimitConfig: { windowMs: 15 * 60 * 1000, maxRequests: 100 }, // 100 requests per 15 minutes (industry standard)
+    enableRateLimit: false, // Disable IP-based rate limiting, use user-based instead
   });
   if (securityResponse) return securityResponse;
 
@@ -54,6 +46,15 @@ export async function GET(request: NextRequest) {
 
     const { user } = authResult;
 
+    // Industry standard: Per-user rate limiting for authenticated endpoints
+    const { checkUserRateLimit } = await import('@/lib/security/api-security');
+    const userRateLimitResponse = checkUserRateLimit(
+      request,
+      user.userId,
+      SECURITY_CONFIG.RATE_LIMIT.USER_PROFILE_READ
+    );
+    if (userRateLimitResponse) return userRateLimitResponse;
+
     await connectDB();
 
     // Optimize: Only select address fields
@@ -64,15 +65,27 @@ export async function GET(request: NextRequest) {
       return createSecureErrorResponse('User not found', 404, request);
     }
 
-    const response = createSecureResponse(
-      {
-        addresses: userDoc.addresses || [],
-        defaultShippingAddressId: userDoc.defaultShippingAddressId,
-        defaultBillingAddressId: userDoc.defaultBillingAddressId,
-      },
-      200,
-      request
-    );
+    const responseData: GetAddressesResponse = {
+      addresses: (userDoc.addresses || []).map((addr) => ({
+        id: addr.id,
+        type: addr.type,
+        firstName: addr.firstName,
+        lastName: addr.lastName,
+        company: addr.company,
+        addressLine1: addr.addressLine1,
+        addressLine2: addr.addressLine2,
+        city: addr.city,
+        state: addr.state,
+        zipCode: addr.zipCode,
+        country: addr.country,
+        phone: addr.phone,
+        countryCode: addr.countryCode,
+        isDefault: addr.isDefault,
+      })),
+      defaultShippingAddressId: userDoc.defaultShippingAddressId?.toString(),
+      defaultBillingAddressId: userDoc.defaultBillingAddressId?.toString(),
+    };
+    const response = createSecureResponse(responseData, 200, request);
     
     response.headers.set('Cache-Control', 'private, no-cache, no-store, must-revalidate');
     return response;
@@ -87,10 +100,9 @@ export async function GET(request: NextRequest) {
  * Add new address
  */
 export async function POST(request: NextRequest) {
-  // Apply security (CORS, CSRF, rate limiting)
-  // Industry standard: 50 write operations per 15 minutes for address modifications
+  // Apply security (CORS, CSRF) - rate limiting done after auth with user ID
   const securityResponse = applyApiSecurity(request, {
-    rateLimitConfig: { windowMs: 15 * 60 * 1000, maxRequests: 50 }, // 50 requests per 15 minutes (industry standard)
+    enableRateLimit: false, // Disable IP-based rate limiting, use user-based instead
     requireContentType: true,
   });
   if (securityResponse) return securityResponse;
@@ -103,10 +115,19 @@ export async function POST(request: NextRequest) {
 
     const { user } = authResult;
 
+    // Industry standard: Per-user rate limiting for authenticated endpoints
+    const { checkUserRateLimit } = await import('@/lib/security/api-security');
+    const userRateLimitResponse = checkUserRateLimit(
+      request,
+      user.userId,
+      SECURITY_CONFIG.RATE_LIMIT.USER_PROFILE_WRITE
+    );
+    if (userRateLimitResponse) return userRateLimitResponse;
+
     await connectDB();
 
-    // Parse and validate request body - ensures all required address fields are present
-    const body = await request.json();
+    // Validate address data to ensure all required fields are present and properly formatted
+    const body = await request.json() as AddAddressRequest;
     const validatedData = addAddressSchema.parse(body);
 
     // Optimize: Only select fields needed for address operations
@@ -128,7 +149,8 @@ export async function POST(request: NextRequest) {
       state: sanitizeString(validatedData.state),
       zipCode: sanitizeString(validatedData.zipCode),
       country: sanitizeString(validatedData.country),
-      phone: validatedData.phone ? sanitizePhone(validatedData.phone) : undefined,
+      phone: sanitizePhone(validatedData.phone),
+      countryCode: sanitizeString(validatedData.countryCode || '+91'),
       isDefault: validatedData.isDefault,
     };
 
@@ -137,18 +159,30 @@ export async function POST(request: NextRequest) {
     const addressId = userDoc.addAddress(addressData);
     await userDoc.save();
 
-    return createSecureResponse(
-      {
-        success: true,
-        message: 'Address added successfully',
-        addressId,
-        addresses: userDoc.addresses,
-        defaultShippingAddressId: userDoc.defaultShippingAddressId,
-        defaultBillingAddressId: userDoc.defaultBillingAddressId,
-      },
-      200,
-      request
-    );
+    const responseData: AddAddressResponse = {
+      success: true,
+      message: 'Address added successfully',
+      addressId,
+      addresses: userDoc.addresses.map((addr) => ({
+        id: addr.id,
+        type: addr.type,
+        firstName: addr.firstName,
+        lastName: addr.lastName,
+        company: addr.company,
+        addressLine1: addr.addressLine1,
+        addressLine2: addr.addressLine2,
+        city: addr.city,
+        state: addr.state,
+        zipCode: addr.zipCode,
+        country: addr.country,
+        phone: addr.phone,
+        countryCode: addr.countryCode,
+        isDefault: addr.isDefault,
+      })),
+      defaultShippingAddressId: userDoc.defaultShippingAddressId?.toString(),
+      defaultBillingAddressId: userDoc.defaultBillingAddressId?.toString(),
+    };
+    return createSecureResponse(responseData, 200, request);
   } catch (error) {
     const zodError = formatZodError(error);
     if (zodError) {

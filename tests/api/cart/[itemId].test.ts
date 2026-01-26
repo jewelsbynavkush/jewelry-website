@@ -79,7 +79,7 @@ describe('Cart Item API', () => {
     it('should update item quantity for authenticated user', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'PATCH',
         `http://localhost:3000/api/cart/${testProduct._id.toString()}`,
@@ -97,7 +97,7 @@ describe('Cart Item API', () => {
     it('should remove item when quantity is 0', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'PATCH',
         `http://localhost:3000/api/cart/${testProduct._id.toString()}`,
@@ -115,7 +115,7 @@ describe('Cart Item API', () => {
     it('should reject invalid productId', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'PATCH',
         `http://localhost:3000/api/cart/${createObjectId()}`,
@@ -132,7 +132,7 @@ describe('Cart Item API', () => {
     it('should reject insufficient stock', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'PATCH',
         `http://localhost:3000/api/cart/${testProduct._id.toString()}`,
@@ -152,7 +152,7 @@ describe('Cart Item API', () => {
 
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'PATCH',
         `http://localhost:3000/api/cart/${testProduct._id.toString()}`,
@@ -206,7 +206,7 @@ describe('Cart Item API', () => {
     it('should remove item from cart for authenticated user', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'DELETE',
         `http://localhost:3000/api/cart/${testProduct._id.toString()}`
@@ -226,7 +226,7 @@ describe('Cart Item API', () => {
     it('should reject invalid productId', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'DELETE',
         `http://localhost:3000/api/cart/${createObjectId()}`
@@ -274,7 +274,7 @@ describe('Cart Item API', () => {
     it('should handle quantity exceeding max limit', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
-        testUser.mobile,
+        testUser.email,
         'customer',
         'PATCH',
         `http://localhost:3000/api/cart/${testProduct._id.toString()}`,

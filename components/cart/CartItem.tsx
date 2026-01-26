@@ -45,13 +45,25 @@ export default function CartItem({ item, currency = ECOMMERCE.currency }: CartIt
     if (!response.success) {
       // Revert on error
       setLocalQuantity(item.quantity);
+      // Show error toast for better UX
+      const { showToast } = await import('@/components/ui/Toast');
+      showToast(response.error || 'Failed to update quantity', 'error', 4000);
+    } else {
+      // Show success feedback for quantity updates
+      const { showToast } = await import('@/components/ui/Toast');
+      showToast('Cart updated', 'success', 2000);
     }
 
     setIsUpdating(false);
   };
 
   const handleRemove = async () => {
-    await removeItem(item.productId);
+    const response = await removeItem(item.productId);
+    if (response.success) {
+      // Show success feedback
+      const { showToast } = await import('@/components/ui/Toast');
+      showToast(`${item.title} removed from cart`, 'success', 2000);
+    }
   };
 
   return (
@@ -86,7 +98,7 @@ export default function CartItem({ item, currency = ECOMMERCE.currency }: CartIt
           <button
             onClick={handleRemove}
             disabled={isLoading || isUpdating}
-            className="text-[var(--text-secondary)] hover:text-[var(--error-text)] transition-colors p-2 min-w-[44px] min-h-[44px] flex items-center justify-center disabled:opacity-50 touch-target"
+            className="text-[var(--text-secondary)] hover:text-[var(--error-text)] transition-colors p-2 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 touch-target"
             aria-label={`Remove ${item.title} from cart`}
           >
             <svg
@@ -113,13 +125,14 @@ export default function CartItem({ item, currency = ECOMMERCE.currency }: CartIt
               type="button"
               onClick={() => handleQuantityChange(localQuantity - 1)}
               disabled={isLoading || isUpdating || localQuantity <= 1}
-              className="w-10 h-10 flex items-center justify-center border border-[var(--border-light)] rounded-lg bg-[var(--cream)] text-[var(--text-on-cream)] hover:bg-[var(--beige)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-10 h-10 flex items-center justify-center border border-[var(--border-light)] rounded-lg bg-[var(--cream)] text-[var(--text-on-cream)] hover:bg-[var(--beige)] hover:text-[var(--text-on-beige)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               aria-label="Decrease quantity"
             >
               −
             </button>
             <input
               type="number"
+              id={`quantity-${item.productId}`}
               min={1}
               max={100}
               value={localQuantity}
@@ -131,13 +144,13 @@ export default function CartItem({ item, currency = ECOMMERCE.currency }: CartIt
               }}
               disabled={isLoading || isUpdating}
               className="w-16 h-10 text-center border border-[var(--border-light)] rounded-lg bg-[var(--cream)] text-[var(--text-on-cream)] font-medium focus:outline-none focus:border-[var(--beige)] disabled:opacity-50"
-              aria-label="Quantity"
+              aria-label={`Quantity for ${item.title}`}
             />
             <button
               type="button"
               onClick={() => handleQuantityChange(localQuantity + 1)}
               disabled={isLoading || isUpdating || localQuantity >= 100}
-              className="w-10 h-10 flex items-center justify-center border border-[var(--border-light)] rounded-lg bg-[var(--cream)] text-[var(--text-on-cream)] hover:bg-[var(--beige)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-10 h-10 flex items-center justify-center border border-[var(--border-light)] rounded-lg bg-[var(--cream)] text-[var(--text-on-cream)] hover:bg-[var(--beige)] hover:text-[var(--text-on-beige)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               aria-label="Increase quantity"
             >
               +

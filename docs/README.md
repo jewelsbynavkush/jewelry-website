@@ -51,7 +51,7 @@ Complete documentation for the Jewels by NavKush jewelry website.
 - **[Comment Standards](./COMMENT_STANDARDS.md)** - Code commenting standards
 - **[Text Casing Standards](./TEXT_CASING_STANDARDS.md)** - Text formatting standards
 - **[Import Patterns Guide](./IMPORT_PATTERNS_GUIDE.md)** - Import organization patterns
-- **[Code Quality Cleanup Final Report](./CODE_QUALITY_CLEANUP_FINAL_REPORT.md)** - Code quality audit
+- **[Code Quality Report](./CODE_QUALITY_REPORT.md)** - Code quality and clean code audit
 - **[Color Consistency Final Report](./COLOR_CONSISTENCY_FINAL_REPORT.md)** - Color standards
 - **[CSS Responsiveness Final Report](./CSS_RESPONSIVENESS_FINAL_REPORT.md)** - Responsiveness standards
 - **[Security Best Practices Final Report](./SECURITY_BEST_PRACTICES_FINAL_REPORT.md)** - Security standards
@@ -63,12 +63,9 @@ Complete documentation for the Jewels by NavKush jewelry website.
 ## 📊 **Models & Database**
 
 - **[Models Guide](./MODELS_GUIDE.md)** - Complete MongoDB models documentation
-- **[Inventory Management Deep Dive](./INVENTORY_MANAGEMENT_DEEP_DIVE.md)** - Inventory system details
-- **[Inventory Flow Explained](./INVENTORY_FLOW_EXPLAINED.md)** - Inventory flow diagram
-- **[Inventory Model Structure](./INVENTORY_MODEL_STRUCTURE.md)** - Inventory model details
+- **[Inventory Guide](./INVENTORY_GUIDE.md)** - Complete inventory management guide (flow, operations, concurrency)
 - **[Category Active Field Guide](./CATEGORY_ACTIVE_FIELD_GUIDE.md)** - Category management
 - **[MongoDB Atlas Complete Guide](./MONGODB_ATLAS_COMPLETE_GUIDE.md)** - MongoDB setup
-- **[MongoDB Lock Timeout Explanation](./MONGODB_LOCK_TIMEOUT_EXPLANATION.md)** - Transaction timeouts
 
 ---
 
@@ -91,7 +88,7 @@ Complete documentation for the Jewels by NavKush jewelry website.
 
 - **[Comprehensive Audit Report](./AUDIT_REPORT_2025.md)** - All audits consolidated
 - **[Overall Best Practices Final](./OVERALL_BEST_PRACTICES_FINAL_2025.md)** - Complete best practices verification
-- **[Code Quality Cleanup Final Report](./CODE_QUALITY_CLEANUP_FINAL_REPORT.md)** - Code quality audit
+- **[Code Quality Report](./CODE_QUALITY_REPORT.md)** - Code quality and clean code audit
 - **[Security Best Practices Final Report](./SECURITY_BEST_PRACTICES_FINAL_REPORT.md)** - Security standards
 - **[Comment Standards](./COMMENT_STANDARDS.md)** - Comment standards (includes audit history)
 - **[SEO Best Practices Final Report](./SEO_BEST_PRACTICES_FINAL_REPORT.md)** - SEO standards
@@ -113,7 +110,8 @@ Complete documentation for the Jewels by NavKush jewelry website.
 - **[Image Guide](./IMAGE_GUIDE.md)** - Comprehensive image guide
 
 ### **Services**
-- **[Zoho Mail Setup](./ZOHO_MAIL_SETUP.md)** - Zoho Mail configuration
+- **[Email Setup Guide](./EMAIL_SETUP.md)** - Gmail and Zoho Mail configuration
+- **[Zoho Mail Setup](./ZOHO_MAIL_SETUP.md)** - Detailed Zoho Mail business email setup
 
 ---
 

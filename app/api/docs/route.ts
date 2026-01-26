@@ -11,8 +11,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getSecurityHeaders } from '@/lib/security/api-headers';
+import { getBaseUrl } from '@/lib/utils/env';
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+const baseUrl = getBaseUrl();
 
 const openApiSpec = {
   openapi: '3.0.0',
@@ -184,11 +185,11 @@ const openApiSpec = {
         type: 'object',
         properties: {
           id: { type: 'string' },
+          email: { type: 'string' },
           mobile: { type: 'string' },
+          countryCode: { type: 'string' },
           firstName: { type: 'string' },
           lastName: { type: 'string' },
-          email: { type: 'string' },
-          mobileVerified: { type: 'boolean' },
           emailVerified: { type: 'boolean' },
           role: {
             type: 'string',
@@ -384,7 +385,7 @@ const openApiSpec = {
                 properties: {
                   shippingAddress: {
                     type: 'object',
-                    required: ['firstName', 'lastName', 'addressLine1', 'city', 'state', 'zipCode', 'country'],
+                    required: ['firstName', 'lastName', 'addressLine1', 'city', 'state', 'zipCode', 'country', 'phone', 'countryCode'],
                     properties: {
                       firstName: { type: 'string' },
                       lastName: { type: 'string' },
@@ -393,12 +394,13 @@ const openApiSpec = {
                       state: { type: 'string' },
                       zipCode: { type: 'string' },
                       country: { type: 'string' },
-                      phone: { type: 'string' },
+                      phone: { type: 'string', pattern: '^[0-9]{10}$', description: '10-digit mobile number' },
+                      countryCode: { type: 'string', default: '+91', description: 'Country code' },
                     },
                   },
                   billingAddress: {
                     type: 'object',
-                    required: ['firstName', 'lastName', 'addressLine1', 'city', 'state', 'zipCode', 'country'],
+                    required: ['firstName', 'lastName', 'addressLine1', 'city', 'state', 'zipCode', 'country', 'phone', 'countryCode'],
                     properties: {
                       firstName: { type: 'string' },
                       lastName: { type: 'string' },
@@ -407,7 +409,8 @@ const openApiSpec = {
                       state: { type: 'string' },
                       zipCode: { type: 'string' },
                       country: { type: 'string' },
-                      phone: { type: 'string' },
+                      phone: { type: 'string', pattern: '^[0-9]{10}$', description: '10-digit mobile number' },
+                      countryCode: { type: 'string', default: '+91', description: 'Country code' },
                     },
                   },
                   paymentMethod: {
@@ -416,6 +419,8 @@ const openApiSpec = {
                   },
                   customerNotes: { type: 'string' },
                   idempotencyKey: { type: 'string' },
+                  saveShippingAddress: { type: 'boolean', default: false, description: 'Save shipping address to user addresses' },
+                  saveBillingAddress: { type: 'boolean', default: false, description: 'Save billing address to user addresses' },
                 },
               },
             },
@@ -531,6 +536,62 @@ const openApiSpec = {
               },
             },
           },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+          '404': { $ref: '#/components/responses/NotFound' },
+          '500': { $ref: '#/components/responses/InternalServerError' },
+        },
+      },
+      patch: {
+        summary: 'Update order status',
+        description: 'Update order status (admin only)',
+        tags: ['Orders'],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'orderId',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+            description: 'Order ID',
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['status'],
+                properties: {
+                  status: {
+                    type: 'string',
+                    enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'],
+                  },
+                  notes: { type: 'string', description: 'Optional notes about the status change' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Order status updated successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean' },
+                    message: { type: 'string' },
+                    order: { $ref: '#/components/schemas/Order' },
+                  },
+                },
+              },
+            },
+          },
+          '400': { $ref: '#/components/responses/BadRequest' },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+          '403': { $ref: '#/components/responses/Forbidden' },
           '404': { $ref: '#/components/responses/NotFound' },
           '500': { $ref: '#/components/responses/InternalServerError' },
         },
@@ -629,7 +690,7 @@ const openApiSpec = {
     '/auth/login': {
       post: {
         summary: 'Login user',
-        description: 'Authenticate user with mobile/email and password',
+        description: 'Authenticate user with email and password',
         tags: ['Authentication'],
         requestBody: {
           required: true,
@@ -639,7 +700,7 @@ const openApiSpec = {
                 type: 'object',
                 required: ['identifier', 'password'],
                 properties: {
-                  identifier: { type: 'string', description: 'Mobile number or email', example: '9876543210' },
+                  identifier: { type: 'string', format: 'email', description: 'Email address', example: 'user@example.com' },
                   password: { type: 'string', example: 'password123' },
                 },
               },
@@ -696,46 +757,10 @@ const openApiSpec = {
         },
       },
     },
-    '/auth/verify-mobile': {
-      post: {
-        summary: 'Verify mobile OTP',
-        description: 'Verify mobile number with OTP',
-        tags: ['Authentication'],
-        security: [{ bearerAuth: [] }],
-        requestBody: {
-          required: true,
-          content: {
-            'application/json': {
-              schema: {
-                type: 'object',
-                required: ['otp'],
-                properties: {
-                  otp: { type: 'string', pattern: '^[0-9]{6}$', example: '123456' },
-                },
-              },
-            },
-          },
-        },
-        responses: {
-          '200': {
-            description: 'Mobile verified successfully',
-            content: {
-              'application/json': {
-                schema: { $ref: '#/components/schemas/Success' },
-              },
-            },
-          },
-          '400': { $ref: '#/components/responses/BadRequest' },
-          '401': { $ref: '#/components/responses/Unauthorized' },
-          '429': { $ref: '#/components/responses/TooManyRequests' },
-          '500': { $ref: '#/components/responses/InternalServerError' },
-        },
-      },
-    },
     '/auth/resend-otp': {
       post: {
         summary: 'Resend OTP',
-        description: 'Resend OTP to mobile number',
+        description: 'Resend OTP to email address',
         tags: ['Authentication'],
         security: [{ bearerAuth: [] }],
         responses: {
@@ -767,7 +792,7 @@ const openApiSpec = {
                 type: 'object',
                 required: ['identifier'],
                 properties: {
-                  identifier: { type: 'string', description: 'Mobile number or email', example: '9876543210' },
+                  identifier: { type: 'string', format: 'email', description: 'Email address', example: 'user@example.com' },
                 },
               },
             },
@@ -1262,7 +1287,6 @@ const openApiSpec = {
                   properties: {
                     success: { type: 'boolean' },
                     message: { type: 'string' },
-                    otp: { type: 'string', description: 'OTP (development only)' },
                   },
                 },
               },
@@ -1679,8 +1703,8 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  // Return OpenAPI 3.0 specification in JSON format
-  // Can be imported into Swagger UI, Postman, or other API tools
+  // Return OpenAPI 3.0 specification in JSON format for API documentation tools
+  // Compatible with Swagger UI, Postman, and other OpenAPI-compatible tools
   return NextResponse.json(openApiSpec, {
     headers: {
       ...getSecurityHeaders(),

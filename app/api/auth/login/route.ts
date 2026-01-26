@@ -2,10 +2,10 @@
  * User Login API Route
  * 
  * Handles user authentication:
- * - POST: Login with mobile/email and password
+ * - POST: Login with email and password
  * 
  * Features:
- * - Mobile or email login
+ * - Email-only login
  * - Password verification
  * - Account lockout after failed attempts
  * - Session creation
@@ -16,7 +16,7 @@ import connectDB from '@/lib/mongodb';
 import User, { IUserModel } from '@/models/User';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
-import { sanitizeString, sanitizeEmail } from '@/lib/security/sanitize';
+import { sanitizeEmail } from '@/lib/security/sanitize';
 import { createSession } from '@/lib/auth/session';
 import { formatZodError } from '@/lib/utils/zod-error';
 import { getCorrelationId } from '@/lib/security/error-handler';
@@ -25,11 +25,20 @@ import type { LoginRequest, LoginResponse } from '@/types/api';
 import { z } from 'zod';
 
 /**
- * Schema for user login
+ * Schema for user login with industry-standard validation
  */
 const loginSchema = z.object({
-  identifier: z.string().min(1, 'Mobile number or email is required'), // Mobile or email
-  password: z.string().min(1, 'Password is required'),
+  identifier: z
+    .string()
+    .min(1, 'Email is required')
+    .max(254, 'Email must not exceed 254 characters')
+    .email('Invalid email format')
+    .toLowerCase()
+    .trim(),
+  password: z
+    .string()
+    .min(1, 'Password is required')
+    .max(100, 'Password must not exceed 100 characters'),
 });
 
 /**
@@ -38,12 +47,9 @@ const loginSchema = z.object({
  */
 export async function POST(request: NextRequest) {
   // Apply security (CORS, CSRF, rate limiting)
-  // Industry standard: 10 login attempts per 15 minutes (same for all environments)
+  const { SECURITY_CONFIG } = await import('@/lib/security/constants');
   const securityResponse = applyApiSecurity(request, {
-    rateLimitConfig: { 
-      windowMs: 15 * 60 * 1000, 
-      maxRequests: 50 // 50 login attempts per 15 minutes
-    },
+    rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.AUTH,
     requireContentType: true,
   });
   if (securityResponse) return securityResponse;
@@ -51,19 +57,17 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
 
-    // Parse and validate request body - ensures identifier and password are provided
+    // Validate login credentials format before authentication attempt
     const body = await request.json() as LoginRequest;
     const validatedData = loginSchema.parse(body);
 
-    // Determine if identifier is mobile or email
-    const isEmail = validatedData.identifier.includes('@');
-    const identifier = isEmail ? sanitizeEmail(validatedData.identifier) : sanitizeString(validatedData.identifier);
+    // Sanitize and validate email
+    const email = sanitizeEmail(validatedData.identifier);
 
-    // Find user - Optimize: Only select fields needed for login
-    // Include lockUntil to check account lock status (isLocked is a virtual)
-    const user = await User.findOne(
-      isEmail ? { email: identifier } : { mobile: identifier }
-    ).select('+password mobile email firstName lastName role mobileVerified emailVerified isActive isBlocked lockUntil lastLogin lastLoginIP'); // Include password and all needed fields
+    // Lookup user by email (primary identifier)
+    // Include lockUntil field directly since isLocked virtual may not be available with .select()
+    const user = await User.findOne({ email })
+      .select('+password mobile countryCode email firstName lastName role emailVerified isActive isBlocked lockUntil lastLogin lastLoginIP'); // Include password and all needed fields
 
     if (!user) {
       return createSecureErrorResponse('Invalid credentials', 401, request);
@@ -109,11 +113,11 @@ export async function POST(request: NextRequest) {
       message: 'Login successful',
       user: {
         id: user._id.toString(),
+        email: user.email,
         mobile: user.mobile,
+        countryCode: user.countryCode,
         firstName: user.firstName,
         lastName: user.lastName,
-        email: user.email,
-        mobileVerified: user.mobileVerified,
         emailVerified: user.emailVerified,
         role: user.role,
       },
@@ -122,7 +126,7 @@ export async function POST(request: NextRequest) {
 
     // Create session with access token (1 hour) and refresh token (30 days)
     // Industry standard: Separate short-lived access tokens and long-lived refresh tokens
-    await createSession(user._id.toString(), user.mobile, user.role, response, request);
+    await createSession(user._id.toString(), user.email, user.role, response, request);
 
     // Merge guest cart into user cart (industry standard: preserve guest cart on login)
     // Get sessionId from cookie if available

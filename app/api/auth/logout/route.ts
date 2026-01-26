@@ -11,6 +11,8 @@ import { requireAuth } from '@/lib/auth/middleware';
 import { applyApiSecurity, createSecureResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
 import { clearSession } from '@/lib/auth/session';
+import { SECURITY_CONFIG } from '@/lib/security/constants';
+import type { LogoutResponse } from '@/types/api';
 
 /**
  * POST /api/auth/logout
@@ -18,9 +20,8 @@ import { clearSession } from '@/lib/auth/session';
  */
 export async function POST(request: NextRequest) {
   // Apply security (CORS, CSRF, rate limiting)
-  // Industry standard: 20 logout requests per 15 minutes (same for all environments)
   const securityResponse = applyApiSecurity(request, {
-    rateLimitConfig: { windowMs: 15 * 60 * 1000, maxRequests: 20 }, // 20 requests per 15 minutes (industry standard)
+    rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.AUTH_LOGOUT,
   });
   if (securityResponse) return securityResponse;
 
@@ -30,14 +31,11 @@ export async function POST(request: NextRequest) {
     const authResult = await requireAuth(request).catch(() => null);
     const userId = authResult && 'user' in authResult ? authResult.user.userId : null;
 
-    const response = createSecureResponse(
-      {
-        success: true,
-        message: 'Logged out successfully',
-      },
-      200,
-      request
-    );
+    const responseData: LogoutResponse = {
+      success: true,
+      message: 'Logged out successfully',
+    };
+    const response = createSecureResponse(responseData, 200, request);
 
     // Clear session cookies and revoke refresh tokens
     // Industry standard: Revoke all refresh tokens on logout
@@ -48,14 +46,11 @@ export async function POST(request: NextRequest) {
     logError('logout API', error);
     
     // Even if there's an error, clear the session
-    const response = createSecureResponse(
-      {
-        success: true,
-        message: 'Logged out successfully',
-      },
-      200,
-      request
-    );
+    const responseData: LogoutResponse = {
+      success: true,
+      message: 'Logged out successfully',
+    };
+    const response = createSecureResponse(responseData, 200, request);
 
     await clearSession(response);
     return response;
