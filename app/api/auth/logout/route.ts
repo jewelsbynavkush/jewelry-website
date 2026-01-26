@@ -8,7 +8,7 @@
 
 import { NextRequest } from 'next/server';
 import { requireAuth } from '@/lib/auth/middleware';
-import { applyApiSecurity, createSecureResponse } from '@/lib/security/api-security';
+import { applyApiSecurity, createSecureResponse, checkUserRateLimit } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
 import { clearSession } from '@/lib/auth/session';
 import { SECURITY_CONFIG } from '@/lib/security/constants';
@@ -19,7 +19,8 @@ import type { LogoutResponse } from '@/types/api';
  * Logout user
  */
 export async function POST(request: NextRequest) {
-  // Apply security (CORS, CSRF, rate limiting)
+  // Apply security (CORS, CSRF, basic rate limiting)
+  // Initial rate limit is IP-based for unauthenticated requests
   const securityResponse = applyApiSecurity(request, {
     rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.AUTH_LOGOUT,
   });
@@ -30,6 +31,17 @@ export async function POST(request: NextRequest) {
     // Industry standard: Get userId to revoke refresh tokens
     const authResult = await requireAuth(request).catch(() => null);
     const userId = authResult && 'user' in authResult ? authResult.user.userId : null;
+
+    // Apply user-based rate limiting for authenticated users
+    // Provides better rate limiting per user while maintaining IP-based limit for guests
+    if (userId) {
+      const userRateLimitResponse = checkUserRateLimit(
+        request,
+        userId,
+        SECURITY_CONFIG.RATE_LIMIT.AUTH_LOGOUT
+      );
+      if (userRateLimitResponse) return userRateLimitResponse;
+    }
 
     const responseData: LogoutResponse = {
       success: true,

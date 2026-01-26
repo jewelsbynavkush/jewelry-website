@@ -60,10 +60,10 @@ export const SECURITY_CONFIG = {
       windowMs: TIME_DURATIONS_MS.FIVE_MINUTES,
       maxRequests: 10, // 10 resends per 5 minutes
     },
-    // Logout - moderate limit
+    // Logout - higher limit (logout is relatively safe operation)
     AUTH_LOGOUT: {
       windowMs: TIME_DURATIONS_MS.FIFTEEN_MINUTES,
-      maxRequests: 20, // 20 logout requests per 15 minutes
+      maxRequests: 100, // 100 logout requests per 15 minutes
     },
     // Password reset confirmation - strict limit for security
     AUTH_RESET: {
