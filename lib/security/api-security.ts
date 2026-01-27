@@ -16,7 +16,8 @@ import { checkRateLimit, RateLimitConfig } from './rate-limit';
 import { getSecurityHeaders } from './api-headers';
 import { getCorrelationId } from './error-handler';
 import { SECURITY_CONFIG } from './constants';
-import { isTest } from '@/lib/utils/env';
+import { isTest, isProduction } from '@/lib/utils/env';
+import { enforceHttps } from './encryption';
 
 export interface ApiSecurityConfig {
   /** Enable CORS (default: true) */
@@ -35,6 +36,8 @@ export interface ApiSecurityConfig {
   requireContentType?: boolean;
   /** Maximum request size in bytes */
   maxRequestSize?: number;
+  /** Enforce HTTPS (default: true in production) */
+  enforceHttps?: boolean;
 }
 
 const defaultConfig: ApiSecurityConfig = {
@@ -116,6 +119,24 @@ export function applyApiSecurity(
   config: ApiSecurityConfig = {}
 ): NextResponse | null {
   const securityConfig = { ...defaultConfig, ...config };
+
+  // Enforce HTTPS for sensitive operations (production only)
+  // Industry standard: HTTPS/TLS is the primary encryption layer
+  if (securityConfig.enforceHttps !== false && isProduction()) {
+    const httpsResponse = enforceHttps(request);
+    if (httpsResponse) {
+      return NextResponse.json(
+        { error: 'HTTPS required for this operation' },
+        {
+          status: 403,
+          headers: {
+            ...getSecurityHeaders(),
+            ...(securityConfig.enableCors ? getCorsHeaders(request, getCorsConfig()) : {}),
+          },
+        }
+      );
+    }
+  }
 
   // Handle CORS preflight requests (OPTIONS) before processing actual request
   // Preflight allows browsers to check if cross-origin request is allowed
