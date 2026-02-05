@@ -10,8 +10,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { applyApiSecurity, createSecureResponse } from '@/lib/security/api-security';
 import { getSecurityHeaders } from '@/lib/security/api-headers';
 import { getBaseUrl } from '@/lib/utils/env';
+import { ECOMMERCE } from '@/lib/constants';
 
 const baseUrl = getBaseUrl();
 
@@ -238,7 +240,7 @@ const openApiSpec = {
                 required: ['productId', 'quantity'],
                 properties: {
                   productId: { type: 'string', example: '507f1f77bcf86cd799439011' },
-                  quantity: { type: 'integer', minimum: 1, maximum: 100, example: 2 },
+                  quantity: { type: 'integer', minimum: 1, maximum: 100, example: 2, description: `Maximum quantity per item: ${ECOMMERCE.maxQuantityPerItem}` },
                 },
               },
             },
@@ -307,7 +309,7 @@ const openApiSpec = {
                 type: 'object',
                 required: ['quantity'],
                 properties: {
-                  quantity: { type: 'integer', minimum: 0, maximum: 100, example: 3 },
+                  quantity: { type: 'integer', minimum: 0, maximum: 100, example: 3, description: `Maximum quantity per item: ${ECOMMERCE.maxQuantityPerItem}` },
                 },
               },
             },
@@ -658,7 +660,7 @@ const openApiSpec = {
                   firstName: { type: 'string', example: 'John' },
                   lastName: { type: 'string', example: 'Doe' },
                   email: { type: 'string', format: 'email', example: 'john@example.com' },
-                  password: { type: 'string', minLength: 6, example: 'password123' },
+                  password: { type: 'string', minLength: 6, example: '••••••••' },
                 },
               },
             },
@@ -701,7 +703,7 @@ const openApiSpec = {
                 required: ['identifier', 'password'],
                 properties: {
                   identifier: { type: 'string', format: 'email', description: 'Email address', example: 'user@example.com' },
-                  password: { type: 'string', example: 'password123' },
+                  password: { type: 'string', example: '••••••••' },
                 },
               },
             },
@@ -826,7 +828,7 @@ const openApiSpec = {
                 required: ['token', 'password'],
                 properties: {
                   token: { type: 'string', description: 'Reset token from email' },
-                  password: { type: 'string', minLength: 6, example: 'newpassword123' },
+                  password: { type: 'string', minLength: 6, example: '••••••••' },
                 },
               },
             },
@@ -1653,11 +1655,19 @@ const openApiSpec = {
  * Returns OpenAPI 3.0 specification (JSON) or Swagger UI (HTML)
  */
 export async function GET(request: NextRequest) {
+  // Apply security (CORS, CSRF, rate limiting) for API documentation
+  // More lenient rate limiting for documentation endpoint
+  const securityResponse = applyApiSecurity(request, {
+    rateLimitConfig: { maxRequests: 100, windowMs: 60000 }, // 100 requests per minute
+  });
+  if (securityResponse) return securityResponse;
+
   const acceptHeader = request.headers.get('accept') || '';
   const isHtmlRequest = acceptHeader.includes('text/html') || request.nextUrl.searchParams.get('ui') === 'true';
 
-  // Serve Swagger UI HTML interface for interactive API documentation
-  // Allows developers to test API endpoints directly from browser
+  // Serve Swagger UI HTML interface when HTML is requested
+  // Provides interactive API documentation and testing interface directly in browser
+  // Detects HTML requests via Accept header or ?ui=true query parameter
   if (isHtmlRequest) {
     const html = `<!DOCTYPE html>
 <html lang="en">
@@ -1703,13 +1713,11 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  // Return OpenAPI 3.0 specification in JSON format for API documentation tools
-  // Compatible with Swagger UI, Postman, and other OpenAPI-compatible tools
-  return NextResponse.json(openApiSpec, {
-    headers: {
-      ...getSecurityHeaders(),
-      'Content-Type': 'application/json',
-      'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
-    },
-  });
+  // Return OpenAPI 3.0 specification in JSON format
+  // Standard format enables integration with Swagger UI, Postman, and other OpenAPI-compatible tools
+  // Cached for 1 hour to reduce server load while allowing updates
+  const response = createSecureResponse(openApiSpec, 200, request);
+  response.headers.set('Content-Type', 'application/json');
+  response.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+  return response;
 }

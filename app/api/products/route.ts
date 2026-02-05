@@ -4,6 +4,7 @@ import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } fro
 import { logError } from '@/lib/security/error-handler';
 import { sanitizeString } from '@/lib/security/sanitize';
 import { SECURITY_CONFIG } from '@/lib/security/constants';
+import { ECOMMERCE } from '@/lib/constants';
 import type { GetProductsResponse } from '@/types/api';
 import connectDB from '@/lib/mongodb';
 import Category from '@/models/Category';
@@ -65,7 +66,7 @@ export async function GET(request: NextRequest) {
       shortDescription: productData.description.substring(0, 150),
       sku: productData.slug.toUpperCase().replace(/-/g, ''),
       price: productData.price ?? 0,
-      currency: productData.currency ?? 'INR',
+      currency: productData.currency ?? ECOMMERCE.currency,
       category: productData.category ?? '',
       material: productData.material ?? '',
       images: productData.image ? [productData.image] : [],

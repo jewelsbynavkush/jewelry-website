@@ -115,7 +115,7 @@ export default function LoginForm() {
           <button
             type="button"
             onClick={() => router.push('/auth/reset-password')}
-            className="text-[var(--text-secondary)] text-sm hover:text-[var(--text-on-cream)] underline cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
+            className="text-[var(--text-secondary)] text-sm hover:text-[var(--text-on-cream)] underline cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 transition-colors min-h-[44px] px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--beige)] focus:ring-offset-2 rounded"
             disabled={isLoading}
           >
             Forgot Password?
@@ -125,7 +125,7 @@ export default function LoginForm() {
             <button
               type="button"
               onClick={() => router.push('/auth/register')}
-              className="text-[var(--text-on-cream)] hover:underline font-medium cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
+              className="text-[var(--text-on-cream)] hover:underline font-medium cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 transition-colors min-h-[44px] px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--beige)] focus:ring-offset-2 rounded"
               disabled={isLoading}
             >
               Register

@@ -227,7 +227,7 @@ export default function TopHeader() {
       className="relative z-50 overflow-visible"
       style={{ backgroundColor: headerBgColor }}
     >
-      <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4">
+      <div className="section-container py-3 sm:py-4">
         <div className="flex items-center justify-between" style={{ color: textColor }}>
           {/* Menu Button */}
           <motion.button

@@ -44,8 +44,11 @@ export async function cleanupExpiredCarts(
       Date.now() + expirationBufferHours * 60 * 60 * 1000
     );
 
+    // E-commerce best practice: Only guest carts expire
+    // User carts (with userId) should never expire
     const expiredCarts = await Cart.find({
-      expiresAt: { $lte: expirationThreshold },
+      expiresAt: { $lte: expirationThreshold, $exists: true }, // Only carts with expiration date
+      userId: { $exists: false }, // Only guest carts (no userId)
       items: { $exists: true, $ne: [] }, // Only process carts with items
     }).lean();
 

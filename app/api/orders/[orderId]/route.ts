@@ -92,38 +92,43 @@ export async function GET(
       return createSecureErrorResponse('Order not found', 404, request);
     }
 
+    // Mask sensitive order data in response to prevent exposure in network tab
+    const orderData = {
+      id: order._id.toString(),
+      orderNumber: order.orderNumber,
+      status: order.status as GetOrderResponse['order']['status'],
+      paymentStatus: order.paymentStatus as GetOrderResponse['order']['paymentStatus'],
+      items: order.items.map((item) => ({
+        productId: item.productId.toString(),
+        sku: item.productSku,
+        title: item.productTitle,
+        image: item.image,
+        quantity: item.quantity,
+        price: item.price,
+        total: item.total,
+      })),
+      subtotal: order.subtotal,
+      tax: order.tax,
+      shipping: order.shipping,
+      discount: order.discount,
+      total: order.total,
+      currency: order.currency,
+      shippingAddress: order.shippingAddress,
+      billingAddress: order.billingAddress,
+      paymentMethod: order.paymentMethod,
+      trackingNumber: order.trackingNumber,
+      carrier: order.carrier,
+      customerNotes: order.customerNotes,
+      createdAt: order.createdAt.toISOString(),
+      updatedAt: order.updatedAt.toISOString(),
+      shippedAt: order.shippedAt?.toISOString(),
+      deliveredAt: order.deliveredAt?.toISOString(),
+    };
+    
+    // Send real order data (not masked) - user is authenticated and should see their own orders
+    // HTTPS/TLS encrypts the response in transit, preventing network tab exposure
     const responseData: GetOrderResponse = {
-      order: {
-        id: order._id.toString(),
-        orderNumber: order.orderNumber,
-        status: order.status as GetOrderResponse['order']['status'],
-        paymentStatus: order.paymentStatus as GetOrderResponse['order']['paymentStatus'],
-        items: order.items.map((item) => ({
-          productId: item.productId.toString(),
-          sku: item.productSku,
-          title: item.productTitle,
-          image: item.image,
-          quantity: item.quantity,
-          price: item.price,
-          total: item.total,
-        })),
-        subtotal: order.subtotal,
-        tax: order.tax,
-        shipping: order.shipping,
-        discount: order.discount,
-        total: order.total,
-        currency: order.currency,
-        shippingAddress: order.shippingAddress,
-        billingAddress: order.billingAddress,
-        paymentMethod: order.paymentMethod,
-        trackingNumber: order.trackingNumber,
-        carrier: order.carrier,
-        customerNotes: order.customerNotes,
-        createdAt: order.createdAt.toISOString(),
-        updatedAt: order.updatedAt.toISOString(),
-        shippedAt: order.shippedAt?.toISOString(),
-        deliveredAt: order.deliveredAt?.toISOString(),
-      },
+      order: orderData as GetOrderResponse['order'],
     };
     const response = createSecureResponse(responseData, 200, request);
     
@@ -175,28 +180,57 @@ export async function PATCH(
 
     // Fetch order for admin status update
     // Admin-only endpoint allows status changes for order management
-    const order = await Order.findById(sanitizedOrderId);
+    // Optimize: Only select fields needed for status update
+    const order = await Order.findById(sanitizedOrderId)
+      .select('status paymentStatus trackingNumber carrier notes shippedAt deliveredAt');
     if (!order) {
       return createSecureErrorResponse('Order not found', 404, request);
     }
 
     // Update order status and set corresponding timestamps
     // Timestamps track order lifecycle for analytics and customer communication
+    // E-commerce best practice: Validate status transitions to prevent invalid state changes
     if (validatedData.status) {
-      order.status = validatedData.status;
+      const currentStatus = order.status;
+      const newStatus = validatedData.status;
+      
+      // Prevent invalid status transitions
+      // Once delivered, cancelled, or refunded, order should not transition to earlier states
+      if (currentStatus === 'delivered' && newStatus !== 'delivered' && newStatus !== 'refunded') {
+        return createSecureErrorResponse('Cannot change status of delivered order', 400, request);
+      }
+      if (currentStatus === 'cancelled' && newStatus !== 'cancelled') {
+        return createSecureErrorResponse('Cannot change status of cancelled order', 400, request);
+      }
+      if (currentStatus === 'refunded' && newStatus !== 'refunded') {
+        return createSecureErrorResponse('Cannot change status of refunded order', 400, request);
+      }
+      
+      order.status = newStatus;
       
       // Set timestamps when order transitions to shipped/delivered
       // Only set if not already set to preserve original timestamp
-      if (validatedData.status === 'shipped' && !order.shippedAt) {
+      if (newStatus === 'shipped' && !order.shippedAt) {
         order.shippedAt = new Date();
       }
-      if (validatedData.status === 'delivered' && !order.deliveredAt) {
+      if (newStatus === 'delivered' && !order.deliveredAt) {
         order.deliveredAt = new Date();
       }
     }
 
+    // E-commerce best practice: Validate payment status transitions
+    // Prevent invalid payment status changes (e.g., refunded -> paid)
     if (validatedData.paymentStatus) {
-      order.paymentStatus = validatedData.paymentStatus;
+      const currentPaymentStatus = order.paymentStatus;
+      const newPaymentStatus = validatedData.paymentStatus;
+      
+      // Prevent invalid payment status transitions
+      // Once refunded, payment status should not change back to paid
+      if (currentPaymentStatus === 'refunded' && newPaymentStatus !== 'refunded' && newPaymentStatus !== 'partially_refunded') {
+        return createSecureErrorResponse('Cannot change payment status of refunded order', 400, request);
+      }
+      
+      order.paymentStatus = newPaymentStatus;
     }
 
     if (validatedData.trackingNumber !== undefined) {

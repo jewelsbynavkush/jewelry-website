@@ -16,16 +16,7 @@ input:disabled, textarea:disabled, select:disabled {
 }
 
 /* Reduced Motion Support - Accessibility */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
+/* Consolidated with duplicate rule below */
 
 :root {
   /* Primary Color Palette - Two Shade System */
@@ -80,13 +71,19 @@ input:disabled, textarea:disabled, select:disabled {
   --accent-info: #8B9BA8;          /* Muted blue-gray for info */
   --accent-warning: #B8A082;       /* Warm beige-yellow for warranty */
   
-  /* Status Colors - Success/Error states with warm undertones */
+  /* Status Colors - Success/Error/Warning/Info states with warm undertones */
   --success-text: #6B7A5F;         /* Muted green text - warm undertones */
   --success-bg: #F0F4ED;            /* Very light green background */
   --success-border: #C4D4B8;       /* Light green border */
   --error-text: #9B6B6B;           /* Muted red text - warm undertones */
   --error-bg: #F4EDED;              /* Very light red background */
   --error-border: #D4B8B8;         /* Light red border */
+  --warning-text: #B8A082;         /* Warm beige-yellow text - matches accent-warning */
+  --warning-bg: #F4F0E8;            /* Very light beige-yellow background */
+  --warning-border: #D4C4A8;       /* Light beige-yellow border */
+  --info-text: #8B9BA8;            /* Muted blue-gray text - matches accent-info */
+  --info-bg: #EDF0F4;               /* Very light blue-gray background */
+  --info-border: #B8C4D4;          /* Light blue-gray border */
   --required-indicator: #B8866B;   /* Warm tan for required field asterisks */
   
   /* Legacy variables for compatibility */
@@ -643,7 +640,8 @@ select option {
   padding: 0.5rem;
 }
 
-/* Reduce motion for users who prefer it */
+/* Reduced Motion Support - Accessibility */
+/* Best practice: Respect user's motion preferences for accessibility */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -651,6 +649,7 @@ select option {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 

@@ -44,6 +44,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch products with stock below threshold for inventory management
     // Only includes active products that track quantity
+    // Optimize: Select only necessary fields for low stock alerts
     const products = await Product.find({
       status: 'active',
       'inventory.trackQuantity': true,
@@ -64,7 +65,7 @@ export async function GET(request: NextRequest) {
         ]
       }
     })
-      .select('sku title inventory status')
+      .select('sku title inventory.quantity inventory.reservedQuantity inventory.trackQuantity inventory.lowStockThreshold status')
       .sort({ 'inventory.quantity': 1 })
       .limit(limit)
       .lean();

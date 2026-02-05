@@ -64,8 +64,9 @@ export async function POST(request: NextRequest) {
 
     if (authUser) {
       // Authenticated: Use authenticated user's email
+      // Note: Cannot use .lean() as we need to call .save() on the document
       userDoc = await User.findById(authUser.userId)
-        .select('email emailVerified emailVerificationOTP emailVerificationOTPExpires');
+        .select('_id email emailVerified emailVerificationOTP emailVerificationOTPExpires');
       if (!userDoc) {
         return createSecureErrorResponse('User not found', 404, request);
       }
@@ -77,8 +78,9 @@ export async function POST(request: NextRequest) {
       
       const sanitizedEmail = sanitizeEmail(validatedData.email);
       // Lookup user by email (primary identifier for OTP resend)
+      // Note: Cannot use .lean() as we need to call .save() on the document
       userDoc = await User.findOne({ email: sanitizedEmail })
-        .select('email emailVerified emailVerificationOTP emailVerificationOTPExpires');
+        .select('_id email emailVerified emailVerificationOTP emailVerificationOTPExpires');
       
       if (!userDoc) {
         // Don't reveal if user exists - security best practice

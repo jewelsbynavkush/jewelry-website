@@ -79,14 +79,14 @@ Complete documentation for the Jewels by NavKush jewelry website.
 
 ## 🛒 **E-Commerce**
 
-- **[E-Commerce Guide](./E_COMMERCE_GUIDE.md)** - Complete e-commerce guide
-- **[E-Commerce Best Practices Final](./E_COMMERCE_BEST_PRACTICES_FINAL.md)** - E-commerce standards
+- **[E-Commerce Best Practices Final](./E_COMMERCE_BEST_PRACTICES_FINAL.md)** - Complete e-commerce guide and best practices
 
 ---
 
 ## ✅ **Quality & Audits**
 
 - **[Comprehensive Audit Report](./AUDIT_REPORT_2025.md)** - All audits consolidated
+- **[Backend Audit Report](./BACKEND_AUDIT_FINAL_2025.md)** - Complete backend standards audit
 - **[Overall Best Practices Final](./OVERALL_BEST_PRACTICES_FINAL_2025.md)** - Complete best practices verification
 - **[Code Quality Report](./CODE_QUALITY_REPORT.md)** - Code quality and clean code audit
 - **[Security Best Practices Final Report](./SECURITY_BEST_PRACTICES_FINAL_REPORT.md)** - Security standards
@@ -132,7 +132,7 @@ Complete documentation for the Jewels by NavKush jewelry website.
 6. **[Overall Best Practices](./OVERALL_BEST_PRACTICES_FINAL_2025.md)** - Best practices
 7. **[Models Guide](./MODELS_GUIDE.md)** - Database models
 8. **[API Guide](./API_GUIDE.md)** - API documentation
-9. **[E-Commerce Guide](./E_COMMERCE_GUIDE.md)** - E-commerce features
+9. **[E-Commerce Best Practices Final](./E_COMMERCE_BEST_PRACTICES_FINAL.md)** - E-commerce features and best practices
 10. **[Comprehensive Audit Report](./AUDIT_REPORT_2025.md)** - All audits
 
 ---

@@ -80,15 +80,15 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
       icon: '✕',
     },
     info: {
-      bg: 'var(--beige)',
-      text: 'var(--text-on-beige)',
-      border: 'var(--border-light)',
+      bg: 'var(--info-bg)',
+      text: 'var(--info-text)',
+      border: 'var(--info-border)',
       icon: 'ℹ',
     },
     warning: {
-      bg: 'var(--beige)',
-      text: 'var(--text-on-beige)',
-      border: 'var(--border-light)',
+      bg: 'var(--warning-bg)',
+      text: 'var(--warning-text)',
+      border: 'var(--warning-border)',
       icon: '⚠',
     },
   };

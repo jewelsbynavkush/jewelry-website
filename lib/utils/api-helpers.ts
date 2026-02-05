@@ -14,10 +14,8 @@ import mongoose from 'mongoose';
 /**
  * Validate and sanitize ObjectId parameter from route params
  * 
- * Common pattern used across many API routes:
- * - Sanitizes the parameter
- * - Validates ObjectId format
- * - Returns sanitized value or error response
+ * Prevents NoSQL injection by validating ObjectId format before database queries.
+ * Sanitizes input to remove potentially malicious characters.
  * 
  * @param param - Parameter value from route params
  * @param paramName - Name of the parameter (for error messages)
@@ -92,9 +90,8 @@ export function getPaginationParams(searchParams: URLSearchParams): {
 /**
  * Get or generate session ID for guest carts
  * 
- * Common pattern used in cart API routes:
- * - Retrieves session ID from cookie if available
- * - Generates new session ID if not found
+ * Maintains cart persistence across browser sessions for unauthenticated users.
+ * Reuses existing session ID from cookie if available, otherwise generates new one.
  * 
  * @param request - NextRequest object
  * @returns Session ID string
@@ -105,6 +102,6 @@ export function getSessionId(request: NextRequest): string {
     return sessionCookie.value;
   }
   
-  // Generate new session ID
+  // Generate new session ID for first-time guest users
   return new mongoose.Types.ObjectId().toString();
 }

@@ -3,6 +3,7 @@ import { getProduct } from '@/lib/data/products';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
 import { SECURITY_CONFIG } from '@/lib/security/constants';
+import { ECOMMERCE } from '@/lib/constants';
 import type { GetProductResponse } from '@/types/api';
 
 export async function GET(
@@ -40,7 +41,7 @@ export async function GET(
       shortDescription: productData.description.substring(0, 150), // Generate short description
       sku: productData.slug.toUpperCase().replace(/-/g, ''), // Generate SKU from slug
       price: productData.price ?? 0,
-      currency: productData.currency ?? 'INR',
+      currency: productData.currency ?? ECOMMERCE.currency,
       category: productData.category ?? '',
       material: productData.material ?? '',
       images: productData.image ? [productData.image] : [],

@@ -73,7 +73,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch logs with populated references for product, order, and user details
+    // Optimize: Select only necessary fields for inventory logs
     const logs = await InventoryLog.find(query)
+      .select('productId productName action quantity previousQuantity newQuantity reason userId userEmail createdAt orderId')
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip(skip)

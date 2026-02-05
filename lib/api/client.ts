@@ -266,27 +266,45 @@ export async function apiGet<T = unknown>(endpoint: string): Promise<ApiResponse
 
 /**
  * POST request
+ * Industry standard: Automatically encrypts sensitive fields before sending
  */
 export async function apiPost<T = unknown>(
   endpoint: string,
   body?: unknown
 ): Promise<ApiResponse<T>> {
+  // Encrypt sensitive fields in request body before sending
+  // Prevents passwords and other sensitive data from being visible in network tab
+  let encryptedBody = body;
+  if (body && typeof body === 'object' && !Array.isArray(body)) {
+    const { encryptRequestFields } = await import('@/lib/client/request-encryption');
+    encryptedBody = encryptRequestFields(body as Record<string, unknown>);
+  }
+  
   return apiRequest<T>(endpoint, {
     method: 'POST',
-    body: body ? JSON.stringify(body) : undefined,
+    body: encryptedBody ? JSON.stringify(encryptedBody) : undefined,
   });
 }
 
 /**
  * PATCH request
+ * Industry standard: Automatically encrypts sensitive fields before sending
  */
 export async function apiPatch<T = unknown>(
   endpoint: string,
   body?: unknown
 ): Promise<ApiResponse<T>> {
+  // Encrypt sensitive fields in request body before sending
+  // Prevents passwords and other sensitive data from being visible in network tab
+  let encryptedBody = body;
+  if (body && typeof body === 'object' && !Array.isArray(body)) {
+    const { encryptRequestFields } = await import('@/lib/client/request-encryption');
+    encryptedBody = encryptRequestFields(body as Record<string, unknown>);
+  }
+  
   return apiRequest<T>(endpoint, {
     method: 'PATCH',
-    body: body ? JSON.stringify(body) : undefined,
+    body: encryptedBody ? JSON.stringify(encryptedBody) : undefined,
   });
 }
 

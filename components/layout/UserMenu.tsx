@@ -23,7 +23,8 @@ export default function UserMenu({ textColor }: UserMenuProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const { user, isAuthenticated, logout, isLoading } = useAuthStore();
 
-  // Close menu when clicking outside
+  // Close dropdown menu when user clicks outside menu or button
+  // Excludes clicks on menu button to allow toggling without closing
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -42,7 +43,8 @@ export default function UserMenu({ textColor }: UserMenuProps) {
     }
   }, [isOpen]);
 
-  // Close menu on escape key
+  // Close dropdown menu on Escape key press for keyboard accessibility
+  // Follows WCAG guidelines for keyboard navigation in dropdown menus
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -58,8 +60,8 @@ export default function UserMenu({ textColor }: UserMenuProps) {
 
   const handleLogout = async () => {
     setIsOpen(false);
+    // Logout function handles redirect to home page after clearing auth state
     await logout();
-    // Redirect is handled in logout function
   };
 
   if (!isAuthenticated || !user) {
@@ -139,7 +141,7 @@ export default function UserMenu({ textColor }: UserMenuProps) {
               >
                 <SmoothLink
                   href="/profile"
-                  className="block w-full text-left px-4 py-2 text-sm text-[var(--text-on-cream)] hover:bg-[var(--black-opacity-4)] transition-colors"
+                  className="block w-full text-left px-4 py-2 text-sm text-[var(--text-on-cream)] hover:bg-[var(--black-opacity-4)] transition-colors min-h-[44px] flex items-center focus:outline-none focus:ring-2 focus:ring-[var(--beige)] focus:ring-offset-2"
                   role="menuitem"
                   onClick={() => setIsOpen(false)}
                   animated={false}
@@ -162,7 +164,7 @@ export default function UserMenu({ textColor }: UserMenuProps) {
             >
               <button
                 onClick={handleLogout}
-                className="w-full text-left px-4 py-2 text-sm text-[var(--text-on-cream)] hover:bg-[var(--black-opacity-4)] transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full text-left px-4 py-2 text-sm text-[var(--text-on-cream)] hover:bg-[var(--black-opacity-4)] transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 min-h-[44px] flex items-center focus:outline-none focus:ring-2 focus:ring-[var(--beige)] focus:ring-offset-2"
                 role="menuitem"
                 disabled={isLoading}
               >

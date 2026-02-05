@@ -45,7 +45,7 @@ export default function IntroSectionClient({
       {/* 3-Column Hero Section - Responsive Layout */}
       <div className="section-container">
         {/* Mobile: Stacked Layout */}
-        <div className="flex flex-col md:hidden gap-6 sm:gap-8 pb-12 md:pb-16 lg:pb-20">
+        <div className="flex flex-col md:hidden standard-gap section-padding-small">
           {/* Mobile: Brand Heading */}
           <ScrollReveal>
             <div className="text-center space-y-4">
@@ -76,7 +76,7 @@ export default function IntroSectionClient({
           </div>
 
           {/* Mobile: Category Menu */}
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col standard-gap-small">
             {CATEGORIES.map((category, index) => (
               <div key={category.slug} className="w-full">
                 <CategoryLink
@@ -92,7 +92,7 @@ export default function IntroSectionClient({
         </div>
 
         {/* Tablet & Desktop: 3-Column Grid */}
-        <div className="hidden md:grid md:grid-cols-3 gap-6 sm:gap-8 md:gap-10 lg:gap-12 items-end">
+        <div className="hidden md:grid md:grid-cols-3 standard-gap items-end">
           {/* Left Column: Collection 2025, Message, Discover Button */}
           <ScrollReveal>
             <div className="space-y-4 lg:space-y-6 pb-12 md:pb-16 lg:pb-20">

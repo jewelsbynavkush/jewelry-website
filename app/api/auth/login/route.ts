@@ -57,11 +57,19 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
 
-    // Validate login credentials format before authentication attempt
     const body = await request.json() as LoginRequest;
-    const validatedData = loginSchema.parse(body);
+    
+    // Reverse client-side obfuscation to get original password before validation
+    // Handles both obfuscated (from web client) and plain text (from direct API calls) for backward compatibility
+    const { deobfuscateRequestFields } = await import('@/lib/security/request-decryption');
+    const deobfuscatedBody = deobfuscateRequestFields(
+      body as unknown as Record<string, unknown>, 
+      ['password']
+    ) as unknown as LoginRequest;
+    
+    const validatedData = loginSchema.parse(deobfuscatedBody);
 
-    // Sanitize and validate email
+    // Sanitize email to prevent injection attacks and normalize format
     const email = sanitizeEmail(validatedData.identifier);
 
     // Lookup user by email (primary identifier)
@@ -90,7 +98,7 @@ export async function POST(request: NextRequest) {
       return createSecureErrorResponse('Account is temporarily locked due to too many failed login attempts. Please try again later.', 423, request);
     }
 
-    // Verify password
+    // Compare provided password with stored hash using bcrypt timing-safe comparison
     const isPasswordValid = await user.comparePassword(validatedData.password);
     if (!isPasswordValid) {
       // Increment login attempts
@@ -108,19 +116,23 @@ export async function POST(request: NextRequest) {
     await user.save();
 
     // Industry standard: Create session with access token and refresh token
+    // Send real user data (not masked) - user is authenticated and should see their own data
+    // HTTPS/TLS encrypts the response in transit, preventing network tab exposure
+    const userData = {
+      id: user._id.toString(),
+      email: user.email,
+      mobile: user.mobile,
+      countryCode: user.countryCode,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      emailVerified: user.emailVerified,
+      role: user.role,
+    };
+    
     const responseData: LoginResponse = {
       success: true,
       message: 'Login successful',
-      user: {
-        id: user._id.toString(),
-        email: user.email,
-        mobile: user.mobile,
-        countryCode: user.countryCode,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        emailVerified: user.emailVerified,
-        role: user.role,
-      },
+      user: userData as LoginResponse['user'],
     };
     const response = createSecureResponse(responseData, 200, request);
 
@@ -128,8 +140,7 @@ export async function POST(request: NextRequest) {
     // Industry standard: Separate short-lived access tokens and long-lived refresh tokens
     await createSession(user._id.toString(), user.email, user.role, response, request);
 
-    // Merge guest cart into user cart (industry standard: preserve guest cart on login)
-    // Get sessionId from cookie if available
+    // Merge guest cart into user cart to preserve items added before login
     const sessionCookie = request.cookies.get('session-id');
     if (sessionCookie?.value) {
       try {

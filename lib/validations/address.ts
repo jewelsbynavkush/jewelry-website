@@ -9,6 +9,7 @@
  */
 
 import { z } from 'zod';
+import { isTest } from '@/lib/utils/env';
 
 /**
  * Indian States and Union Territories
@@ -75,7 +76,7 @@ export function isValidIndianState(state: string): boolean {
   
   // Allow "Test State" in test environment for testing purposes
   // Production validation remains strict for data integrity
-  if (process.env.NODE_ENV === 'test' && normalizedState.toLowerCase() === 'test state') {
+  if (isTest() && normalizedState.toLowerCase() === 'test state') {
     return true;
   }
   
@@ -107,7 +108,7 @@ export const indianPincodeSchema = z
     (val) => {
       // Allow 5-digit pincodes in test environment for testing purposes
       // Production validation remains strict (6 digits) for data integrity
-      if (process.env.NODE_ENV === 'test' && /^[0-9]{5}$/.test(val)) {
+      if (isTest() && /^[0-9]{5}$/.test(val)) {
         return true;
       }
       return /^[0-9]{6}$/.test(val);

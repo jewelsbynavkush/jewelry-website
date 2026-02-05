@@ -50,7 +50,10 @@ export async function GET(
 
     // Fetch minimal product metadata for inventory status response
     // Performance: Select only required fields (SKU, title) to minimize data transfer
-    const product = await Product.findById(sanitizedProductId).select('_id sku title').lean();
+    // Optimize: Select only necessary fields for inventory status
+    const product = await Product.findById(sanitizedProductId)
+      .select('_id sku title inventory.quantity inventory.reservedQuantity inventory.trackQuantity inventory.allowBackorder status')
+      .lean();
     if (!product) {
       return createSecureErrorResponse('Product not found', 404, request);
     }

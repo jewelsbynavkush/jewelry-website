@@ -98,24 +98,26 @@ export async function GET(request: NextRequest) {
       return createSecureErrorResponse('User not found', 404, request);
     }
 
+    const userData = {
+      id: userDoc._id.toString(),
+      mobile: userDoc.mobile,
+      countryCode: userDoc.countryCode,
+      email: userDoc.email,
+      emailVerified: userDoc.emailVerified,
+      firstName: userDoc.firstName,
+      lastName: userDoc.lastName,
+      displayName: userDoc.displayName,
+      role: userDoc.role,
+      preferences: userDoc.preferences,
+      totalOrders: userDoc.totalOrders,
+      totalSpent: userDoc.totalSpent,
+      loyaltyPoints: userDoc.loyaltyPoints,
+      createdAt: userDoc.createdAt,
+    };
+    
     const response = createSecureResponse(
       {
-        user: {
-          id: userDoc._id.toString(),
-          mobile: userDoc.mobile,
-          countryCode: userDoc.countryCode,
-          email: userDoc.email,
-          emailVerified: userDoc.emailVerified,
-          firstName: userDoc.firstName,
-          lastName: userDoc.lastName,
-          displayName: userDoc.displayName,
-          role: userDoc.role,
-          preferences: userDoc.preferences,
-          totalOrders: userDoc.totalOrders,
-          totalSpent: userDoc.totalSpent,
-          loyaltyPoints: userDoc.loyaltyPoints,
-          createdAt: userDoc.createdAt,
-        },
+        user: userData,
       },
       200,
       request
@@ -160,8 +162,7 @@ export async function PATCH(request: NextRequest) {
 
     await connectDB();
 
-    // Validate request body before processing to prevent invalid data updates
-    // Zod schema ensures type safety and business rule compliance
+    // Validate request body to ensure type safety and business rule compliance
     const body = await request.json();
     const validatedData = updateProfileSchema.parse(body);
 
@@ -172,8 +173,7 @@ export async function PATCH(request: NextRequest) {
       return createSecureErrorResponse('User not found', 404, request);
     }
 
-    // Update profile fields with sanitized input to prevent XSS
-    // Only updates fields that are provided in request
+    // Update only provided fields with sanitized input to prevent XSS
     if (validatedData.firstName !== undefined) {
       userDoc.firstName = sanitizeString(validatedData.firstName);
     }
@@ -186,12 +186,9 @@ export async function PATCH(request: NextRequest) {
       userDoc.displayName = validatedData.displayName ? sanitizeString(validatedData.displayName) : undefined;
     }
 
-    // Prevent email changes if already verified (security best practice)
-    // Verified emails are trusted identifiers and should not be modified
+    // Prevent changes to verified emails (trusted identifiers)
     if (validatedData.email !== undefined && userDoc.emailVerified) {
-      // Email is verified - prevent any changes
       if (validatedData.email === '') {
-        // Cannot clear verified email
         return createSecureErrorResponse('Email cannot be cleared once verified', 400, request);
       }
       
@@ -199,35 +196,28 @@ export async function PATCH(request: NextRequest) {
       const currentEmail = userDoc.email?.toLowerCase().trim() || '';
       const newEmail = sanitizedEmail.toLowerCase().trim();
       
-      // If trying to change verified email, reject
+      // Reject any changes to verified email
       if (currentEmail !== newEmail) {
         return createSecureErrorResponse('Email cannot be changed once verified', 400, request);
       }
-      // If same email, allow (no-op, no change needed)
     } else if (validatedData.email !== undefined && !userDoc.emailVerified) {
-      // Email is not verified - allow updates
+      // Allow email updates for unverified accounts
       if (validatedData.email === '') {
-        // Email is required, cannot be cleared
         return createSecureErrorResponse('Email is required and cannot be cleared', 400, request);
       } else {
         const sanitizedEmail = sanitizeEmail(validatedData.email);
         
-        // Verify email uniqueness to prevent duplicate accounts
-        // Excludes current user from check to allow keeping same email
+        // Check email uniqueness (exclude current user)
         const existingUser = await User.findOne({ 
           email: sanitizedEmail,
           _id: { $ne: user.userId }
         }).select('_id emailVerified').lean();
         
-        if (existingUser) {
-          // Allow if existing user's email is not verified (can register again)
-          if (existingUser.emailVerified) {
-            return createSecureErrorResponse('Email already in use', 400, request);
-          }
+        if (existingUser && existingUser.emailVerified) {
+          return createSecureErrorResponse('Email already in use', 400, request);
         }
 
-        // If email changed, mark as unverified and generate OTP
-        // Industry standard: Require email verification when email is changed
+        // Require re-verification if email changed
         const currentEmail = userDoc.email?.toLowerCase().trim() || '';
         const newEmail = sanitizedEmail.toLowerCase().trim();
         const emailChanged = currentEmail !== newEmail;
@@ -236,14 +226,11 @@ export async function PATCH(request: NextRequest) {
           userDoc.email = sanitizedEmail;
           userDoc.emailVerified = false;
           
-          // Generate new OTP for email verification after email change
-          // Invalidates previous OTP and requires re-verification
-          // Email is set above, so generateEmailOTP() should work
+          // Generate new OTP for changed email
           try {
             const emailOtp = userDoc.generateEmailOTP();
             
-            // Send OTP email via Gmail SMTP for new email verification
-            // User must verify new email before it becomes active
+            // Send verification OTP to new email address
             const { sendEmailOTP } = await import('@/lib/email/gmail');
             const emailResult = await sendEmailOTP(sanitizedEmail, emailOtp);
             
@@ -260,34 +247,33 @@ export async function PATCH(request: NextRequest) {
               });
             }
             
-            // Log OTP in development for testing
+            // Log OTP in development for testing convenience
             const { isDevelopment } = await import('@/lib/utils/env');
             if (isDevelopment()) {
               const logger = (await import('@/lib/utils/logger')).default;
               logger.debug('Email OTP generated', { email: sanitizedEmail, otp: emailOtp });
             }
           } catch (error) {
-            // If OTP generation fails, log but don't fail the update
+            // Log error but don't fail update - user can request OTP later
             logError('Failed to generate email OTP', error);
-            // Still mark as unverified so user can request OTP later
           }
         }
       }
     }
 
-    // Update mobile number and country code if provided
+    // Update mobile if provided (optional field)
     if (validatedData.mobile !== undefined) {
       if (validatedData.mobile === '') {
-        // Allow clearing mobile
+        // Allow clearing mobile number
         userDoc.mobile = undefined;
         userDoc.countryCode = undefined;
       } else {
-        // Validate mobile format
+        // Validate 10-digit format
         if (!/^[0-9]{10}$/.test(validatedData.mobile)) {
           return createSecureErrorResponse('Mobile number must be 10 digits', 400, request);
         }
 
-        // Verify mobile uniqueness if provided
+        // Check mobile uniqueness (exclude current user)
         const countryCode = validatedData.countryCode || '+91';
         const existingUser = await User.findOne({ 
           mobile: validatedData.mobile,
@@ -307,7 +293,7 @@ export async function PATCH(request: NextRequest) {
     try {
       await userDoc.save();
     } catch (saveError: unknown) {
-      // Handle MongoDB validation errors
+      // Handle Mongoose validation errors with user-friendly messages
       if (saveError && typeof saveError === 'object' && 'name' in saveError && saveError.name === 'ValidationError') {
         const errors = Object.values('errors' in saveError && saveError.errors ? saveError.errors : {}).map((err: unknown) => 
           err && typeof err === 'object' && 'message' in err ? String(err.message) : 'Validation error'
@@ -315,8 +301,7 @@ export async function PATCH(request: NextRequest) {
         return createSecureErrorResponse(errors.join(', ') || 'Validation error', 400, request);
       }
       
-      // Handle MongoDB duplicate key errors (unique constraint violations)
-      // Provides user-friendly error messages for duplicate email or other unique field conflicts
+      // Handle unique constraint violations (duplicate email, mobile, etc.)
       if (saveError && typeof saveError === 'object' && 'code' in saveError && saveError.code === 11000) {
         const keyPattern = 'keyPattern' in saveError && saveError.keyPattern ? saveError.keyPattern : {};
         const field = Object.keys(keyPattern)[0];
@@ -326,24 +311,25 @@ export async function PATCH(request: NextRequest) {
         return createSecureErrorResponse(`${field} already exists`, 400, request);
       }
       
-      // Re-throw other errors to be caught by outer catch
       throw saveError;
     }
 
+    const userData = {
+      id: userDoc._id.toString(),
+      mobile: userDoc.mobile,
+      countryCode: userDoc.countryCode,
+      email: userDoc.email,
+      emailVerified: userDoc.emailVerified,
+      firstName: userDoc.firstName,
+      lastName: userDoc.lastName,
+      displayName: userDoc.displayName,
+    };
+    
     return createSecureResponse(
       {
         success: true,
         message: 'Profile updated successfully',
-        user: {
-          id: userDoc._id.toString(),
-          mobile: userDoc.mobile,
-          countryCode: userDoc.countryCode,
-          email: userDoc.email,
-          emailVerified: userDoc.emailVerified,
-          firstName: userDoc.firstName,
-          lastName: userDoc.lastName,
-          displayName: userDoc.displayName,
-        },
+        user: userData,
       },
       200,
       request

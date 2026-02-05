@@ -1,8 +1,11 @@
 /**
- * Reusable Error Message Component
+ * Error Message Component
  * 
- * Displays error messages with consistent styling and accessibility
+ * Wrapper around AlertMessage for backward compatibility.
+ * Use AlertMessage directly for new code.
  */
+
+import AlertMessage from './AlertMessage';
 
 interface ErrorMessageProps {
   message: string | null;
@@ -10,20 +13,6 @@ interface ErrorMessageProps {
   'aria-live'?: 'polite' | 'assertive';
 }
 
-export default function ErrorMessage({ 
-  message, 
-  className = '',
-  'aria-live': ariaLive = 'polite',
-}: ErrorMessageProps) {
-  if (!message) return null;
-
-  return (
-    <div
-      className={`text-[var(--error-text)] text-sm ${className}`}
-      role="alert"
-      aria-live={ariaLive}
-    >
-      {message}
-    </div>
-  );
+export default function ErrorMessage(props: ErrorMessageProps) {
+  return <AlertMessage {...props} type="error" />;
 }

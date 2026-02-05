@@ -64,10 +64,19 @@ export async function PATCH(request: NextRequest) {
     await connectDB();
 
     const body = await request.json() as ChangePasswordRequest;
-    const validatedData = changePasswordSchema.parse(body);
+    
+    // Deobfuscate sensitive fields (currentPassword, newPassword) that were obfuscated on client side
+    // Industry standard: Reverse client-side obfuscation to get original passwords
+    // Handles both obfuscated (from web client) and plain text (from direct API calls) passwords
+    const { deobfuscateRequestFields } = await import('@/lib/security/request-decryption');
+    const deobfuscatedBody = deobfuscateRequestFields(
+      body as unknown as Record<string, unknown>, 
+      ['currentPassword', 'newPassword']
+    ) as unknown as ChangePasswordRequest;
+    
+    const validatedData = changePasswordSchema.parse(deobfuscatedBody);
 
-    // Fetch user with password field explicitly selected for verification
-    // Password is excluded by default for security, but needed here to verify current password
+    // Explicitly select password field (excluded by default) for verification
     const userDoc = await User.findById(user.userId).select('+password');
     if (!userDoc) {
       return createSecureErrorResponse('User not found', 404, request);
@@ -87,14 +96,13 @@ export async function PATCH(request: NextRequest) {
       return createSecureErrorResponse('New password must be different from current password', 400, request);
     }
 
-    // Update password - pre-save hook automatically hashes it with bcrypt
-    // Password change timestamp tracked for security auditing and compliance
+    // Pre-save hook automatically hashes password with bcrypt
+    // Track password change timestamp for security auditing
     userDoc.password = validatedData.newPassword;
     userDoc.passwordChangedAt = new Date();
     await userDoc.save();
 
-    // Industry standard: Revoke all refresh tokens on password change
-    // Prevents use of old tokens after password change (security best practice)
+    // Revoke all refresh tokens to prevent use of old tokens after password change
     try {
       await RefreshToken.revokeUserTokens(user.userId);
     } catch (error) {

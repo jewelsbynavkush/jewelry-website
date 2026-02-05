@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { contactFormSchema } from '@/lib/validations/schemas';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { sanitizeString, sanitizeEmail, sanitizePhone } from '@/lib/security/sanitize';
@@ -93,49 +93,29 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Only allow POST method
-export async function GET(request: NextRequest) {
-  const securityResponse = applyApiSecurity(request, {
-    allowedMethods: ['GET'],
-  });
-  if (securityResponse) return securityResponse;
-  
+/**
+ * Reject unsupported HTTP methods (only POST is allowed for contact form)
+ * Centralized handler for all non-POST methods to reduce code duplication
+ */
+async function handleUnsupportedMethod(request: NextRequest): Promise<NextResponse> {
   const response = createSecureErrorResponse('Method not allowed', 405, request);
   response.headers.set('Allow', 'POST');
   return response;
 }
 
-// Reject unsupported HTTP methods (only POST is allowed for contact form)
+export async function GET(request: NextRequest) {
+  return handleUnsupportedMethod(request);
+}
+
 export async function PUT(request: NextRequest) {
-  const securityResponse = applyApiSecurity(request, {
-    allowedMethods: ['PUT'],
-  });
-  if (securityResponse) return securityResponse;
-  
-  const response = createSecureErrorResponse('Method not allowed', 405, request);
-  response.headers.set('Allow', 'POST');
-  return response;
+  return handleUnsupportedMethod(request);
 }
 
 export async function PATCH(request: NextRequest) {
-  const securityResponse = applyApiSecurity(request, {
-    allowedMethods: ['PATCH'],
-  });
-  if (securityResponse) return securityResponse;
-  
-  const response = createSecureErrorResponse('Method not allowed', 405, request);
-  response.headers.set('Allow', 'POST');
-  return response;
+  return handleUnsupportedMethod(request);
 }
 
 export async function DELETE(request: NextRequest) {
-  const securityResponse = applyApiSecurity(request, {
-    allowedMethods: ['DELETE'],
-  });
-  if (securityResponse) return securityResponse;
-  
-  const response = createSecureErrorResponse('Method not allowed', 405, request);
-  response.headers.set('Allow', 'POST');
-  return response;
+  return handleUnsupportedMethod(request);
 }
 

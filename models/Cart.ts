@@ -113,7 +113,15 @@ const CartSchema = new Schema<ICart>(
     },
     expiresAt: {
       type: Date,
-      default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+      // E-commerce best practice: Only guest carts expire (30 days)
+      // User carts (with userId) should not expire
+      // Default is set for guest carts, but should be undefined for user carts
+      default: function() {
+        // Only set expiration for guest carts (no userId)
+        // Use constant value directly to avoid circular dependency (30 days = 30 * 24 * 60 * 60 * 1000 ms)
+        // This matches ECOMMERCE.guestCartExpirationDays in lib/constants.ts
+        return this.userId ? undefined : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      },
     },
   },
   {
@@ -121,25 +129,30 @@ const CartSchema = new Schema<ICart>(
   }
 );
 
-// Indexes for performance and foreign key relationships
-CartSchema.index({ userId: 1 }); // Foreign key index for User
-// sessionId index created by unique: true
-CartSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 }); // Auto-delete expired carts
-CartSchema.index({ 'items.productId': 1 }); // Foreign key index for Product in items
+// Database indexes for query performance and data integrity
+CartSchema.index({ userId: 1 }); // Fast lookup by user ID
+CartSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 }); // Auto-delete expired guest carts
+CartSchema.index({ 'items.productId': 1 }); // Fast product lookup in cart items
 
-// Pre-save hook to validate foreign keys
+// Pre-save hook: Validate foreign keys and enforce cart expiration rules
 CartSchema.pre('save', async function() {
-  // Validate userId foreign key if provided (optional for guest carts)
-  // Only validate if userId is explicitly set (not undefined/null)
+  // User carts never expire (persistent across sessions)
+  // Guest carts expire after 30 days to free up database space
   if (this.userId != null) {
+    this.expiresAt = undefined;
+    
+    // Validate user exists to prevent orphaned carts
     const User = mongoose.model('User');
     const user = await User.findById(this.userId);
     if (!user) {
       throw new Error('User does not exist');
     }
+  } else if (this.sessionId && !this.expiresAt) {
+    // Set expiration for new guest carts (matches ECOMMERCE.guestCartExpirationDays)
+    this.expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
   }
   
-  // Validate productId in items
+  // Validate all products exist to prevent invalid cart items
   if (this.items && this.items.length > 0) {
     const Product = mongoose.model('Product');
     for (const item of this.items) {
@@ -152,8 +165,10 @@ CartSchema.pre('save', async function() {
 });
 
 /**
- * Method to calculate totals
- * E-commerce best practice: Applies free shipping threshold automatically
+ * Calculate cart totals including subtotal, shipping, tax, and discount
+ * 
+ * Applies free shipping threshold automatically when subtotal meets minimum.
+ * Rounds final total to 2 decimal places to prevent floating-point precision errors.
  * 
  * @param freeShippingThreshold - Minimum subtotal for free shipping (optional)
  * @param defaultShippingCost - Default shipping cost if threshold not met (optional, defaults to 0)
@@ -167,22 +182,19 @@ CartSchema.methods.calculateTotals = function(
     return sum + item.subtotal;
   }, 0);
   
-  // Apply free shipping threshold if provided
+  // Apply free shipping when subtotal meets threshold
   if (freeShippingThreshold !== undefined) {
     if (this.subtotal >= freeShippingThreshold) {
-      // Free shipping when threshold is met
       this.shipping = 0;
     } else {
-      // Apply default shipping cost if threshold not met
-      // Only set if shipping hasn't been explicitly set before
+      // Only override shipping if not explicitly set (preserves custom shipping costs)
       if (this.shipping === 0 || this.isNew) {
         this.shipping = defaultShippingCost;
       }
     }
   }
   
-  // E-commerce best practice: Round total to 2 decimal places to prevent floating-point precision issues
-  // Consistent with order total calculation in app/api/orders/route.ts
+  // Round to 2 decimal places to prevent floating-point precision errors in financial calculations
   this.total = Math.round((this.subtotal + this.tax + this.shipping - this.discount) * 100) / 100;
 };
 

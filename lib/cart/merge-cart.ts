@@ -29,13 +29,13 @@ export async function mergeGuestCartToUser(
 ): Promise<void> {
   const userObjectId = new mongoose.Types.ObjectId(userId);
 
-  // Find guest cart and user cart
+  // Fetch both carts in parallel for performance
   const [guestCart, userCart] = await Promise.all([
     Cart.findOne({ sessionId }).lean(),
     Cart.findOne({ userId: userObjectId }),
   ]);
 
-  // No guest cart to merge
+  // Early return if no guest cart items to merge
   if (!guestCart || guestCart.items.length === 0) {
     return;
   }
@@ -85,7 +85,7 @@ export async function mergeGuestCartToUser(
     );
 
     if (existingItemIndex >= 0) {
-      // Product exists in user cart - combine quantities
+      // Combine quantities for same product to prevent duplicate cart entries
       const newQuantity = userCart.items[existingItemIndex].quantity + guestItem.quantity;
       userCart.items[existingItemIndex].quantity = newQuantity;
       
@@ -102,8 +102,7 @@ export async function mergeGuestCartToUser(
           userCart.items[existingItemIndex].price * newQuantity;
       }
     } else {
-      // New product - add to user cart
-      // Verify product still exists and get current price
+      // Add new product to user cart only if it's still active and available
       const product = await Product.findById(guestItem.productId)
         .select('price status')
         .lean();
@@ -119,7 +118,7 @@ export async function mergeGuestCartToUser(
           subtotal: product.price * guestItem.quantity,
         });
       }
-      // If product doesn't exist or is inactive, skip it (don't add to cart)
+      // Skip inactive or deleted products to keep cart synchronized with catalog
     }
   }
 

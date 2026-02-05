@@ -83,8 +83,8 @@ function OTPVerificationFormContent() {
 
   return (
     <Card>
-      <div className="space-y-6">
-        <div className="text-center space-y-2">
+      <div className="standard-space-y">
+        <div className="text-center standard-space-y-small">
           <h3 className="text-[var(--text-on-cream)] text-xl font-bold">
             Verify Email Address
           </h3>
@@ -96,7 +96,7 @@ function OTPVerificationFormContent() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="standard-space-y">
           <OTPInput
             ref={otpInputRef}
             value={otp}
@@ -119,12 +119,12 @@ function OTPVerificationFormContent() {
             {isLoading ? 'VERIFYING...' : 'VERIFY OTP'}
           </Button>
 
-          <div className="text-center space-y-2">
+          <div className="text-center standard-space-y-small">
             <button
               type="button"
               onClick={handleResend}
               disabled={isLoading || resendCooldown > 0}
-              className="text-[var(--text-secondary)] text-sm hover:text-[var(--text-on-cream)] underline cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
+              className="text-[var(--text-secondary)] text-sm hover:text-[var(--text-on-cream)] underline cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 transition-colors min-h-[44px] px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--beige)] focus:ring-offset-2 rounded"
             >
               {resendCooldown > 0
                 ? `Resend OTP in ${resendCooldown}s`

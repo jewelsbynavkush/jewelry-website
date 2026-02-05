@@ -11,6 +11,7 @@ import { useState, FormEvent, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore, RegisterData } from '@/lib/store/auth-store';
 import { useFormError } from '@/lib/hooks/useFormError';
+import { validateEmail, validateName, validatePassword, validateMobile } from '@/lib/utils/form-validation';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
@@ -46,82 +47,47 @@ function RegisterFormContent() {
   };
 
   const validateForm = (): boolean => {
-    if (!formData.email.trim()) {
-      setError('Email is required');
+    // Use centralized validation utilities for consistent validation rules across all forms
+    // Ensures same validation logic is applied everywhere, reducing bugs and improving maintainability
+    
+    // Email validation: format, length (max 254 chars), and required field checks
+    const emailError = validateEmail(formData.email);
+    if (emailError) {
+      setError(emailError);
       return false;
     }
 
-    if (formData.email.length > 254) {
-      setError('Email must not exceed 254 characters');
+    // Name validation: required, max length (50 chars), and character restrictions (letters, spaces, hyphens, apostrophes, dots)
+    const firstNameError = validateName(formData.firstName, 'First name');
+    if (firstNameError) {
+      setError(firstNameError);
       return false;
     }
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      setError('Invalid email format');
+    const lastNameError = validateName(formData.lastName, 'Last name');
+    if (lastNameError) {
+      setError(lastNameError);
       return false;
     }
 
-    if (!formData.firstName.trim()) {
-      setError('First name is required');
+    // Password validation: required, min length (6 chars), max length (100 chars), no spaces
+    const passwordError = validatePassword(formData.password);
+    if (passwordError) {
+      setError(passwordError);
       return false;
     }
 
-    if (formData.firstName.length > 50) {
-      setError('First name must not exceed 50 characters');
-      return false;
-    }
-
-    if (!/^[a-zA-Z\s\-'\.]+$/.test(formData.firstName)) {
-      setError('First name can only contain letters, spaces, hyphens, apostrophes, and dots');
-      return false;
-    }
-
-    if (!formData.lastName.trim()) {
-      setError('Last name is required');
-      return false;
-    }
-
-    if (formData.lastName.length > 50) {
-      setError('Last name must not exceed 50 characters');
-      return false;
-    }
-
-    if (!/^[a-zA-Z\s\-'\.]+$/.test(formData.lastName)) {
-      setError('Last name can only contain letters, spaces, hyphens, apostrophes, and dots');
-      return false;
-    }
-
-    if (!formData.password) {
-      setError('Password is required');
-      return false;
-    }
-
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return false;
-    }
-
-    if (formData.password.length > 100) {
-      setError('Password must not exceed 100 characters');
-      return false;
-    }
-
-    if (/\s/.test(formData.password)) {
-      setError('Password cannot contain spaces');
-      return false;
-    }
-
+    // Password confirmation: must match original password to prevent typos
     if (formData.password !== confirmPassword) {
       setError('Passwords do not match');
       return false;
     }
 
-    // Validate mobile if provided
-    if (formData.mobile && formData.mobile.trim()) {
-      if (!/^[0-9]{10}$/.test(formData.mobile.trim())) {
-        setError('Mobile number must be exactly 10 digits');
-        return false;
-      }
+    // Mobile validation: optional field, but if provided must be exactly 10 digits
+    const mobileError = validateMobile(formData.mobile || '');
+    if (mobileError) {
+      setError(mobileError);
+      return false;
     }
 
     return true;
@@ -279,7 +245,7 @@ function RegisterFormContent() {
             <button
               type="button"
               onClick={() => router.push('/auth/login')}
-              className="text-[var(--text-on-cream)] hover:underline font-medium cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
+              className="text-[var(--text-on-cream)] hover:underline font-medium cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 transition-colors min-h-[44px] px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--beige)] focus:ring-offset-2 rounded"
               disabled={isLoading}
             >
               Login

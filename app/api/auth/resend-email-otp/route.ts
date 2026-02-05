@@ -42,8 +42,9 @@ export async function POST(request: NextRequest) {
 
     // Fetch user document with OTP-related fields for email verification
     // Select only required fields to optimize query performance
+    // Note: Cannot use .lean() as we need to call .save() on the document
     const userDoc = await User.findById(authUser.userId)
-      .select('email emailVerified emailVerificationOTP emailVerificationOTPExpires');
+      .select('_id email emailVerified emailVerificationOTP emailVerificationOTPExpires');
     if (!userDoc) {
       return createSecureErrorResponse('User not found', 404, request);
     }

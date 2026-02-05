@@ -83,5 +83,13 @@ export const ECOMMERCE = {
   // Tax configuration
   taxRate: 0.18, // 18% GST (India) - Set to 0 if tax-exempt
   calculateTax: true, // Enable/disable automatic tax calculation
+  // Price validation
+  priceVarianceThreshold: 0.1, // 10% - Maximum allowed price variance before requiring cart refresh
+  // Cart configuration
+  guestCartExpirationDays: 30, // Guest carts expire after 30 days
+  userCartExpirationDays: null, // User carts never expire (null = no expiration)
+  // Quantity limits
+  maxQuantityPerItem: 100, // Maximum quantity per cart item
+  maxCartItems: 1000, // Maximum items in a single cart
 } as const;
 

@@ -30,7 +30,7 @@ const updateQuantitySchema = z.object({
     .number()
     .int('Quantity must be an integer')
     .min(0, 'Quantity must be at least 0')
-    .max(100, 'Quantity cannot exceed 100'),
+    .max(ECOMMERCE.maxQuantityPerItem, `Quantity cannot exceed ${ECOMMERCE.maxQuantityPerItem}`),
 });
 
 /**
@@ -61,9 +61,10 @@ export async function PATCH(
     const user = await optionalAuth(request);
     const sessionId = getSessionId(request);
 
+    // Optimize: Only select fields needed for cart item update
     const cart = await Cart.findOne(
       user ? { userId: user.userId } : { sessionId }
-    );
+    ).select('items subtotal tax shipping discount total currency');
 
     if (!cart) {
       return createSecureErrorResponse('Cart not found', 404, request);
@@ -116,10 +117,10 @@ export async function PATCH(
         }
       }
 
-      // E-commerce best practice: Update price to current product price if changed significantly (>10%)
+      // E-commerce best practice: Update price to current product price if changed significantly
       // Maintains price consistency while allowing minor price fluctuations
       const priceVariance = Math.abs(product.price - currentItem.price) / currentItem.price;
-      if (priceVariance > 0.1) {
+      if (priceVariance > ECOMMERCE.priceVarianceThreshold) {
         // Price changed significantly - update to current price and metadata
         cart.items[itemIndex].price = product.price;
         cart.items[itemIndex].sku = product.sku;
@@ -236,9 +237,10 @@ export async function DELETE(
     const user = await optionalAuth(request);
     const sessionId = getSessionId(request);
 
+    // Optimize: Only select fields needed for cart item deletion
     const cart = await Cart.findOne(
       user ? { userId: user.userId } : { sessionId }
-    );
+    ).select('items subtotal tax shipping discount total currency');
 
     if (!cart) {
       return createSecureErrorResponse('Cart not found', 404, request);

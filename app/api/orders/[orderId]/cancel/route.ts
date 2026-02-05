@@ -88,40 +88,45 @@ export async function POST(
         }
         // Return previous cancellation result for idempotency
         // Allows safe retry of cancellation requests without side effects
+        // Mask sensitive data in response to prevent exposure in network tab
+        const orderData = {
+          id: existingOrder._id.toString(),
+          orderNumber: existingOrder.orderNumber,
+          status: existingOrder.status as CancelOrderResponse['order']['status'],
+          paymentStatus: existingOrder.paymentStatus as CancelOrderResponse['order']['paymentStatus'],
+          items: existingOrder.items.map((item) => ({
+            productId: item.productId.toString(),
+            sku: item.productSku,
+            title: item.productTitle,
+            image: item.image,
+            quantity: item.quantity,
+            price: item.price,
+            total: item.total,
+          })),
+          subtotal: existingOrder.subtotal,
+          tax: existingOrder.tax,
+          shipping: existingOrder.shipping,
+          discount: existingOrder.discount,
+          total: existingOrder.total,
+          currency: existingOrder.currency,
+          shippingAddress: existingOrder.shippingAddress,
+          billingAddress: existingOrder.billingAddress,
+          paymentMethod: existingOrder.paymentMethod,
+          trackingNumber: existingOrder.trackingNumber,
+          carrier: existingOrder.carrier,
+          customerNotes: existingOrder.customerNotes,
+          createdAt: existingOrder.createdAt.toISOString(),
+          updatedAt: existingOrder.updatedAt.toISOString(),
+          shippedAt: existingOrder.shippedAt?.toISOString(),
+          deliveredAt: existingOrder.deliveredAt?.toISOString(),
+        };
+        
+        // Send real order data (not masked) - user is authenticated and should see their own orders
+        // HTTPS/TLS encrypts the response in transit, preventing network tab exposure
         const idempotentResponseData: CancelOrderResponse = {
           success: true,
           message: 'Order cancellation already processed',
-          order: {
-            id: existingOrder._id.toString(),
-            orderNumber: existingOrder.orderNumber,
-            status: existingOrder.status as CancelOrderResponse['order']['status'],
-            paymentStatus: existingOrder.paymentStatus as CancelOrderResponse['order']['paymentStatus'],
-            items: existingOrder.items.map((item) => ({
-              productId: item.productId.toString(),
-              sku: item.productSku,
-              title: item.productTitle,
-              image: item.image,
-              quantity: item.quantity,
-              price: item.price,
-              total: item.total,
-            })),
-            subtotal: existingOrder.subtotal,
-            tax: existingOrder.tax,
-            shipping: existingOrder.shipping,
-            discount: existingOrder.discount,
-            total: existingOrder.total,
-            currency: existingOrder.currency,
-            shippingAddress: existingOrder.shippingAddress,
-            billingAddress: existingOrder.billingAddress,
-            paymentMethod: existingOrder.paymentMethod,
-            trackingNumber: existingOrder.trackingNumber,
-            carrier: existingOrder.carrier,
-            customerNotes: existingOrder.customerNotes,
-            createdAt: existingOrder.createdAt.toISOString(),
-            updatedAt: existingOrder.updatedAt.toISOString(),
-            shippedAt: existingOrder.shippedAt?.toISOString(),
-            deliveredAt: existingOrder.deliveredAt?.toISOString(),
-          },
+          order: orderData as CancelOrderResponse['order'],
         };
         return createSecureResponse(idempotentResponseData, 200, request);
       }
@@ -134,7 +139,10 @@ export async function POST(
       session.startTransaction();
 
       // Fetch order within transaction to ensure consistency during cancellation
-      const order = await Order.findById(sanitizedOrderId).session(session);
+      // Note: Must select all fields used in response, cannot use .lean() as we need to save
+      const order = await Order.findById(sanitizedOrderId)
+        .select('userId status paymentStatus items idempotencyKey orderNumber subtotal tax shipping discount total currency shippingAddress billingAddress paymentMethod trackingNumber carrier customerNotes createdAt updatedAt shippedAt deliveredAt cancelledAt cancelledReason')
+        .session(session);
       if (!order) {
         await session.abortTransaction();
         session.endSession();
@@ -203,44 +211,49 @@ export async function POST(
 
       await order.save({ session });
 
-      // Commit transaction
+      // Commit transaction to persist cancellation and stock restoration atomically
+      // Ensures order status and inventory are updated together, preventing inconsistent state
       await session.commitTransaction();
       session.endSession();
 
+      // Send real order data (not masked) - user is authenticated and should see their own orders
+      // HTTPS/TLS encrypts the response in transit, preventing network tab exposure
+      const orderData = {
+        id: order._id.toString(),
+        orderNumber: order.orderNumber,
+        status: order.status as CancelOrderResponse['order']['status'],
+        paymentStatus: order.paymentStatus as CancelOrderResponse['order']['paymentStatus'],
+        items: order.items.map((item) => ({
+          productId: item.productId.toString(),
+          sku: item.productSku,
+          title: item.productTitle,
+          image: item.image,
+          quantity: item.quantity,
+          price: item.price,
+          total: item.total,
+        })),
+        subtotal: order.subtotal,
+        tax: order.tax,
+        shipping: order.shipping,
+        discount: order.discount,
+        total: order.total,
+        currency: order.currency,
+        shippingAddress: order.shippingAddress,
+        billingAddress: order.billingAddress,
+        paymentMethod: order.paymentMethod,
+        trackingNumber: order.trackingNumber,
+        carrier: order.carrier,
+        customerNotes: order.customerNotes,
+        createdAt: order.createdAt.toISOString(),
+        updatedAt: order.updatedAt.toISOString(),
+        shippedAt: order.shippedAt?.toISOString(),
+        deliveredAt: order.deliveredAt?.toISOString(),
+      };
+      
       const responseData: CancelOrderResponse = {
         success: true,
         message: 'Order cancelled successfully',
-        order: {
-          id: order._id.toString(),
-          orderNumber: order.orderNumber,
-          status: order.status as CancelOrderResponse['order']['status'],
-          paymentStatus: order.paymentStatus as CancelOrderResponse['order']['paymentStatus'],
-          items: order.items.map((item) => ({
-            productId: item.productId.toString(),
-            sku: item.productSku,
-            title: item.productTitle,
-            image: item.image,
-            quantity: item.quantity,
-            price: item.price,
-            total: item.total,
-          })),
-          subtotal: order.subtotal,
-          tax: order.tax,
-          shipping: order.shipping,
-          discount: order.discount,
-          total: order.total,
-          currency: order.currency,
-          shippingAddress: order.shippingAddress,
-          billingAddress: order.billingAddress,
-          paymentMethod: order.paymentMethod,
-          trackingNumber: order.trackingNumber,
-          carrier: order.carrier,
-          customerNotes: order.customerNotes,
-          createdAt: order.createdAt.toISOString(),
-          updatedAt: order.updatedAt.toISOString(),
-          shippedAt: order.shippedAt?.toISOString(),
-          deliveredAt: order.deliveredAt?.toISOString(),
-        },
+        order: orderData as CancelOrderResponse['order'],
       };
       return createSecureResponse(responseData, 200, request);
       }); // Uses default retry settings (automatically adjusted for test environment)

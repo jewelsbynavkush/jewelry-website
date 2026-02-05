@@ -38,7 +38,7 @@ const addToCartSchema = z.object({
     .number()
     .int('Quantity must be an integer')
     .min(1, 'Quantity must be at least 1')
-    .max(100, 'Quantity cannot exceed 100'),
+    .max(ECOMMERCE.maxQuantityPerItem, `Quantity cannot exceed ${ECOMMERCE.maxQuantityPerItem}`),
 });
 
 /**
@@ -178,10 +178,10 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // Update price if changed significantly (allow 10% variance to avoid frequent updates)
+      // Update price if changed significantly (allow configured variance threshold to avoid frequent updates)
       // E-commerce best practice: Update prices to reflect current product pricing
       const priceVariance = Math.abs(product.price - item.price) / item.price;
-      if (priceVariance > 0.1) {
+      if (priceVariance > ECOMMERCE.priceVarianceThreshold) {
         cartNeedsUpdate = true;
         itemPrice = product.price;
         itemSubtotal = product.price * itemQuantity;
@@ -213,7 +213,9 @@ export async function GET(request: NextRequest) {
     // Ensures cart state reflects current product availability and pricing
     if (cartNeedsUpdate) {
       // Load cart as document (not lean) to save changes
-      const cartDoc = await Cart.findById(cart._id);
+      // Optimize: Only select fields needed for cart update and response
+      const cartDoc = await Cart.findById(cart._id)
+        .select('items subtotal tax shipping discount total currency');
       if (cartDoc) {
         cartDoc.items = validItems;
         cartDoc.calculateTotals(ECOMMERCE.freeShippingThreshold, ECOMMERCE.defaultShippingCost);
@@ -273,11 +275,11 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
 
-    // Validate request body to ensure productId format and quantity constraints before processing
+    // Validate request body to prevent invalid data from reaching database
     const body = await request.json() as AddToCartRequest;
     const validatedData = addToCartSchema.parse(body);
 
-    // Sanitize and validate productId
+    // Sanitize productId to prevent injection attacks
     const { validateObjectIdParam } = await import('@/lib/utils/api-helpers');
     const validationResult = await validateObjectIdParam(validatedData.productId, 'product ID', request);
     if ('error' in validationResult) {
@@ -298,8 +300,8 @@ export async function POST(request: NextRequest) {
       return createSecureErrorResponse('Product is not available', 400, request);
     }
 
-    // Verify stock availability before allowing item addition
-    // Prevents adding out-of-stock items unless backorder is allowed
+    // Prevent overselling by checking available stock before allowing item addition
+    // Allows backorder if configured, otherwise blocks out-of-stock additions
     if (product.inventory.trackQuantity) {
       const availableQuantity = Math.max(0, product.inventory.quantity - product.inventory.reservedQuantity);
       if (availableQuantity < validatedData.quantity && !product.inventory.allowBackorder) {
@@ -307,11 +309,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Retrieve existing cart or create new one for user/guest session
-    // Supports both authenticated users (userId) and guest sessions (sessionId)
+    // Support both authenticated users (persistent carts) and guest sessions (temporary carts)
     const user = await optionalAuth(request);
     const sessionId = getSessionId(request);
 
+    // Fetch cart as Mongoose document (not lean) since we need to call methods and save
+    // Must be a document instance to use calculateTotals() and save() methods
     let cart = await Cart.findOne(
       user ? { userId: user.userId } : { sessionId }
     );
@@ -319,12 +322,26 @@ export async function POST(request: NextRequest) {
     if (!cart) {
       // Initialize new cart with default currency from constants
       // Ensures consistent currency across all cart operations
+      // E-commerce best practice: Guest carts expire (30 days), user carts don't expire
       cart = new Cart({
         userId: user?.userId,
         sessionId: user ? undefined : sessionId,
         items: [],
         currency: ECOMMERCE.currency,
+        // Only set expiresAt for guest carts (sessionId-based)
+        // User carts (userId-based) should not expire
+        expiresAt: user ? undefined : new Date(Date.now() + ECOMMERCE.guestCartExpirationDays * 24 * 60 * 60 * 1000),
       });
+    }
+
+    // E-commerce best practice: Enforce maximum cart items limit
+    // Prevents cart bloat and ensures reasonable cart sizes
+    if (cart.items.length >= ECOMMERCE.maxCartItems) {
+      return createSecureErrorResponse(
+        `Cart cannot exceed ${ECOMMERCE.maxCartItems} items. Please remove some items before adding more.`,
+        400,
+        request
+      );
     }
 
     // Check for existing cart item to update quantity instead of creating duplicates
@@ -337,10 +354,10 @@ export async function POST(request: NextRequest) {
 
     if (existingItemIndex >= 0) {
       // Increment quantity for existing item
-      // E-commerce best practice: Update price to current product price if changed significantly (>10%)
+      // E-commerce best practice: Update price to current product price if changed significantly
       // Maintains price consistency while allowing minor price fluctuations
       const priceVariance = Math.abs(product.price - cart.items[existingItemIndex].price) / cart.items[existingItemIndex].price;
-      if (priceVariance > 0.1) {
+      if (priceVariance > ECOMMERCE.priceVarianceThreshold) {
         // Price changed significantly - update to current price
         cart.items[existingItemIndex].price = product.price;
         cart.items[existingItemIndex].sku = product.sku;
@@ -411,7 +428,6 @@ export async function POST(request: NextRequest) {
     
     await cart.save();
 
-    // Prepare response with updated cart data
     const responseData: AddToCartResponse = {
       success: true,
       message: 'Item added to cart',
@@ -479,6 +495,7 @@ export async function DELETE(request: NextRequest) {
     const user = await optionalAuth(request);
     const sessionId = getSessionId(request);
 
+    // Fetch cart as document (not lean) since we need to modify and save
     const cart = await Cart.findOne(
       user ? { userId: user.userId } : { sessionId }
     );

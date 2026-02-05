@@ -1,6 +1,6 @@
 import { Product } from '@/types/data';
 import { formatCategoryName, getBrandName } from '@/lib/utils/text-formatting';
-import { CURRENCY } from '@/lib/utils/price-formatting';
+import { ECOMMERCE } from '@/lib/constants';
 import { getBaseUrl } from '@/lib/utils/env';
 import { sanitizeForJsonLd } from '@/lib/utils/json-ld-sanitize';
 import { getSiteSettings } from '@/lib/data/site-settings';
@@ -98,7 +98,7 @@ export function generateProductSchema(product: Product) {
       offers: {
         '@type': 'Offer',
         price: product.price.toFixed(2),
-        priceCurrency: product.currency || CURRENCY.code, // Use product currency if available
+        priceCurrency: product.currency || ECOMMERCE.currency, // Use product currency if available
         availability: product.inStock !== false ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
         url: productUrl,
         itemCondition: 'https://schema.org/NewCondition',

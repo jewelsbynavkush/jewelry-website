@@ -65,23 +65,27 @@ export async function GET(request: NextRequest) {
       return createSecureErrorResponse('User not found', 404, request);
     }
 
+    // Send real address data (not masked) - user is authenticated and should see their own addresses
+    // HTTPS/TLS encrypts the response in transit, preventing network tab exposure
+    const addresses = (userDoc.addresses || []).map((addr) => ({
+      id: addr.id,
+      type: addr.type,
+      firstName: addr.firstName,
+      lastName: addr.lastName,
+      company: addr.company,
+      addressLine1: addr.addressLine1,
+      addressLine2: addr.addressLine2,
+      city: addr.city,
+      state: addr.state,
+      zipCode: addr.zipCode,
+      country: addr.country,
+      phone: addr.phone,
+      countryCode: addr.countryCode,
+      isDefault: addr.isDefault,
+    }));
+    
     const responseData: GetAddressesResponse = {
-      addresses: (userDoc.addresses || []).map((addr) => ({
-        id: addr.id,
-        type: addr.type,
-        firstName: addr.firstName,
-        lastName: addr.lastName,
-        company: addr.company,
-        addressLine1: addr.addressLine1,
-        addressLine2: addr.addressLine2,
-        city: addr.city,
-        state: addr.state,
-        zipCode: addr.zipCode,
-        country: addr.country,
-        phone: addr.phone,
-        countryCode: addr.countryCode,
-        isDefault: addr.isDefault,
-      })),
+      addresses,
       defaultShippingAddressId: userDoc.defaultShippingAddressId?.toString(),
       defaultBillingAddressId: userDoc.defaultBillingAddressId?.toString(),
     };
@@ -131,6 +135,7 @@ export async function POST(request: NextRequest) {
     const validatedData = addAddressSchema.parse(body);
 
     // Optimize: Only select fields needed for address operations
+    // Optimize: Only select address-related fields needed for POST operation
     const userDoc = await User.findById(user.userId)
       .select('addresses defaultShippingAddressId defaultBillingAddressId');
     if (!userDoc) {
@@ -159,26 +164,30 @@ export async function POST(request: NextRequest) {
     const addressId = userDoc.addAddress(addressData);
     await userDoc.save();
 
+    // Send real address data (not masked) - user is authenticated and should see their own addresses
+    // HTTPS/TLS encrypts the response in transit, preventing network tab exposure
+    const addresses = userDoc.addresses.map((addr) => ({
+      id: addr.id,
+      type: addr.type,
+      firstName: addr.firstName,
+      lastName: addr.lastName,
+      company: addr.company,
+      addressLine1: addr.addressLine1,
+      addressLine2: addr.addressLine2,
+      city: addr.city,
+      state: addr.state,
+      zipCode: addr.zipCode,
+      country: addr.country,
+      phone: addr.phone,
+      countryCode: addr.countryCode,
+      isDefault: addr.isDefault,
+    }));
+    
     const responseData: AddAddressResponse = {
       success: true,
       message: 'Address added successfully',
       addressId,
-      addresses: userDoc.addresses.map((addr) => ({
-        id: addr.id,
-        type: addr.type,
-        firstName: addr.firstName,
-        lastName: addr.lastName,
-        company: addr.company,
-        addressLine1: addr.addressLine1,
-        addressLine2: addr.addressLine2,
-        city: addr.city,
-        state: addr.state,
-        zipCode: addr.zipCode,
-        country: addr.country,
-        phone: addr.phone,
-        countryCode: addr.countryCode,
-        isDefault: addr.isDefault,
-      })),
+      addresses,
       defaultShippingAddressId: userDoc.defaultShippingAddressId?.toString(),
       defaultBillingAddressId: userDoc.defaultBillingAddressId?.toString(),
     };

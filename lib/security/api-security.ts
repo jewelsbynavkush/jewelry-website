@@ -52,7 +52,9 @@ const defaultConfig: ApiSecurityConfig = {
 };
 
 /**
- * Validate HTTP method
+ * Validate HTTP method against allowed methods
+ * 
+ * Security: Restricts endpoints to specific HTTP verbs to prevent unauthorized operations
  * 
  * @param request - Next.js request object
  * @param allowedMethods - Allowed HTTP methods
@@ -63,7 +65,10 @@ function validateMethod(request: NextRequest, allowedMethods: string[]): boolean
 }
 
 /**
- * Validate Content-Type header
+ * Validate Content-Type header to prevent content-type confusion attacks
+ * 
+ * Security: Ensures request body format matches Content-Type header to prevent
+ * injection attacks through content-type mismatches
  * 
  * @param request - Next.js request object
  * @param requireContentType - Whether to require Content-Type
@@ -74,7 +79,7 @@ function validateContentType(request: NextRequest, requireContentType: boolean):
     return true;
   }
 
-  // GET, HEAD, OPTIONS don't require Content-Type
+  // GET, HEAD, OPTIONS don't require Content-Type (no body)
   const method = request.method.toUpperCase();
   if (['GET', 'HEAD', 'OPTIONS'].includes(method)) {
     return true;
@@ -85,13 +90,14 @@ function validateContentType(request: NextRequest, requireContentType: boolean):
     return false;
   }
 
-  // Validate Content-Type supports JSON, form-urlencoded, or multipart form data
-  // These are the standard content types for API requests
+  // Only allow standard API content types to prevent content-type confusion
   return contentType.includes('application/json') || contentType.includes('application/x-www-form-urlencoded') || contentType.includes('multipart/form-data');
 }
 
 /**
- * Validate request size
+ * Validate request size to prevent DoS attacks from oversized payloads
+ * 
+ * Security: Limits request body size to prevent memory exhaustion and resource exhaustion attacks
  * 
  * @param request - Next.js request object
  * @param maxSize - Maximum request size in bytes
@@ -100,7 +106,8 @@ function validateContentType(request: NextRequest, requireContentType: boolean):
 function validateRequestSize(request: NextRequest, maxSize: number): boolean {
   const contentLength = request.headers.get('content-length');
   if (!contentLength) {
-    return true; // Unknown size, let it through (will be validated when reading body)
+    // Unknown size - validate when reading body (fail-fast approach)
+    return true;
   }
 
   const size = parseInt(contentLength, 10);

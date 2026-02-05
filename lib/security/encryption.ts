@@ -14,6 +14,7 @@
 import crypto from 'crypto';
 import { getJwtSecret } from '@/lib/utils/env';
 import { isProduction } from '@/lib/utils/env';
+import { logError } from './error-handler';
 
 /**
  * Encryption configuration
@@ -162,9 +163,7 @@ export function decryptFields<T extends Record<string, unknown>>(
       } catch (error) {
         // If decryption fails, field might not be encrypted (backward compatibility)
         // Log error but don't fail - allows gradual migration
-        if (isProduction()) {
-          console.error(`Failed to decrypt field ${String(field)}:`, error);
-        }
+        logError(`Failed to decrypt field ${String(field)}`, error);
       }
     }
   }

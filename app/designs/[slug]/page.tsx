@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { getProduct, getRelatedProducts } from '@/lib/data/products';
+import { getProduct, getRelatedProducts, getProducts } from '@/lib/data/products';
 import { notFound } from 'next/navigation';
 import ProductCard from '@/components/ui/ProductCard';
 import ProductImage3D from '@/components/ui/ProductImage3D';
@@ -19,6 +19,23 @@ import { getBaseUrl } from '@/lib/utils/env';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
+}
+
+/**
+ * Generate static params for all products at build time
+ * SEO: Enables static generation for better performance and SEO
+ */
+export async function generateStaticParams() {
+  try {
+    const productsData = await getProducts();
+    return productsData.products.map((product) => ({
+      slug: product.slug,
+    }));
+  } catch {
+    // If products can't be fetched at build time, return empty array
+    // Pages will be generated on-demand
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

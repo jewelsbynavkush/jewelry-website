@@ -10,6 +10,8 @@
  */
 
 import nodemailer from 'nodemailer';
+import { getGmailUser, getGmailAppPassword, getGmailFromName, isDevelopment } from '@/lib/utils/env';
+import logger from '@/lib/utils/logger';
 
 interface SendEmailOptions {
   to: string;
@@ -18,14 +20,13 @@ interface SendEmailOptions {
   text?: string;
 }
 
-import logger from '@/lib/utils/logger';
-
 /**
  * Create Gmail transporter
+ * Uses centralized environment utilities for secure credential access
  */
 function createTransporter() {
-  const gmailUser = process.env.GMAIL_USER;
-  const gmailAppPassword = process.env.GMAIL_APP_PASSWORD;
+  const gmailUser = getGmailUser();
+  const gmailAppPassword = getGmailAppPassword();
 
   if (!gmailUser || !gmailAppPassword) {
     return null;
@@ -58,7 +59,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<{ success: b
   if (!transporter) {
     const errorMsg = 'Gmail credentials not configured. Set GMAIL_USER and GMAIL_APP_PASSWORD in environment variables.';
     logger.error('Gmail credentials not configured');
-    if (process.env.NODE_ENV === 'development') {
+    if (isDevelopment()) {
       logger.info('DEV MODE: Email would be sent', { to, subject });
       logger.debug('DEV MODE: Email content', { htmlLength: html.length });
       return { success: true };
@@ -66,8 +67,8 @@ export async function sendEmail(options: SendEmailOptions): Promise<{ success: b
     return { success: false, error: errorMsg };
   }
 
-  const fromEmail = process.env.GMAIL_USER;
-  const fromName = process.env.GMAIL_FROM_NAME || 'Jewels by NavKush';
+  const fromEmail = getGmailUser();
+  const fromName = getGmailFromName();
 
   logger.debug('Email request details', {
     from: `${fromName} <${fromEmail}>`,
@@ -115,6 +116,8 @@ export async function sendEmailOTP(email: string, otp: string): Promise<{ succes
   logger.info('Sending Email OTP', { email, otpLength: otp.length });
   
   const subject = 'Your OTP for Jewels by NavKush';
+  // Email template uses inline styles (required for email clients)
+  // Colors match design system: cream background (#faf8f5), text-on-cream (#2a2a2a), beige accent (#CCC4BA)
   const html = `
     <!DOCTYPE html>
     <html>
@@ -122,15 +125,15 @@ export async function sendEmailOTP(email: string, otp: string): Promise<{ succes
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
-    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-      <div style="background-color: #f8f8f8; padding: 30px; border-radius: 8px;">
-        <h2 style="color: #d4af37; margin-top: 0;">Jewels by NavKush</h2>
-        <p>Your OTP for email verification is:</p>
-        <div style="background-color: #f5f5f5; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 5px; margin: 20px 0; border-radius: 4px;">
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #2a2a2a; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #faf8f5;">
+      <div style="background-color: #faf8f5; padding: 30px; border-radius: 8px; border: 1px solid #e8e5e0;">
+        <h2 style="color: #CCC4BA; margin-top: 0; font-weight: bold;">Jewels by NavKush</h2>
+        <p style="color: #2a2a2a;">Your OTP for email verification is:</p>
+        <div style="background-color: #CCC4BA; color: #ffffff; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 5px; margin: 20px 0; border-radius: 4px;">
           ${otp}
         </div>
-        <p>This OTP is valid for 10 minutes.</p>
-        <p style="color: #666; font-size: 12px; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 20px;">
+        <p style="color: #2a2a2a;">This OTP is valid for 10 minutes.</p>
+        <p style="color: #6a6a6a; font-size: 12px; margin-top: 30px; border-top: 1px solid #e8e5e0; padding-top: 20px;">
           Do not share this OTP with anyone. If you did not request this OTP, please ignore this email.
         </p>
       </div>

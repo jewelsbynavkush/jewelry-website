@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import { logError } from '@/lib/security/error-handler';
 import logger from '@/lib/utils/logger';
-import { isTest } from '@/lib/utils/env';
+import { isTest, getMongoDbUri } from '@/lib/utils/env';
 
 /**
  * Global is used here to maintain a cached connection across hot reloads
@@ -63,13 +63,9 @@ function configureMongoConnection() {
  * - Error handling and retry logic
  */
 async function connectDB() {
-  // Check for MONGODB_URI lazily (allows env vars to be loaded before import)
+  // Use centralized environment utility for secure credential access
   // Lazy evaluation prevents connection attempts before environment is configured
-  const MONGODB_URI = process.env.MONGODB_URI;
-
-  if (!MONGODB_URI) {
-    throw new Error('Please define MONGODB_URI in .env.local');
-  }
+  const MONGODB_URI = getMongoDbUri();
 
   // Return existing connection if available and still alive
   // Reuses connection across requests to improve performance

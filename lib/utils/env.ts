@@ -198,3 +198,39 @@ export function getJwtSecret(): string {
   
   return secret;
 }
+
+/**
+ * Get Gmail user email for SMTP authentication
+ * 
+ * Returns the Gmail user email from environment variables.
+ * Used for sending emails via Gmail SMTP.
+ * 
+ * @returns Gmail user email string, or undefined if not set
+ */
+export function getGmailUser(): string | undefined {
+  return process.env.GMAIL_USER;
+}
+
+/**
+ * Get Gmail app password for SMTP authentication
+ * 
+ * Returns the Gmail app password from environment variables.
+ * Used for sending emails via Gmail SMTP.
+ * 
+ * @returns Gmail app password string, or undefined if not set
+ */
+export function getGmailAppPassword(): string | undefined {
+  return process.env.GMAIL_APP_PASSWORD;
+}
+
+/**
+ * Get Gmail from name for email sender display
+ * 
+ * Returns the Gmail from name from environment variables.
+ * Used as the display name for email sender.
+ * 
+ * @returns Gmail from name string, or default 'Jewels by NavKush' if not set
+ */
+export function getGmailFromName(): string {
+  return process.env.GMAIL_FROM_NAME || 'Jewels by NavKush';
+}

@@ -52,23 +52,33 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
 
-    // Validate and sanitize request body to prevent injection attacks
     const body = await request.json() as VerifyEmailRequest;
-    const validatedData = verifyEmailSchema.parse(body);
+    
+    // Deobfuscate sensitive fields (otp) that were obfuscated on client side
+    // Industry standard: Reverse client-side obfuscation to get original OTP
+    // Handles both obfuscated (from web client) and plain text (from direct API calls) OTPs
+    const { deobfuscateRequestFields } = await import('@/lib/security/request-decryption');
+    const deobfuscatedBody = deobfuscateRequestFields(
+      body as unknown as Record<string, unknown>, 
+      ['otp']
+    ) as unknown as VerifyEmailRequest;
+    
+    const validatedData = verifyEmailSchema.parse(deobfuscatedBody);
 
-    // Try to authenticate (optional) - if authenticated, use userId; otherwise require email
+    // Support both authenticated (OTP only) and unauthenticated (email + OTP) flows
     const authResult = await optionalAuth(request);
     let userDoc;
 
     if (authResult) {
-      // Authenticated: Verify the authenticated user's email
+      // Authenticated flow: Verify the authenticated user's email
+      // Must use document (not .lean()) to call .save() after verification
       userDoc = await User.findById(authResult.userId)
-        .select('email emailVerified emailVerificationOTP emailVerificationOTPExpires');
+        .select('_id email emailVerified emailVerificationOTP emailVerificationOTPExpires');
       if (!userDoc) {
         return createSecureErrorResponse('User not found', 404, request);
       }
 
-      // If email provided in request, verify it matches user's email
+      // Validate provided email matches authenticated user's email
       if (validatedData.email) {
         const sanitizedEmail = sanitizeEmail(validatedData.email);
         if (userDoc.email !== sanitizedEmail) {
@@ -76,33 +86,31 @@ export async function POST(request: NextRequest) {
         }
       }
     } else {
-      // Not authenticated or token expired: Require email number in request body
+      // Unauthenticated flow: Require email for initial verification after registration
       if (!validatedData.email) {
         return createSecureErrorResponse('Email required. Please include your email in the request body: { "otp": "123456", "email": "user@example.com" }', 400, request);
       }
       
       const sanitizedEmail = sanitizeEmail(validatedData.email);
-      // Lookup unverified user by email for initial verification after registration
+      // Must use document (not .lean()) to call .save() after verification
       userDoc = await User.findOne({ email: sanitizedEmail })
-        .select('email emailVerified emailVerificationOTP emailVerificationOTPExpires');
+        .select('_id email emailVerified emailVerificationOTP emailVerificationOTPExpires');
       if (!userDoc) {
         return createSecureErrorResponse('User not found', 404, request);
       }
       
-      // Security: Only allow unauthenticated verification for unverified users
-      // Prevents unauthorized verification of already-verified accounts
+      // Prevent unauthorized verification of already-verified accounts
       if (userDoc.emailVerified) {
         return createSecureErrorResponse('Email already verified. Please login to verify again.', 400, request);
       }
     }
 
-    // Security: Only allow verification for unverified emails
-    // Prevents unnecessary verification of already-verified accounts
+    // Prevent redundant verification attempts
     if (userDoc.emailVerified) {
       return createSecureErrorResponse('Email is already verified', 400, request);
     }
 
-    // Verify OTP
+    // Verify OTP using timing-safe comparison to prevent timing attacks
     const isValid = userDoc.verifyEmailOTP(validatedData.otp);
     if (!isValid) {
       return createSecureErrorResponse('Invalid or expired OTP', 400, request);
@@ -114,10 +122,11 @@ export async function POST(request: NextRequest) {
     userDoc.emailVerificationOTPExpires = undefined;
     await userDoc.save();
 
-    // Fetch user with minimal fields needed for session creation
-    // Only email, name, and role required - excludes sensitive fields
+    // Fetch minimal user fields for session creation (excludes password and sensitive data)
+    // Use .lean() for performance since this is read-only
     const fullUser = await User.findById(userDoc._id)
-      .select('email firstName lastName role');
+      .select('_id email firstName lastName role')
+      .lean();
     if (!fullUser) {
       return createSecureErrorResponse('User not found', 404, request);
     }
@@ -137,12 +146,11 @@ export async function POST(request: NextRequest) {
     
     const response = createSecureResponse(responseData, 200, request);
 
-    // Create authenticated session after successful email verification
-    // Generates short-lived access token (5 min) and long-lived refresh token (30 days)
+    // Create session after verification to authenticate user
     const { createSession } = await import('@/lib/auth/session');
     await createSession(fullUser._id.toString(), fullUser.email, fullUser.role, response, request);
 
-    // Merge cart if user has items in guest cart (after email verification)
+    // Preserve guest cart items by merging into user cart
     try {
       const { mergeGuestCartToUser } = await import('@/lib/cart/merge-cart');
       const { getSessionId } = await import('@/lib/utils/api-helpers');

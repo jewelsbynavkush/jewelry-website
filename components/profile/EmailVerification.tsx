@@ -141,7 +141,7 @@ export default function EmailVerification({ email, emailVerified }: EmailVerific
             <button
               type="button"
               onClick={handleResend}
-              className={`text-[var(--text-secondary)] text-sm hover:text-[var(--text-on-cream)] underline transition-colors ${resendCooldown > 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} disabled:cursor-not-allowed disabled:opacity-50`}
+              className={`text-[var(--text-secondary)] text-sm hover:text-[var(--text-on-cream)] underline transition-colors ${resendCooldown > 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} disabled:cursor-not-allowed disabled:opacity-50 min-h-[44px] px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--beige)] focus:ring-offset-2 rounded`}
               disabled={isLoading || resendCooldown > 0}
             >
               {resendCooldown > 0

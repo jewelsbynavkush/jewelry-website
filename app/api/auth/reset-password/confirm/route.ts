@@ -50,7 +50,17 @@ export async function POST(request: NextRequest) {
     // Validate reset token and new password format before processing
     // Ensures token is valid format and password meets security requirements
     const body = await request.json() as ConfirmResetPasswordRequest;
-    const validatedData = resetPasswordConfirmSchema.parse(body);
+    
+    // Deobfuscate sensitive fields (password, token) that were obfuscated on client side
+    // Industry standard: Reverse client-side obfuscation to get original values
+    // Handles both obfuscated (from web client) and plain text (from direct API calls) values
+    const { deobfuscateRequestFields } = await import('@/lib/security/request-decryption');
+    const deobfuscatedBody = deobfuscateRequestFields(
+      body as unknown as Record<string, unknown>, 
+      ['password', 'token']
+    ) as unknown as ConfirmResetPasswordRequest;
+    
+    const validatedData = resetPasswordConfirmSchema.parse(deobfuscatedBody);
 
     // Lookup user by reset token with expiration check
     // Only select required fields to minimize data transfer
@@ -58,7 +68,7 @@ export async function POST(request: NextRequest) {
     const user = await User.findOne({
       resetPasswordToken: sanitizeString(validatedData.token),
       resetPasswordExpires: { $gt: new Date() }, // Token not expired
-    }).select('password resetPasswordToken resetPasswordExpires passwordChangedAt');
+    }).select('_id password resetPasswordToken resetPasswordExpires passwordChangedAt');
 
     if (!user) {
       return createSecureErrorResponse('Invalid or expired reset token', 400, request);

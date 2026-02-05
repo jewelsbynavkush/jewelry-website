@@ -53,8 +53,9 @@ export async function POST(request: NextRequest) {
     const email = sanitizeEmail(validatedData.identifier);
 
     // Lookup user by email (primary identifier for password reset)
+    // Optimize: Only select fields needed for password reset
     const user = await User.findOne({ email })
-      .select('mobile countryCode email resetPasswordToken resetPasswordExpires');
+      .select('_id email resetPasswordToken resetPasswordExpires');
 
     // Always return success (prevent user enumeration)
     if (!user) {

@@ -10,9 +10,13 @@ import Product from '@/models/Product';
 import InventoryLog from '@/models/InventoryLog';
 import mongoose from 'mongoose';
 import { logError } from '@/lib/security/error-handler';
+import { isTest } from '@/lib/utils/env';
 
 /**
- * Check if error is a transient MongoDB error that should be retried
+ * Identify transient MongoDB errors that should trigger retry logic
+ * 
+ * Transient errors occur due to lock contention or temporary database state changes.
+ * Retrying these errors prevents false failures during concurrent operations.
  */
 export function isTransientError(error: unknown): boolean {
   if (error instanceof Error) {
@@ -42,9 +46,9 @@ export async function retryWithBackoff<T>(
 ): Promise<T> {
   // Test environment needs more retries and longer delays due to 5ms lock timeout
   // Reduced to 7 retries with 200ms initial delay to prevent test timeouts
-  const isTest = process.env.VITEST === 'true' || process.env.NODE_ENV === 'test';
-  const defaultMaxRetries = isTest ? 7 : 3;
-  const defaultInitialDelay = isTest ? 200 : 100;
+  const testEnv = isTest();
+  const defaultMaxRetries = testEnv ? 7 : 3;
+  const defaultInitialDelay = testEnv ? 200 : 100;
   
   const finalMaxRetries = maxRetries ?? defaultMaxRetries;
   const finalInitialDelay = initialDelay ?? defaultInitialDelay;

@@ -138,7 +138,7 @@ const OTPInput = forwardRef<OTPInputRef, OTPInputProps>(
             onChange={(e) => handleOtpChange(index, e.target.value)}
             onKeyDown={(e) => handleKeyDown(index, e)}
             onPaste={index === 0 ? handlePaste : undefined}
-            className="w-12 h-14 sm:w-14 sm:h-16 text-center text-xl font-bold"
+            className="w-12 h-14 sm:w-14 sm:h-16 text-center text-xl font-bold min-h-[44px] touch-target"
             disabled={disabled}
             aria-label={`OTP digit ${index + 1}`}
             aria-invalid={error ? 'true' : 'false'}

@@ -125,7 +125,7 @@ export default function CartItem({ item, currency = ECOMMERCE.currency }: CartIt
               type="button"
               onClick={() => handleQuantityChange(localQuantity - 1)}
               disabled={isLoading || isUpdating || localQuantity <= 1}
-              className="w-10 h-10 flex items-center justify-center border border-[var(--border-light)] rounded-lg bg-[var(--cream)] text-[var(--text-on-cream)] hover:bg-[var(--beige)] hover:text-[var(--text-on-beige)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center border border-[var(--border-light)] rounded-lg bg-[var(--cream)] text-[var(--text-on-cream)] hover:bg-[var(--beige)] hover:text-[var(--text-on-beige)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-h-[44px] min-w-[44px] touch-target focus:outline-none focus:ring-2 focus:ring-[var(--beige)] focus:ring-offset-2"
               aria-label="Decrease quantity"
             >
               −
@@ -143,14 +143,14 @@ export default function CartItem({ item, currency = ECOMMERCE.currency }: CartIt
                 }
               }}
               disabled={isLoading || isUpdating}
-              className="w-16 h-10 text-center border border-[var(--border-light)] rounded-lg bg-[var(--cream)] text-[var(--text-on-cream)] font-medium focus:outline-none focus:border-[var(--beige)] disabled:opacity-50"
+              className="w-16 sm:w-20 h-10 sm:h-12 text-center border border-[var(--border-light)] rounded-lg bg-[var(--cream)] text-[var(--text-on-cream)] font-medium focus:outline-none focus:border-[var(--beige)] focus:ring-2 focus:ring-[var(--beige)] focus:ring-offset-2 disabled:opacity-50 min-h-[44px] touch-target"
               aria-label={`Quantity for ${item.title}`}
             />
             <button
               type="button"
               onClick={() => handleQuantityChange(localQuantity + 1)}
               disabled={isLoading || isUpdating || localQuantity >= 100}
-              className="w-10 h-10 flex items-center justify-center border border-[var(--border-light)] rounded-lg bg-[var(--cream)] text-[var(--text-on-cream)] hover:bg-[var(--beige)] hover:text-[var(--text-on-beige)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center border border-[var(--border-light)] rounded-lg bg-[var(--cream)] text-[var(--text-on-cream)] hover:bg-[var(--beige)] hover:text-[var(--text-on-beige)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-h-[44px] min-w-[44px] touch-target focus:outline-none focus:ring-2 focus:ring-[var(--beige)] focus:ring-offset-2"
               aria-label="Increase quantity"
             >
               +

@@ -192,7 +192,7 @@ export default function Autocomplete({
                 onClick={() => handleSelect(suggestion)}
                 onMouseEnter={() => setHighlightedIndex(index)}
                 className={cn(
-                  'px-4 py-2 cursor-pointer text-[var(--text-on-cream)] hover:bg-[var(--black-opacity-4)]',
+                  'px-4 py-2 cursor-pointer text-[var(--text-on-cream)] hover:bg-[var(--black-opacity-4)] min-h-[44px] flex items-center focus:outline-none focus:ring-2 focus:ring-[var(--beige)] focus:ring-offset-2',
                   index === highlightedIndex && 'bg-[var(--black-opacity-4)]'
                 )}
                 role="option"

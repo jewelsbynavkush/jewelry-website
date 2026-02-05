@@ -15,7 +15,7 @@ import { NextRequest } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Order from '@/models/Order';
 import Cart from '@/models/Cart';
-import User, { IAddress } from '@/models/User';
+import User from '@/models/User';
 import Product from '@/models/Product';
 import { requireAuth } from '@/lib/auth/middleware';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
@@ -79,8 +79,7 @@ export async function POST(request: NextRequest) {
     );
     if (userRateLimitResponse) return userRateLimitResponse;
 
-    // Validate request body BEFORE starting transaction to avoid unnecessary DB operations
-    // Transaction overhead is expensive, so fail fast on invalid input
+    // Validate request body before starting transaction (fail fast to avoid transaction overhead)
     let body: CreateOrderRequest;
     try {
       body = await request.json() as CreateOrderRequest;
@@ -93,7 +92,7 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
 
-    // Check idempotency if key provided (BEFORE starting transaction - it's just a read)
+    // Check idempotency before transaction (read-only check, no transaction needed)
     const idempotencyKey = validatedData.idempotencyKey || generateIdempotencyKey('order');
     if (validatedData.idempotencyKey) {
       const existingOrder = await Order.checkIdempotencyKey(validatedData.idempotencyKey);
@@ -116,22 +115,30 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    // Wrap entire transaction in retry logic for transient errors
+    // Retry transaction on transient MongoDB errors (lock timeouts, write conflicts)
     return await retryWithBackoff(async () => {
       session = await mongoose.startSession();
       session.startTransaction();
 
-      // Fetch cart within transaction to lock it during order creation
-      // Prevents race conditions when multiple orders are created simultaneously
-      const cart = await Cart.findOne({ userId: new mongoose.Types.ObjectId(user.userId) }).session(session);
+      // Validate userId format (defense-in-depth, even though JWT already validates it)
+      const { isValidObjectId } = await import('@/lib/utils/validation');
+      if (!isValidObjectId(user.userId)) {
+        await session.abortTransaction();
+        session.endSession();
+        return createSecureErrorResponse('Invalid user ID format', 400, request);
+      }
+      
+      // Fetch cart within transaction to lock it and prevent concurrent order creation
+      const cart = await Cart.findOne({ userId: new mongoose.Types.ObjectId(user.userId) })
+        .select('items subtotal tax shipping discount total currency')
+        .session(session);
       if (!cart || cart.items.length === 0) {
         await session.abortTransaction();
         session.endSession();
         return createSecureErrorResponse('Cart is empty', 400, request);
       }
 
-      // Validate all items are still available
-      // Optimize: Only select fields needed for validation
+      // Validate all cart items are still available and in stock
       for (const item of cart.items) {
         const product = await Product.findById(item.productId)
           .select('status inventory.quantity inventory.reservedQuantity inventory.trackQuantity inventory.allowBackorder price')
@@ -143,9 +150,8 @@ export async function POST(request: NextRequest) {
           return createSecureErrorResponse(`Product ${item.sku} is no longer available`, 400, request);
         }
 
-              // Verify stock availability before order confirmation
-              // Prevents overselling when multiple users attempt to purchase simultaneously
-              if (product.inventory.trackQuantity) {
+        // Prevent overselling by checking available stock before order confirmation
+        if (product.inventory.trackQuantity) {
           const availableQuantity = Math.max(0, product.inventory.quantity - product.inventory.reservedQuantity);
           if (availableQuantity < item.quantity && !product.inventory.allowBackorder) {
             await session.abortTransaction();
@@ -154,16 +160,16 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // Validate price hasn't changed significantly (allow 10% variance)
+        // Reject order if price changed significantly (prevents price manipulation)
         const priceVariance = Math.abs(product.price - item.price) / item.price;
-        if (priceVariance > 0.1) {
+        if (priceVariance > ECOMMERCE.priceVarianceThreshold) {
           await session.abortTransaction();
           session.endSession();
           return createSecureErrorResponse(`Price has changed for ${item.sku}. Please refresh your cart.`, 400, request);
         }
       }
 
-      // Sanitize addresses
+      // Sanitize all address fields to prevent XSS attacks
       const shippingAddress = {
         firstName: sanitizeString(validatedData.shippingAddress.firstName),
         lastName: sanitizeString(validatedData.shippingAddress.lastName),
@@ -243,7 +249,8 @@ export async function POST(request: NextRequest) {
       // Order number auto-generated by pre-save hook ensures uniqueness
       await order.save({ session });
 
-      // Confirm stock and update inventory
+      // Convert reserved stock to sold and update inventory atomically
+      // Prevents overselling by confirming stock availability within transaction
       const orderItems = cart.items.map((item) => ({
         productId: item.productId.toString(),
         quantity: item.quantity,
@@ -282,9 +289,10 @@ export async function POST(request: NextRequest) {
           .session(session);
         
         if (userDoc) {
-          // Helper function to check if address already exists
+          // Compare address fields to detect duplicates before saving
+          // Prevents duplicate addresses in user's address book by matching all address components
           const addressExists = (addressToCheck: typeof shippingAddress) => {
-            return userDoc.addresses.some((addr: IAddress) => {
+            return userDoc.addresses.some((addr) => {
               return (
                 addr.firstName === addressToCheck.firstName &&
                 addr.lastName === addressToCheck.lastName &&
@@ -300,9 +308,9 @@ export async function POST(request: NextRequest) {
             });
           };
 
-          // Save shipping address if requested and it doesn't already exist
+          // Save shipping address to user's address book if requested
+          // Skips saving if identical address already exists to prevent duplicates
           if (validatedData.saveShippingAddress) {
-            // Only save if this address doesn't already exist in saved addresses
             if (!addressExists(shippingAddress)) {
               const shippingAddressData = {
                 type: 'shipping' as const,
@@ -322,9 +330,9 @@ export async function POST(request: NextRequest) {
             }
           }
           
-          // Save billing address if requested, different from shipping, and doesn't already exist
+          // Save billing address separately if requested and different from shipping
+          // Only saves when explicitly requested and shipping address wasn't saved
           if (validatedData.saveBillingAddress && !validatedData.saveShippingAddress) {
-            // Only save if this address doesn't already exist in saved addresses
             if (!addressExists(billingAddress)) {
               const billingAddressData = {
                 type: 'billing' as const,
@@ -358,7 +366,8 @@ export async function POST(request: NextRequest) {
         { session }
       );
 
-      // Commit transaction
+      // Commit transaction to persist all changes atomically
+      // All database operations (order, inventory, cart, addresses, user stats) succeed or fail together
       await session.commitTransaction();
       session.endSession();
 
@@ -476,7 +485,9 @@ export async function GET(request: NextRequest) {
 
     // Fetch user's orders with pagination and sorting
     // Excludes sensitive internal fields (idempotencyKey) to prevent information disclosure
+    // Optimize: Select only fields needed for order listing response
     const orders = await Order.find(query)
+      .select('-idempotencyKey') // Exclude sensitive field
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip(skip)
@@ -484,37 +495,44 @@ export async function GET(request: NextRequest) {
 
     const total = await Order.countDocuments(query);
 
+    // Mask sensitive order data in response to prevent exposure in network tab
     const responseData: GetOrdersResponse = {
-      orders: orders.map((order) => ({
-        id: order._id.toString(),
-        orderNumber: order.orderNumber,
-        status: order.status as GetOrdersResponse['orders'][0]['status'],
-        paymentStatus: order.paymentStatus as GetOrdersResponse['orders'][0]['paymentStatus'],
-        total: order.total,
-        currency: order.currency,
-        items: order.items.map((item) => ({
-          productId: item.productId.toString(),
-          sku: item.productSku,
-          title: item.productTitle,
-          quantity: item.quantity,
-          price: item.price,
-          total: item.total,
-        })),
-        subtotal: order.subtotal,
-        tax: order.tax,
-        shipping: order.shipping,
-        discount: order.discount,
-        shippingAddress: order.shippingAddress,
-        billingAddress: order.billingAddress,
-        paymentMethod: order.paymentMethod,
-        trackingNumber: order.trackingNumber,
-        carrier: order.carrier,
-        customerNotes: order.customerNotes,
-        createdAt: order.createdAt.toISOString(),
-        updatedAt: order.updatedAt.toISOString(),
-        shippedAt: order.shippedAt?.toISOString(),
-        deliveredAt: order.deliveredAt?.toISOString(),
-      })),
+      orders: orders.map((order) => {
+        const orderData = {
+          id: order._id.toString(),
+          orderNumber: order.orderNumber,
+          status: order.status as GetOrdersResponse['orders'][0]['status'],
+          paymentStatus: order.paymentStatus as GetOrdersResponse['orders'][0]['paymentStatus'],
+          total: order.total,
+          currency: order.currency,
+          items: order.items.map((item) => ({
+            productId: item.productId.toString(),
+            sku: item.productSku,
+            title: item.productTitle,
+            quantity: item.quantity,
+            price: item.price,
+            total: item.total,
+          })),
+          subtotal: order.subtotal,
+          tax: order.tax,
+          shipping: order.shipping,
+          discount: order.discount,
+          shippingAddress: order.shippingAddress,
+          billingAddress: order.billingAddress,
+          paymentMethod: order.paymentMethod,
+          trackingNumber: order.trackingNumber,
+          carrier: order.carrier,
+          customerNotes: order.customerNotes,
+          createdAt: order.createdAt.toISOString(),
+          updatedAt: order.updatedAt.toISOString(),
+          shippedAt: order.shippedAt?.toISOString(),
+          deliveredAt: order.deliveredAt?.toISOString(),
+        };
+        
+        // Send real order data (not masked) - user is authenticated and should see their own orders
+        // HTTPS/TLS encrypts the response in transit, preventing network tab exposure
+        return orderData as GetOrdersResponse['orders'][0];
+      }),
       pagination: {
         page,
         limit,

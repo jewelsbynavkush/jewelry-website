@@ -70,6 +70,7 @@ export async function PATCH(
     const validatedData = updateAddressSchema.parse(body);
 
     // Optimize: Only select fields needed for address operations
+    // Optimize: Only select address-related fields needed for PATCH operation
     const userDoc = await User.findById(user.userId)
       .select('addresses defaultShippingAddressId defaultBillingAddressId');
     if (!userDoc) {
@@ -123,41 +124,47 @@ export async function PATCH(
     address.updatedAt = new Date();
     await userDoc.save();
 
+    // Send real address data (not masked) - user is authenticated and should see their own addresses
+    // HTTPS/TLS encrypts the response in transit, preventing network tab exposure
+    const addressData = {
+      id: address.id,
+      type: address.type,
+      firstName: address.firstName,
+      lastName: address.lastName,
+      company: address.company,
+      addressLine1: address.addressLine1,
+      addressLine2: address.addressLine2,
+      city: address.city,
+      state: address.state,
+      zipCode: address.zipCode,
+      country: address.country,
+      phone: address.phone,
+      countryCode: address.countryCode,
+      isDefault: address.isDefault,
+    };
+    
+    const addresses = userDoc.addresses.map((addr) => ({
+      id: addr.id,
+      type: addr.type,
+      firstName: addr.firstName,
+      lastName: addr.lastName,
+      company: addr.company,
+      addressLine1: addr.addressLine1,
+      addressLine2: addr.addressLine2,
+      city: addr.city,
+      state: addr.state,
+      zipCode: addr.zipCode,
+      country: addr.country,
+      phone: addr.phone,
+      countryCode: addr.countryCode,
+      isDefault: addr.isDefault,
+    }));
+    
     const responseData: UpdateAddressResponse = {
       success: true,
       message: 'Address updated successfully',
-      address: {
-        id: address.id,
-        type: address.type,
-        firstName: address.firstName,
-        lastName: address.lastName,
-        company: address.company,
-        addressLine1: address.addressLine1,
-        addressLine2: address.addressLine2,
-        city: address.city,
-        state: address.state,
-        zipCode: address.zipCode,
-        country: address.country,
-        phone: address.phone,
-        countryCode: address.countryCode,
-        isDefault: address.isDefault,
-      },
-      addresses: userDoc.addresses.map((addr) => ({
-        id: addr.id,
-        type: addr.type,
-        firstName: addr.firstName,
-        lastName: addr.lastName,
-        company: addr.company,
-        addressLine1: addr.addressLine1,
-        addressLine2: addr.addressLine2,
-        city: addr.city,
-        state: addr.state,
-        zipCode: addr.zipCode,
-        country: addr.country,
-        phone: addr.phone,
-        countryCode: addr.countryCode,
-        isDefault: addr.isDefault,
-      })),
+      address: addressData,
+      addresses,
       defaultShippingAddressId: userDoc.defaultShippingAddressId?.toString(),
       defaultBillingAddressId: userDoc.defaultBillingAddressId?.toString(),
     };
@@ -210,6 +217,7 @@ export async function DELETE(
     await connectDB();
 
     // Optimize: Only select fields needed for address operations
+    // Optimize: Only select address-related fields needed for DELETE operation
     const userDoc = await User.findById(user.userId)
       .select('addresses defaultShippingAddressId defaultBillingAddressId');
     if (!userDoc) {
@@ -235,25 +243,29 @@ export async function DELETE(
     userDoc.addresses.splice(addressIndex, 1);
     await userDoc.save();
 
+    // Send real address data (not masked) - user is authenticated and should see their own addresses
+    // HTTPS/TLS encrypts the response in transit, preventing network tab exposure
+    const addresses = userDoc.addresses.map((addr) => ({
+      id: addr.id,
+      type: addr.type,
+      firstName: addr.firstName,
+      lastName: addr.lastName,
+      company: addr.company,
+      addressLine1: addr.addressLine1,
+      addressLine2: addr.addressLine2,
+      city: addr.city,
+      state: addr.state,
+      zipCode: addr.zipCode,
+      country: addr.country,
+      phone: addr.phone,
+      countryCode: addr.countryCode,
+      isDefault: addr.isDefault,
+    }));
+    
     const responseData: DeleteAddressResponse = {
       success: true,
       message: 'Address deleted successfully',
-      addresses: userDoc.addresses.map((addr) => ({
-        id: addr.id,
-        type: addr.type,
-        firstName: addr.firstName,
-        lastName: addr.lastName,
-        company: addr.company,
-        addressLine1: addr.addressLine1,
-        addressLine2: addr.addressLine2,
-        city: addr.city,
-        state: addr.state,
-        zipCode: addr.zipCode,
-        country: addr.country,
-        phone: addr.phone,
-        countryCode: addr.countryCode,
-        isDefault: addr.isDefault,
-      })),
+      addresses,
     };
     return createSecureResponse(responseData, 200, request);
   } catch (error) {

@@ -22,19 +22,19 @@ export interface AuthenticatedRequest extends NextRequest {
 
 /**
  * Authentication middleware
- * Validates JWT token from Authorization header or cookie
- * Checks both header and cookie to support different client types
+ * 
+ * Validates JWT token from Authorization header or cookie to support both API and browser clients.
+ * Verifies user account status and role consistency to invalidate tokens for deactivated users.
  * 
  * @param request - Next.js request object
  * @returns User info if authenticated, null otherwise
  */
 export async function authenticateRequest(request: NextRequest): Promise<JWTPayload | null> {
-  // Extract token from Authorization header (standard for API clients)
+  // Try Authorization header first (standard for API clients)
   const authHeader = request.headers.get('authorization');
   let token = extractTokenFromHeader(authHeader);
 
-  // Fallback to cookie-based authentication for browser clients
-  // Supports both API clients (header) and browser clients (cookie) for flexibility
+  // Fallback to cookie for browser clients (HTTP-only cookies are more secure)
   if (!token) {
     token = getAccessTokenFromCookie(request.cookies);
   }
@@ -76,10 +76,11 @@ export async function authenticateRequest(request: NextRequest): Promise<JWTPayl
 
 /**
  * Require authentication middleware
- * Returns 401 if user is not authenticated
+ * 
+ * Enforces authentication for protected routes. Returns 401 if user is not authenticated.
  * 
  * @param request - Next.js request object
- * @returns User payload or null (with error response)
+ * @returns User payload or error response
  */
 export async function requireAuth(request: NextRequest): Promise<{ user: JWTPayload } | { error: NextResponse }> {
   const user = await authenticateRequest(request);
@@ -95,10 +96,11 @@ export async function requireAuth(request: NextRequest): Promise<{ user: JWTPayl
 
 /**
  * Require admin role middleware
- * Returns 403 if user is not admin
+ * 
+ * Enforces admin-only access for privileged operations. Returns 403 if user is not admin.
  * 
  * @param request - Next.js request object
- * @returns User payload or null (with error response)
+ * @returns User payload or error response
  */
 export async function requireAdmin(request: NextRequest): Promise<{ user: JWTPayload } | { error: NextResponse }> {
   const authResult = await requireAuth(request);
@@ -118,7 +120,9 @@ export async function requireAdmin(request: NextRequest): Promise<{ user: JWTPay
 
 /**
  * Optional authentication middleware
- * Attaches user info if token is valid, but doesn't require it
+ * 
+ * Attaches user info if token is valid, but allows unauthenticated access.
+ * Used for endpoints that behave differently for authenticated vs guest users.
  * 
  * @param request - Next.js request object
  * @returns User payload or null

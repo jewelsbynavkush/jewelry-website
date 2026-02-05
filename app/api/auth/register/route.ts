@@ -19,6 +19,7 @@ import { logError } from '@/lib/security/error-handler';
 import { sanitizeString, sanitizeEmail } from '@/lib/security/sanitize';
 import { formatZodError } from '@/lib/utils/zod-error';
 import { SECURITY_CONFIG } from '@/lib/security/constants';
+import { isTest } from '@/lib/utils/env';
 import { z } from 'zod';
 import type { RegisterRequest, RegisterResponse } from '@/types/api';
 
@@ -41,7 +42,7 @@ const registerSchema = z.object({
     // Production: MongoDB parameterized queries prevent injection regardless of input content
     .refine(
       (val) => {
-        if (process.env.NODE_ENV === 'test') {
+        if (isTest()) {
           // In tests, allow SQL keywords to verify MongoDB safety
           return val.trim().length > 0;
         }
@@ -89,26 +90,32 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
 
-    // Validate registration data to ensure required fields and format compliance
-    // Prevents invalid user accounts and ensures data quality
     const body = await request.json() as RegisterRequest;
-    const validatedData = registerSchema.parse(body);
+    
+    // Deobfuscate sensitive fields (password) that were obfuscated on client side
+    // Industry standard: Reverse client-side obfuscation to get original password
+    // Handles both obfuscated (from web client) and plain text (from direct API calls) passwords
+    const { deobfuscateRequestFields } = await import('@/lib/security/request-decryption');
+    const deobfuscatedBody = deobfuscateRequestFields(
+      body as unknown as Record<string, unknown>, 
+      ['password']
+    ) as unknown as RegisterRequest;
+    
+    const validatedData = registerSchema.parse(deobfuscatedBody);
 
-    // Verify email uniqueness - allow registration with same email if email is not verified
-    // Business logic: Prevents duplicate verified accounts while allowing re-registration for unverified emails
+    // Prevent duplicate verified accounts while allowing re-registration for unverified emails
     const sanitizedEmail = sanitizeEmail(validatedData.email);
     const existingEmail = await User.findOne({ email: sanitizedEmail }).select('emailVerified').lean();
     if (existingEmail && existingEmail.emailVerified) {
       return createSecureErrorResponse('Email already registered and verified', 400, request);
     }
     
-    // If email exists but not verified, delete the old account to allow re-registration
-    // Business logic: Cleans up abandoned unverified accounts to prevent email reuse issues
+    // Clean up abandoned unverified accounts to allow email reuse
     if (existingEmail && !existingEmail.emailVerified) {
       await User.deleteOne({ email: sanitizedEmail });
     }
 
-    // Verify mobile number uniqueness if provided (mobile is optional)
+    // Verify mobile uniqueness if provided (mobile is optional during registration)
     if (validatedData.mobile) {
       const existingUser = await User.findOne({ 
         mobile: validatedData.mobile,
@@ -119,7 +126,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Sanitize inputs
+    // Sanitize all inputs to prevent XSS and injection attacks
     const sanitizedData = {
       email: sanitizeEmail(validatedData.email),
       firstName: sanitizeString(validatedData.firstName),
@@ -129,8 +136,7 @@ export async function POST(request: NextRequest) {
       password: validatedData.password, // Will be hashed by pre-save hook
     };
 
-    // Create new user account - password will be automatically hashed by pre-save hook
-    // Bcrypt hashing prevents password exposure even if database is compromised
+    // Password will be automatically hashed by User model pre-save hook using bcrypt
     const user = new User({
       email: sanitizedData.email,
       firstName: sanitizedData.firstName,
@@ -143,13 +149,12 @@ export async function POST(request: NextRequest) {
       isActive: true,
     });
 
-    // Generate OTP for email verification (email is required)
+    // Generate time-limited OTP for email verification
     const emailOtp = user.generateEmailOTP();
     
     await user.save();
 
-    // Send OTP email via Gmail SMTP for email verification
-    // User must verify email before account is fully activated
+    // Send OTP via email - user must verify before account activation
     const { sendEmailOTP } = await import('@/lib/email/gmail');
     const emailResult = await sendEmailOTP(user.email, emailOtp);
     
@@ -174,26 +179,23 @@ export async function POST(request: NextRequest) {
       logger.debug('Email OTP generated', { email: user.email, otp: emailOtp });
     }
 
-    // Note: No session token created during registration
-    // Session token will be created after successful email verification
-    // This ensures users verify their email before being fully authenticated
+    // No session created - user must verify email before authentication
+    const userData = {
+      id: user._id.toString(),
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      mobile: user.mobile,
+      emailVerified: user.emailVerified,
+      role: user.role,
+    };
+    
     const responseData: RegisterResponse = {
       success: true,
       message: 'Registration successful. Please verify your email address.',
-      user: {
-        id: user._id.toString(),
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        mobile: user.mobile,
-        emailVerified: user.emailVerified,
-        role: user.role,
-      },
+      user: userData as RegisterResponse['user'],
     };
-    const response = createSecureResponse(responseData, 200, request);
-
-    // No session token set - user must verify email first
-    return response;
+    return createSecureResponse(responseData, 200, request);
   } catch (error) {
     const zodError = formatZodError(error);
     if (zodError) {
