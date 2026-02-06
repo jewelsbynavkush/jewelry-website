@@ -30,11 +30,10 @@ export interface AuthenticatedRequest extends NextRequest {
  * @returns User info if authenticated, null otherwise
  */
 export async function authenticateRequest(request: NextRequest): Promise<JWTPayload | null> {
-  // Try Authorization header first (standard for API clients)
   const authHeader = request.headers.get('authorization');
   let token = extractTokenFromHeader(authHeader);
 
-  // Fallback to cookie for browser clients (HTTP-only cookies are more secure)
+  // HTTP-only cookies are more secure for browser clients
   if (!token) {
     token = getAccessTokenFromCookie(request.cookies);
   }
@@ -48,18 +47,15 @@ export async function authenticateRequest(request: NextRequest): Promise<JWTPayl
     return null;
   }
 
-  // Verify user account status and role consistency
   // Security: Ensures token is invalidated if user is deactivated, blocked, or role changes
   try {
     await connectDB();
     const user = await User.findById(payload.userId).select('isActive isBlocked role').lean();
     
-    // Reject authentication if user doesn't exist, is inactive, or is blocked
     if (!user || !user.isActive || user.isBlocked) {
       return null;
     }
 
-    // Reject authentication if user role changed since token was issued
     // Prevents privilege escalation if admin role is revoked
     if (user.role !== payload.role) {
       return null;
@@ -67,7 +63,6 @@ export async function authenticateRequest(request: NextRequest): Promise<JWTPayl
 
     return payload;
   } catch (error) {
-    // Use logError to prevent information leakage in production
     const { logError } = await import('@/lib/security/error-handler');
     logError('Error verifying user', error);
     return null;

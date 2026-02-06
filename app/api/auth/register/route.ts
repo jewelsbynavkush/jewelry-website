@@ -120,7 +120,9 @@ export async function POST(request: NextRequest) {
       const existingUser = await User.findOne({ 
         mobile: validatedData.mobile,
         countryCode: validatedData.countryCode || '+91'
-      }).lean();
+      })
+        .select('_id')
+        .lean();
       if (existingUser) {
         return createSecureErrorResponse('Mobile number already registered', 400, request);
       }

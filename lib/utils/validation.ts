@@ -34,7 +34,6 @@ export function isValidPageIdentifier(page: string, maxLength: number = SECURITY
   if (!page || typeof page !== 'string') {
     return false;
   }
-  // Allow alphanumeric, hyphens, underscores, and common page names
   return SECURITY_CONFIG.SLUG_PATTERN.test(page) && page.length <= maxLength;
 }
 
@@ -48,6 +47,5 @@ export function isValidObjectId(id: string): boolean {
   if (!id || typeof id !== 'string') {
     return false;
   }
-  // MongoDB ObjectId is 24 hex characters
   return /^[0-9a-fA-F]{24}$/.test(id);
 }

@@ -15,7 +15,6 @@ export function getRandomCategoryImages(count: number): string[] {
     '/assets/categories/bracelets.png',
   ];
   
-  // Allow repeated selections to support any count value, even if it exceeds available images
   const selected: string[] = [];
   for (let i = 0; i < count; i++) {
     const randomIndex = Math.floor(Math.random() * categoryImages.length);

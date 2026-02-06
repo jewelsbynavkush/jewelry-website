@@ -334,7 +334,37 @@ Your production domain `jewelsbynavkush.com` should already be configured. If no
 
 ## 🔐 **Step 5: Environment Variables**
 
-### **5.1 Local Development Setup**
+### **5.1 JWT Authentication Setup**
+
+JWT authentication requires the following environment variables:
+
+```bash
+# JWT Authentication
+JWT_SECRET=your-secure-random-secret-key-change-in-production
+JWT_EXPIRES_IN=5m
+```
+
+**Generating a Secure JWT_SECRET:**
+
+**Option 1: Using Node.js**
+```bash
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+```
+
+**Option 2: Using OpenSSL**
+```bash
+openssl rand -hex 64
+```
+
+**Option 3: Online Generator**
+Use a secure random string generator (at least 32 characters, preferably 64+).
+
+**Important Notes:**
+- `JWT_EXPIRES_IN=5m` means tokens expire after 5 minutes
+- Use a **different** `JWT_SECRET` for production than development
+- Never commit `JWT_SECRET` to version control
+
+### **5.2 Local Development Setup**
 
 Create environment files in your project:
 
@@ -365,6 +395,9 @@ FAST2SMS_API_KEY=your_fast2sms_api_key
 GMAIL_USER=your-email@gmail.com
 GMAIL_APP_PASSWORD=your_16_char_app_password
 GMAIL_FROM_NAME=Jewels by NavKush
+
+# Fast2SMS Quick SMS Service (Dev) - No DLT Required
+FAST2SMS_API_KEY=your_fast2sms_api_key
 ```
 
 #### **`.env.production.local`**
@@ -387,6 +420,9 @@ FAST2SMS_API_KEY=your_fast2sms_api_key
 GMAIL_USER=your-email@gmail.com
 GMAIL_APP_PASSWORD=your_16_char_app_password
 GMAIL_FROM_NAME=Jewels by NavKush
+
+# Fast2SMS Quick SMS Service (Prod) - No DLT Required
+FAST2SMS_API_KEY=your_fast2sms_api_key
 ```
 
 #### **`.env.example`** (Template - commit this)
@@ -416,9 +452,40 @@ FAST2SMS_API_KEY=
 GMAIL_USER=
 GMAIL_APP_PASSWORD=
 GMAIL_FROM_NAME=Jewels by NavKush
+
+# Fast2SMS Quick SMS Service (No DLT Required)
+FAST2SMS_API_KEY=
 ```
 
-### **5.2 Update .gitignore**
+### **5.3 Vercel Environment Variables**
+
+#### **Development Project**
+
+1. Go to Vercel dev project → **Settings** → **Environment Variables**
+2. Add:
+   - `JWT_SECRET` = `your-secure-random-secret-key-change-in-production`
+   - `JWT_EXPIRES_IN` = `5m`
+   - `FAST2SMS_API_KEY` = `your_fast2sms_api_key`
+   - `GMAIL_USER` = `your-email@gmail.com`
+   - `GMAIL_APP_PASSWORD` = `your_16_char_app_password`
+   - `GMAIL_FROM_NAME` = `Jewels by NavKush` (optional)
+3. Select environments: **Production, Preview, Development**
+
+#### **Production Project**
+
+1. Go to Vercel prod project → **Settings** → **Environment Variables**
+2. Add:
+   - `JWT_SECRET` = `your-different-secure-random-secret-key-for-production`
+   - `JWT_EXPIRES_IN` = `5m`
+   - `FAST2SMS_API_KEY` = `your_fast2sms_api_key`
+   - `GMAIL_USER` = `your-email@gmail.com`
+   - `GMAIL_APP_PASSWORD` = `your_16_char_app_password`
+   - `GMAIL_FROM_NAME` = `Jewels by NavKush` (optional)
+3. Select environments: **Production, Preview, Development**
+
+**⚠️ Important:** Use **different** `JWT_SECRET` values for dev and prod!
+
+### **5.4 Update .gitignore**
 
 Ensure `.gitignore` includes:
 
@@ -430,7 +497,7 @@ Ensure `.gitignore` includes:
 .env.production.local
 ```
 
-### **5.3 Create Environment Helper**
+### **5.5 Create Environment Helper**
 
 Create `lib/utils/env.ts` (if not exists):
 
@@ -472,6 +539,27 @@ export function getMongoDbUri(): string {
   return uri;
 }
 ```
+
+### **5.6 Verification**
+
+After adding the variables:
+
+1. **Restart your dev server:**
+   ```bash
+   # Stop the server (Ctrl+C)
+   # Start again
+   npm run dev
+   ```
+
+2. **Test authentication:**
+   - Try registering a user
+   - Try logging in
+   - Check that tokens are generated
+
+3. **Check token expiration:**
+   - Login and get a token
+   - Wait 5 minutes
+   - Try using the token - it should be expired
 
 **✅ Step 5 Complete:** Environment variables are configured for all environments.
 

@@ -18,7 +18,6 @@ const cached = global.mongoose;
  * Configure MongoDB connection with automatic reconnection
  */
 function configureMongoConnection() {
-  // Connection event handlers for automatic reconnection
   mongoose.connection.on('connected', () => {
     if (!isTest()) {
       logger.info('MongoDB connected successfully');
@@ -35,7 +34,6 @@ function configureMongoConnection() {
     }
   });
 
-  // Handle process termination
   process.on('SIGINT', async () => {
     await mongoose.connection.close();
     if (!isTest()) {
@@ -63,18 +61,14 @@ function configureMongoConnection() {
  * - Error handling and retry logic
  */
 async function connectDB() {
-  // Use centralized environment utility for secure credential access
   // Lazy evaluation prevents connection attempts before environment is configured
   const MONGODB_URI = getMongoDbUri();
 
-  // Return existing connection if available and still alive
   // Reuses connection across requests to improve performance
   if (cached.conn) {
-    // Verify connection is still active before reusing
     if (mongoose.connection.readyState === 1) {
       return cached.conn;
     }
-    // Connection is dead, reset cache
     cached.conn = null;
     cached.promise = null;
   }

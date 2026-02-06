@@ -65,26 +65,21 @@ export async function PATCH(
 
     await connectDB();
 
-    // Validate address data before update to ensure required fields and format compliance
     const body = await request.json() as UpdateAddressRequest;
     const validatedData = updateAddressSchema.parse(body);
 
-    // Optimize: Only select fields needed for address operations
-    // Optimize: Only select address-related fields needed for PATCH operation
     const userDoc = await User.findById(user.userId)
       .select('addresses defaultShippingAddressId defaultBillingAddressId');
     if (!userDoc) {
       return createSecureErrorResponse('User not found', 404, request);
     }
 
-    // Locate address in user's address list by ID
     // Ensures address belongs to user before allowing update
     const addressIndex = userDoc.addresses.findIndex((addr) => addr.id === sanitizedAddressId);
     if (addressIndex === -1) {
       return createSecureErrorResponse('Address not found', 404, request);
     }
 
-    // Update only provided fields with sanitized input to prevent XSS attacks
     // Partial updates allow flexible address modifications without requiring all fields
     const address = userDoc.addresses[addressIndex];
     if (validatedData.type !== undefined) address.type = validatedData.type;
@@ -112,7 +107,6 @@ export async function PATCH(
           userDoc.defaultBillingAddressId = address.id;
         }
         
-        // Clear other default flags
         userDoc.addresses.forEach((addr) => {
           if (addr.id !== address.id) {
             addr.isDefault = false;
@@ -124,8 +118,6 @@ export async function PATCH(
     address.updatedAt = new Date();
     await userDoc.save();
 
-    // Send real address data (not masked) - user is authenticated and should see their own addresses
-    // HTTPS/TLS encrypts the response in transit, preventing network tab exposure
     const addressData = {
       id: address.id,
       type: address.type,

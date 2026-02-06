@@ -288,7 +288,7 @@ export default function TopHeader() {
             >
               <SmoothLink
                 href="/cart"
-                className="transition-colors p-2 -mr-2 sm:p-0 sm:mr-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center"
+                className="transition-colors p-2 sm:p-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center relative"
                 style={{ color: textColor }}
                 aria-label="Shopping cart"
               >
@@ -302,23 +302,23 @@ export default function TopHeader() {
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </motion.svg>
+                {/* Cart item count badge - very close to icon on mobile, slightly away on desktop */}
+                {cartItemCount > 0 && (
+                  <motion.span
+                    className="absolute top-3 -right-1 sm:top-0 sm:right-0 min-w-[18px] h-[18px] sm:min-w-[20px] sm:h-[20px] px-1 sm:px-1.5 flex items-center justify-center bg-[var(--active-dark)] text-[var(--text-on-beige)] text-[0.625rem] sm:text-xs font-bold rounded-full shadow-lg z-20 pointer-events-none -translate-x-1/2 -translate-y-1/2 sm:translate-x-1/2 sm:-translate-y-1/2"
+                    style={{ 
+                      lineHeight: '1',
+                      border: `2px solid ${headerBgColor === 'var(--cream)' ? 'var(--cream)' : 'var(--beige)'}`,
+                    }}
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                    aria-label={`${cartItemCount} items in cart`}
+                  >
+                    {cartItemCount > 99 ? '99+' : cartItemCount}
+                  </motion.span>
+                )}
               </SmoothLink>
-              {/* Cart item count badge - positioned outside icon */}
-              {cartItemCount > 0 && (
-                <motion.span
-                  className="absolute -top-1 -right-1 sm:-top-1 sm:-right-1 min-w-[18px] h-[18px] sm:min-w-[20px] sm:h-[20px] px-1 sm:px-1.5 flex items-center justify-center bg-[var(--active-dark)] text-[var(--text-on-beige)] text-[10px] sm:text-xs font-bold rounded-full shadow-lg z-20 pointer-events-none"
-                  style={{ 
-                    lineHeight: '1',
-                    border: `2px solid ${headerBgColor === 'var(--cream)' ? 'var(--cream)' : 'var(--beige)'}`
-                  }}
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                  aria-label={`${cartItemCount} items in cart`}
-                >
-                  {cartItemCount > 99 ? '99+' : cartItemCount}
-                </motion.span>
-              )}
             </motion.div>
             <UserMenu textColor={textColor} />
           </div>

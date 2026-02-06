@@ -18,10 +18,11 @@ import Cart from '@/models/Cart';
 import User from '@/models/User';
 import Product from '@/models/Product';
 import { requireAuth } from '@/lib/auth/middleware';
-import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
+import { applyApiSecurity, createSecureResponse, createSecureErrorResponse, checkUserRateLimit } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
 import { sanitizeString, sanitizePhone } from '@/lib/security/sanitize';
 import { formatZodError } from '@/lib/utils/zod-error';
+import { getPaginationParams } from '@/lib/utils/api-helpers';
 import { confirmOrderAndUpdateStock, retryWithBackoff, isTransientError } from '@/lib/inventory/inventory-service';
 import { generateIdempotencyKey } from '@/lib/utils/idempotency';
 import { ECOMMERCE } from '@/lib/constants';
@@ -449,7 +450,6 @@ export async function GET(request: NextRequest) {
 
     // Industry standard: Per-user rate limiting for authenticated endpoints
     // 200 requests per 15 minutes (industry standard for user-specific read endpoints)
-    const { checkUserRateLimit } = await import('@/lib/security/api-security');
     const userRateLimitResponse = checkUserRateLimit(
       request,
       user.userId,
@@ -463,7 +463,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     
     // Validate and sanitize pagination parameters to prevent DoS attacks
-    const { getPaginationParams } = await import('@/lib/utils/api-helpers');
     const { limit, page } = getPaginationParams(searchParams);
     const statusParam = searchParams.get('status');
 

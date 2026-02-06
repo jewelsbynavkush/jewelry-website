@@ -44,36 +44,30 @@ export function maskSensitiveFields<T>(
   fieldsToMask?: string[],
   depth: number = 0
 ): T {
-  // Prevent infinite recursion by limiting depth to 10 levels
   // Protects against deeply nested objects that could cause stack overflow
   if (depth > 10) return data;
   
   if (data === null || data === undefined) return data;
   
-  // Recursively process array elements to mask sensitive fields in nested structures
   if (Array.isArray(data)) {
     return data.map(item => maskSensitiveFields(item, fieldsToMask, depth + 1)) as T;
   }
   
-  // Process object properties: mask sensitive fields, recurse into nested objects, preserve primitives
   if (typeof data === 'object') {
     const masked = {} as T;
     
     for (const [key, value] of Object.entries(data)) {
-      // Determine if field should be masked: explicit list takes precedence, otherwise auto-detect via patterns
+      // Explicit list takes precedence, otherwise auto-detect via patterns
       const shouldMask = fieldsToMask 
         ? fieldsToMask.includes(key)
         : Object.values(SENSITIVE_FIELD_PATTERNS).some(pattern => pattern.test(key));
       
       if (shouldMask && typeof value === 'string' && value.length > 0) {
-        // Apply type-specific masking (email, phone, card, etc.) based on field name patterns
         const maskingType = getMaskingType(key);
         (masked as Record<string, unknown>)[key] = maskSensitiveData(value, maskingType);
       } else if (typeof value === 'object' && value !== null) {
-        // Recursively process nested objects to mask sensitive fields at any depth
         (masked as Record<string, unknown>)[key] = maskSensitiveFields(value, fieldsToMask, depth + 1);
       } else {
-        // Preserve non-sensitive primitive values without modification
         (masked as Record<string, unknown>)[key] = value;
       }
     }
@@ -81,8 +75,6 @@ export function maskSensitiveFields<T>(
     return masked;
   }
   
-  // Primitive values (strings, numbers, booleans) are returned unchanged
-  // Only object properties are masked, not the primitives themselves
   return data;
 }
 

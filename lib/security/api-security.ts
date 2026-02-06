@@ -79,7 +79,6 @@ function validateContentType(request: NextRequest, requireContentType: boolean):
     return true;
   }
 
-  // GET, HEAD, OPTIONS don't require Content-Type (no body)
   const method = request.method.toUpperCase();
   if (['GET', 'HEAD', 'OPTIONS'].includes(method)) {
     return true;
@@ -90,7 +89,7 @@ function validateContentType(request: NextRequest, requireContentType: boolean):
     return false;
   }
 
-  // Only allow standard API content types to prevent content-type confusion
+  // Prevents content-type confusion attacks
   return contentType.includes('application/json') || contentType.includes('application/x-www-form-urlencoded') || contentType.includes('multipart/form-data');
 }
 
@@ -106,7 +105,6 @@ function validateContentType(request: NextRequest, requireContentType: boolean):
 function validateRequestSize(request: NextRequest, maxSize: number): boolean {
   const contentLength = request.headers.get('content-length');
   if (!contentLength) {
-    // Unknown size - validate when reading body (fail-fast approach)
     return true;
   }
 

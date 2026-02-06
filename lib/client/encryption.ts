@@ -15,8 +15,7 @@
  */
 function isProduction(): boolean {
   if (typeof window === 'undefined') return false;
-  // Check NEXT_PUBLIC_ENV or NODE_ENV for production detection
-  // Note: NODE_ENV is not available in browser, so we check NEXT_PUBLIC_ENV
+  // NODE_ENV is not available in browser, so we check NEXT_PUBLIC_ENV
   return (process.env.NEXT_PUBLIC_ENV === 'production' || 
           (typeof process !== 'undefined' && process.env?.NODE_ENV === 'production'));
 }
@@ -33,16 +32,11 @@ function isProduction(): boolean {
  */
 export async function encryptClientData(data: string): Promise<string> {
   try {
-    // Verify Web Crypto API availability before attempting encryption
     // Required for browser-based encryption (not available in older browsers or non-HTTPS contexts)
     if (!window.crypto || !window.crypto.subtle) {
       throw new Error('Web Crypto API not available');
     }
 
-    // Current implementation: Symmetric key approach using AES-GCM
-    // Future enhancement: RSA-OAEP for key exchange, then AES-GCM for data encryption
-    
-    // Generate ephemeral encryption key for this session
     // Each encryption uses a unique key, preventing key reuse attacks
     const key = await window.crypto.subtle.generateKey(
       {
@@ -53,11 +47,9 @@ export async function encryptClientData(data: string): Promise<string> {
       ['encrypt']
     );
 
-    // Generate cryptographically secure random IV (12 bytes for AES-GCM)
     // IV ensures same plaintext produces different ciphertext each time
     const iv = window.crypto.getRandomValues(new Uint8Array(12));
 
-    // Encrypt data using AES-GCM (authenticated encryption)
     // Provides both confidentiality and authenticity in a single operation
     const encodedData = new TextEncoder().encode(data);
     const encrypted = await window.crypto.subtle.encrypt(
@@ -69,21 +61,13 @@ export async function encryptClientData(data: string): Promise<string> {
       encodedData
     );
 
-    // Prepend IV to encrypted data for decryption
-    // IV must be transmitted with ciphertext but doesn't need to be secret
     const combined = new Uint8Array(iv.length + encrypted.byteLength);
     combined.set(iv, 0);
     combined.set(new Uint8Array(encrypted), iv.length);
 
-    // Encode as base64 for safe transmission over HTTP/JSON
-    // Base64 encoding ensures binary data can be transmitted as text
     return btoa(String.fromCharCode(...combined));
   } catch (error) {
-    // Log error securely (client-side logging should be minimal)
-    // In case of encryption failure, return original data
-    // HTTPS will still protect it in transit
     if (typeof window !== 'undefined' && window.console) {
-      // Only log in development to avoid exposing errors in production
       if (process.env.NEXT_PUBLIC_ENV !== 'production') {
         console.error('Client encryption failed:', error);
       }
@@ -112,7 +96,6 @@ export function warnIfNotHttps(): void {
   if (typeof window === 'undefined') return;
   
   if (!isHttpsConnection() && isProduction()) {
-    // Only warn in development to avoid console noise in production
     if (process.env.NEXT_PUBLIC_ENV !== 'production') {
       console.warn(
         'Security Warning: This application requires HTTPS for secure operation. ' +

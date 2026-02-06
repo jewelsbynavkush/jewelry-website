@@ -69,10 +69,8 @@ export async function POST(request: NextRequest) {
     
     const validatedData = loginSchema.parse(deobfuscatedBody);
 
-    // Sanitize email to prevent injection attacks and normalize format
     const email = sanitizeEmail(validatedData.identifier);
 
-    // Lookup user by email (primary identifier)
     // Include lockUntil field directly since isLocked virtual may not be available with .select()
     const user = await User.findOne({ email })
       .select('+password mobile countryCode email firstName lastName role emailVerified isActive isBlocked lockUntil lastLogin lastLoginIP'); // Include password and all needed fields
@@ -81,19 +79,15 @@ export async function POST(request: NextRequest) {
       return createSecureErrorResponse('Invalid credentials', 401, request);
     }
 
-    // Verify account is active - inactive accounts cannot authenticate
     if (!user.isActive) {
       return createSecureErrorResponse('Account is inactive. Please contact support.', 403, request);
     }
 
-    // Verify account is not blocked - blocked accounts are permanently disabled
     if (user.isBlocked) {
       return createSecureErrorResponse('Account is blocked. Please contact support.', 403, request);
     }
 
-    // Verify account is not temporarily locked due to failed login attempts
     // Lock prevents brute force attacks by temporarily disabling account
-    // Check lockUntil directly since isLocked virtual may not be available with .select()
     if (user.lockUntil && user.lockUntil > new Date()) {
       return createSecureErrorResponse('Account is temporarily locked due to too many failed login attempts. Please try again later.', 423, request);
     }
@@ -107,17 +101,12 @@ export async function POST(request: NextRequest) {
       return createSecureErrorResponse('Invalid credentials', 401, request);
     }
 
-    // Reset login attempts on successful login to clear any temporary locks
     await (User as IUserModel).resetLoginAttempts(user._id.toString());
 
-    // Track last login timestamp and IP for security auditing
     user.lastLogin = new Date();
     user.lastLoginIP = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || undefined;
     await user.save();
 
-    // Industry standard: Create session with access token and refresh token
-    // Send real user data (not masked) - user is authenticated and should see their own data
-    // HTTPS/TLS encrypts the response in transit, preventing network tab exposure
     const userData = {
       id: user._id.toString(),
       email: user.email,
@@ -136,11 +125,8 @@ export async function POST(request: NextRequest) {
     };
     const response = createSecureResponse(responseData, 200, request);
 
-    // Create session with access token (1 hour) and refresh token (30 days)
-    // Industry standard: Separate short-lived access tokens and long-lived refresh tokens
     await createSession(user._id.toString(), user.email, user.role, response, request);
 
-    // Merge guest cart into user cart to preserve items added before login
     const sessionCookie = request.cookies.get('session-id');
     if (sessionCookie?.value) {
       try {

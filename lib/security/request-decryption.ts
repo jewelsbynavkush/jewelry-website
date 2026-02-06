@@ -21,35 +21,29 @@
  * 6. If it's valid base64 and not hex/plain OTP, it's likely obfuscated
  */
 function looksLikeObfuscated(value: string): boolean {
-  // Hex tokens (like reset tokens) contain only 0-9a-fA-F and are typically 64 chars
   // Pure hex strings are NOT obfuscated (they're tokens)
   const hexPattern = /^[0-9a-fA-F]+$/;
   if (hexPattern.test(value)) {
-    return false; // Pure hex = token, not obfuscated
+    return false;
   }
   
-  // Plain 6-digit OTPs are exactly 6 digits (0-9 only)
   // Obfuscated OTPs are base64 encoded (8 chars) and contain letters
   const plainOtpPattern = /^[0-9]{6}$/;
   if (plainOtpPattern.test(value)) {
-    return false; // Plain 6-digit OTP, not obfuscated
+    return false;
   }
   
-  // Check if it's valid base64 pattern (contains only base64 chars and padding)
   // Base64 can be A-Za-z0-9+/ with optional = padding
   const base64Pattern = /^[A-Za-z0-9+/]+=*$/;
   if (!base64Pattern.test(value)) {
-    return false; // Not valid base64 = plain text
+    return false;
   }
   
-  // For passwords: Must be long enough (>= 10 chars) to be obfuscated
-  // For OTPs: Can be shorter (6-digit OTP obfuscated = 8 base64 chars)
-  // If it's valid base64, not hex, not plain OTP, and has reasonable length, it's likely obfuscated
+  // For OTPs: 6-digit OTP obfuscated = 8 base64 chars
   if (value.length < 8) {
-    return false; // Too short to be obfuscated (even OTPs need at least 8 chars when obfuscated)
+    return false;
   }
   
-  // If it's valid base64, not pure hex, not plain OTP, and long enough, it's likely obfuscated
   return true;
 }
 
@@ -63,16 +57,14 @@ function looksLikeObfuscated(value: string): boolean {
  * @returns Original plaintext value
  */
 export function deobfuscateSensitiveValue(obfuscatedValue: string): string {
-  // Return plain text values unchanged for backward compatibility (tests, direct API calls)
+  // Backward compatibility: tests and direct API calls may send plain text
   if (!looksLikeObfuscated(obfuscatedValue)) {
     return obfuscatedValue;
   }
   
   try {
-    // Decode base64 to binary before XOR deobfuscation
     const decoded = Buffer.from(obfuscatedValue, 'base64').toString('binary');
     
-    // Reverse XOR obfuscation using same key as client-side
     // XOR is symmetric: (A XOR K) XOR K = A
     const key = 'JWELRY_NAVKUSH_2025_SECURE_KEY';
     let deobfuscated = '';
@@ -85,7 +77,6 @@ export function deobfuscateSensitiveValue(obfuscatedValue: string): string {
     
     return deobfuscated;
   } catch {
-    // Return original value if deobfuscation fails (invalid base64, etc.)
     // Handles edge cases: direct API calls, test data, client-side obfuscation failures
     return obfuscatedValue;
   }

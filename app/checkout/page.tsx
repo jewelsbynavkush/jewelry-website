@@ -20,6 +20,7 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import CountryCodeSelect from '@/components/ui/CountryCodeSelect';
 import Autocomplete from '@/components/ui/Autocomplete';
+import LoadingState from '@/components/ui/LoadingState';
 import { getAllStates, getCitiesByState } from '@/lib/data/indian-addresses';
 import { useCartStore } from '@/lib/store/cart-store';
 import { useAuthStore } from '@/lib/store/auth-store';
@@ -384,12 +385,7 @@ export default function CheckoutPage() {
     return (
       <PageContainer maxWidth="4xl">
         <SectionHeading as="h2">CHECKOUT</SectionHeading>
-        <Card className="text-center py-12">
-          <div className="space-y-4">
-            <div className="inline-block w-8 h-8 border-4 border-[var(--beige)] border-t-transparent rounded-full animate-spin" aria-label="Loading checkout" role="status" />
-            <p className="text-[var(--text-secondary)]">Loading checkout...</p>
-          </div>
-        </Card>
+        <LoadingState label="Loading checkout..." skeletonLines={2} />
       </PageContainer>
     );
   }
@@ -422,7 +418,13 @@ export default function CheckoutPage() {
                     Select saved address or enter new
                   </label>
                   {isLoadingAddresses ? (
-                    <div className="text-[var(--text-secondary)] text-sm py-2">Loading addresses...</div>
+                    <LoadingState
+                      variant="inline"
+                      size="sm"
+                      label="Loading addresses..."
+                      className="items-start text-left"
+                      skeletonLines={2}
+                    />
                   ) : (
                     <select
                       value={selectedShippingAddressId}
@@ -609,7 +611,13 @@ export default function CheckoutPage() {
                         Select saved address or enter new
                       </label>
                       {isLoadingAddresses ? (
-                        <div className="text-[var(--text-secondary)] text-sm py-2">Loading addresses...</div>
+                    <LoadingState
+                      variant="inline"
+                      size="sm"
+                      label="Loading addresses..."
+                      className="items-start text-left"
+                      skeletonLines={2}
+                    />
                       ) : (
                         <select
                           value={selectedBillingAddressId}

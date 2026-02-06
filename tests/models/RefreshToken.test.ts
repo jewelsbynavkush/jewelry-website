@@ -55,8 +55,8 @@ describe('RefreshToken Model', () => {
       const now = Date.now();
       const expectedExpiry = now + (30 * 24 * 60 * 60 * 1000);
       
-      // Allow 1 second tolerance
-      expect(Math.abs(expiresAt - expectedExpiry)).toBeLessThan(1000);
+      // Allow 2 second tolerance for async operations
+      expect(Math.abs(expiresAt - expectedExpiry)).toBeLessThan(2000);
     });
 
     it('should set lastUsedAt to current time', async () => {

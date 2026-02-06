@@ -12,6 +12,7 @@ import { apiGet } from '@/lib/api/client';
 import { formatPrice } from '@/lib/utils/price-formatting';
 import { useAuthStore } from '@/lib/store/auth-store';
 import ErrorMessage from '@/components/ui/ErrorMessage';
+import LoadingState from '@/components/ui/LoadingState';
 
 interface OrderDetails {
   id: string;
@@ -139,12 +140,7 @@ export default function OrderDetailsPage() {
     return (
       <PageContainer maxWidth="4xl">
         <SectionHeading as="h2">ORDER DETAILS</SectionHeading>
-        <Card className="text-center py-12">
-          <div className="space-y-4">
-            <div className="inline-block w-8 h-8 border-4 border-[var(--beige)] border-t-transparent rounded-full animate-spin" aria-label="Loading order details" role="status" />
-            <p className="text-[var(--text-secondary)]">Loading order details...</p>
-          </div>
-        </Card>
+        <LoadingState label="Loading order details..." skeletonLines={2} />
       </PageContainer>
     );
   }

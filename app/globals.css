@@ -112,6 +112,27 @@ input:disabled, textarea:disabled, select:disabled {
   --color-text-on-beige-hover: var(--text-on-beige-hover);
 }
 
+/* Loading shimmer utility (skeletons) */
+.loading-shimmer {
+  background-image: linear-gradient(
+    90deg,
+    var(--border-light) 0%,
+    var(--gradient-cream-light) 50%,
+    var(--border-light) 100%
+  );
+  background-size: 200% 100%;
+  animation: loading-shimmer 1.2s ease-in-out infinite;
+}
+
+@keyframes loading-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
 /* Font Family Variables */
 :root {
   --font-inter: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
@@ -614,12 +635,12 @@ div[role="main"],
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--light-grey);
+  background: var(--text-muted);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--dark-grey);
+  background: var(--active-dark);
 }
 
 /* Custom select dropdown styling for consistent design */
@@ -635,8 +656,8 @@ select::-ms-expand {
 
 /* Select dropdown arrow styling */
 select option {
-  background-color: var(--beige);
-  color: var(--text-on-beige);
+  background-color: var(--cream);
+  color: var(--text-on-cream);
   padding: 0.5rem;
 }
 

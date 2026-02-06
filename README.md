@@ -27,7 +27,7 @@ All documentation is organized in the [`docs/`](./docs/) folder.
 - [Email Setup Guide](./docs/EMAIL_SETUP.md) - Gmail and Zoho Mail configuration
 - [Overall Best Practices](./docs/OVERALL_BEST_PRACTICES_FINAL_2025.md) - Complete best practices verification
 - [E-commerce Best Practices](./docs/E_COMMERCE_BEST_PRACTICES_FINAL.md) - Complete e-commerce guide and best practices
-- [Comprehensive Audit Report](./docs/AUDIT_REPORT_2025.md) - All audits consolidated
+- [Backend Audit Report](./docs/BACKEND_AUDIT_FINAL_2025.md) - Complete backend and comprehensive audit
 - [Models Guide](./docs/MODELS_GUIDE.md) - Database models
 - [Inventory Guide](./docs/INVENTORY_GUIDE.md) - Complete inventory management
 - [API Guide](./docs/API_GUIDE.md) - API documentation

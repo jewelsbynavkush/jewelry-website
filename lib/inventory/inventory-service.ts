@@ -44,8 +44,7 @@ export async function retryWithBackoff<T>(
   maxRetries?: number,
   initialDelay?: number
 ): Promise<T> {
-  // Test environment needs more retries and longer delays due to 5ms lock timeout
-  // Reduced to 7 retries with 200ms initial delay to prevent test timeouts
+  // Test environment (MongoDB Memory Server) has 5ms lock timeout, requiring more retries
   const testEnv = isTest();
   const defaultMaxRetries = testEnv ? 7 : 3;
   const defaultInitialDelay = testEnv ? 200 : 100;
@@ -86,7 +85,6 @@ export async function reserveStockForCart(
   quantity: number,
   userId?: string
 ): Promise<{ success: boolean; product?: { _id: unknown; sku: string; title: string; inventory: { quantity: number; reservedQuantity: number } }; error?: string }> {
-  // Use retry logic to handle MongoDB lock timeouts in test environment
   // Test environment (MongoDB Memory Server) has 5ms lock timeout, requiring retries
   return await retryWithBackoff(async () => {
     const session = await mongoose.startSession();
@@ -95,7 +93,6 @@ export async function reserveStockForCart(
     try {
       await connectDB();
 
-      // Use Product static method for atomic stock reservation
       // Prevents race conditions when multiple users add same item to cart simultaneously
       const product = await Product.reserveStock(productId, quantity, session);
 

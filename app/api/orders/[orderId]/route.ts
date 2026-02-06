@@ -76,10 +76,13 @@ export async function GET(
 
     // Fetch order with user filter to enforce access control
     // Users can only access their own orders, preventing unauthorized data access
+    // Optimize: Select only fields needed for order details response
     const order = await Order.findOne({
       _id: sanitizedOrderId,
       userId: user.userId,
-    }).lean();
+    })
+      .select('orderNumber status paymentStatus items subtotal tax shipping discount total currency shippingAddress billingAddress paymentMethod trackingNumber carrier customerNotes createdAt updatedAt shippedAt deliveredAt')
+      .lean();
 
     if (!order) {
       // Check if order exists but belongs to another user

@@ -81,8 +81,8 @@ export function getPaginationParams(searchParams: URLSearchParams): {
   const limit = Math.min(
     Math.max(parseInt(searchParams.get('limit') || '20', 10), 1),
     100
-  ); // 1-100 per page
-  const page = Math.max(parseInt(searchParams.get('page') || '1', 10), 1); // Minimum page 1
+  );
+  const page = Math.max(parseInt(searchParams.get('page') || '1', 10), 1);
   
   return { limit, page };
 }
@@ -102,6 +102,5 @@ export function getSessionId(request: NextRequest): string {
     return sessionCookie.value;
   }
   
-  // Generate new session ID for first-time guest users
   return new mongoose.Types.ObjectId().toString();
 }

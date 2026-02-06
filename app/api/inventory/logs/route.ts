@@ -12,6 +12,7 @@ import { requireAdmin } from '@/lib/auth/middleware';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
 import { sanitizeString } from '@/lib/security/sanitize';
+import { getPaginationParams } from '@/lib/utils/api-helpers';
 import { SECURITY_CONFIG } from '@/lib/security/constants';
 import type { GetInventoryLogsResponse } from '@/types/api';
 
@@ -39,7 +40,6 @@ export async function GET(request: NextRequest) {
     const productIdParam = searchParams.get('productId');
     const orderIdParam = searchParams.get('orderId');
     const typeParam = searchParams.get('type');
-    const { getPaginationParams } = await import('@/lib/utils/api-helpers');
     const { limit, page } = getPaginationParams(searchParams);
 
     const skip = (page - 1) * limit;
@@ -75,7 +75,7 @@ export async function GET(request: NextRequest) {
     // Fetch logs with populated references for product, order, and user details
     // Optimize: Select only necessary fields for inventory logs
     const logs = await InventoryLog.find(query)
-      .select('productId productName action quantity previousQuantity newQuantity reason userId userEmail createdAt orderId')
+      .select('productId productSku productTitle type quantity previousQuantity newQuantity reason notes userId orderId performedBy createdAt')
       .sort({ createdAt: -1 })
       .limit(limit)
       .skip(skip)

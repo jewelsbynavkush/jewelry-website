@@ -50,28 +50,22 @@ function deriveEncryptionKey(salt: Buffer): Buffer {
  */
 export function encryptField(plaintext: string): string {
   try {
-    // Generate random salt and IV for each encryption
     // Security: Unique salt/IV per encryption prevents pattern analysis
     const salt = crypto.randomBytes(ENCRYPTION_CONFIG.SALT_LENGTH);
     const iv = crypto.randomBytes(ENCRYPTION_CONFIG.IV_LENGTH);
     
-    // Derive encryption key from JWT secret
     const key = deriveEncryptionKey(salt);
     
-    // Create cipher with AES-256-GCM
     const cipher = crypto.createCipheriv(ENCRYPTION_CONFIG.ALGORITHM, key, iv);
     
-    // Encrypt data
     let encrypted = cipher.update(plaintext, 'utf8');
     encrypted = Buffer.concat([encrypted, cipher.final()]);
     
-    // Get authentication tag (prevents tampering)
+    // Prevents tampering
     const tag = cipher.getAuthTag();
     
-    // Combine salt:iv:tag:ciphertext for storage/transmission
     const combined = Buffer.concat([salt, iv, tag, encrypted]);
     
-    // Return base64 encoded string
     return combined.toString('base64');
   } catch (error) {
     throw new Error(`Encryption failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -86,10 +80,8 @@ export function encryptField(plaintext: string): string {
  */
 export function decryptField(encryptedData: string): string {
   try {
-    // Decode base64
     const combined = Buffer.from(encryptedData, 'base64');
     
-    // Extract components
     let offset = 0;
     const salt = combined.slice(offset, offset + ENCRYPTION_CONFIG.SALT_LENGTH);
     offset += ENCRYPTION_CONFIG.SALT_LENGTH;
@@ -102,14 +94,11 @@ export function decryptField(encryptedData: string): string {
     
     const ciphertext = combined.slice(offset);
     
-    // Derive decryption key
     const key = deriveEncryptionKey(salt);
     
-    // Create decipher
     const decipher = crypto.createDecipheriv(ENCRYPTION_CONFIG.ALGORITHM, key, iv);
     decipher.setAuthTag(tag);
     
-    // Decrypt data
     let decrypted = decipher.update(ciphertext);
     decrypted = Buffer.concat([decrypted, decipher.final()]);
     

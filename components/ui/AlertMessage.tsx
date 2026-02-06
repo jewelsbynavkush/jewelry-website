@@ -45,7 +45,6 @@ export default function AlertMessage({
 }: AlertMessageProps) {
   if (!message) return null;
 
-  // Auto-hide after 3 seconds if enabled
   if (autoHide && onHide) {
     setTimeout(() => {
       onHide();

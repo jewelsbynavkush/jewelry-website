@@ -279,7 +279,9 @@ export async function PATCH(request: NextRequest) {
           mobile: validatedData.mobile,
           countryCode: countryCode,
           _id: { $ne: user.userId }
-        }).select('_id').lean();
+        })
+          .select('_id')
+          .lean();
         
         if (existingUser) {
           return createSecureErrorResponse('Mobile number already in use', 400, request);

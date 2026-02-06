@@ -34,14 +34,12 @@ export async function parseAndValidateRequest<T>(
     const validatedData = schema.parse(body);
     return { data: validatedData };
   } catch (error) {
-    // Check for JSON parsing errors
     if (error instanceof SyntaxError || (error as Error).name === 'SyntaxError') {
       return {
         error: createSecureErrorResponse('Invalid JSON', 400, request),
       };
     }
 
-    // Check for Zod validation errors
     const zodError = formatZodError(error);
     if (zodError) {
       return {
@@ -49,7 +47,6 @@ export async function parseAndValidateRequest<T>(
       };
     }
 
-    // Log unexpected errors
     logError('request parsing', error);
     return {
       error: createSecureErrorResponse('Invalid request', 400, request),

@@ -10,6 +10,7 @@ import ScrollReveal from '@/components/ui/ScrollReveal';
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import Button from '@/components/ui/Button';
+import LoadingState from '@/components/ui/LoadingState';
 import ErrorMessage from '@/components/ui/ErrorMessage';
 import SuccessMessage from '@/components/ui/SuccessMessage';
 import { useAuthStore } from '@/lib/store/auth-store';
@@ -193,9 +194,7 @@ export default function ConfirmResetPasswordPage() {
   return (
     <Suspense fallback={
       <PageContainer maxWidth="md">
-        <div className="text-center py-12">
-          <p className="text-[var(--text-secondary)]">Loading...</p>
-        </div>
+        <LoadingState label="Loading..." />
       </PageContainer>
     }>
       <ConfirmResetPasswordContent />

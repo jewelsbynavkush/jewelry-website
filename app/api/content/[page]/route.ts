@@ -2,6 +2,8 @@ import { NextRequest } from 'next/server';
 import { getPageContent } from '@/lib/data/content';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
+import { sanitizeString } from '@/lib/security/sanitize';
+import { isValidPageIdentifier } from '@/lib/utils/validation';
 import { SECURITY_CONFIG } from '@/lib/security/constants';
 import type { GetContentResponse } from '@/types/api';
 
@@ -19,12 +21,10 @@ export async function GET(
     const { page } = await params;
     
     // Validate and sanitize page parameter
-    const { isValidPageIdentifier } = await import('@/lib/utils/validation');
     if (!page || !isValidPageIdentifier(page)) {
       return createSecureErrorResponse('Invalid page identifier', 400, request);
     }
     
-    const { sanitizeString } = await import('@/lib/security/sanitize');
     const sanitizedPage = sanitizeString(page);
     const content = await getPageContent(sanitizedPage);
 

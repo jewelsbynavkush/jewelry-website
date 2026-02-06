@@ -3,6 +3,7 @@ import { getProducts } from '@/lib/data/products';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
 import { sanitizeString } from '@/lib/security/sanitize';
+import { getPaginationParams } from '@/lib/utils/api-helpers';
 import { SECURITY_CONFIG } from '@/lib/security/constants';
 import { ECOMMERCE } from '@/lib/constants';
 import type { GetProductsResponse } from '@/types/api';
@@ -35,29 +36,21 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     
-    // Fetch active category slugs to filter products
     // Ensures "most loved" and "featured" products only come from visible categories
     const validCategories = await getValidActiveCategories();
     
-    // Sanitize and validate category parameter (only active categories)
     const categoryParam = searchParams.get('category');
     const category = categoryParam && validCategories.includes(sanitizeString(categoryParam))
       ? sanitizeString(categoryParam)
       : undefined;
     
-    // Validate boolean parameters
     const featured = searchParams.get('featured') === 'true';
     const mostLoved = searchParams.get('mostLoved') === 'true';
     
-    // Extract pagination parameters with validation and defaults
     // Limits page size to 1-100 items per page for performance
-    const { getPaginationParams } = await import('@/lib/utils/api-helpers');
     const { limit, page } = getPaginationParams(searchParams);
 
-    // getProducts() filters by active categories, featured, mostLoved, and handles pagination
     const result = await getProducts(category, featured || undefined, mostLoved || undefined, limit, page);
-
-    // Map to API response format
     const products = result.products.map(productData => ({
       id: productData.id,
       slug: productData.slug,

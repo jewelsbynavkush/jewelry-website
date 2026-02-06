@@ -67,7 +67,7 @@ export default function CartItem({ item, currency = ECOMMERCE.currency }: CartIt
   };
 
   return (
-    <div className="flex gap-4 sm:gap-6 p-4 sm:p-6 border-b border-[var(--border-light)] last:border-b-0">
+    <div className="flex gap-3 sm:gap-4 md:gap-6 p-4 sm:p-6 border-b border-[var(--border-light)] last:border-b-0 overflow-hidden">
       {/* Product Image */}
       <div className="relative w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0">
         <Image
@@ -80,10 +80,10 @@ export default function CartItem({ item, currency = ECOMMERCE.currency }: CartIt
       </div>
 
       {/* Product Details */}
-      <div className="flex-1 min-w-0">
-        <div className="flex justify-between items-start gap-4">
+      <div className="flex-1 min-w-0 overflow-hidden">
+        <div className="flex justify-between items-start gap-2 sm:gap-4">
           <div className="flex-1 min-w-0">
-            <h3 className="text-[var(--text-on-cream)] font-medium text-base sm:text-lg mb-1">
+            <h3 className="text-[var(--text-on-cream)] font-medium text-base sm:text-lg mb-1 truncate">
               {item.title}
             </h3>
             <p className="text-[var(--text-secondary)] text-sm mb-2">
@@ -98,7 +98,7 @@ export default function CartItem({ item, currency = ECOMMERCE.currency }: CartIt
           <button
             onClick={handleRemove}
             disabled={isLoading || isUpdating}
-            className="text-[var(--text-secondary)] hover:text-[var(--error-text)] transition-colors p-2 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 touch-target"
+            className="text-[var(--text-secondary)] hover:text-[var(--error-text)] transition-colors p-2 min-w-[44px] min-h-[44px] flex items-center justify-center flex-shrink-0 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 touch-target"
             aria-label={`Remove ${item.title} from cart`}
           >
             <svg
@@ -117,15 +117,15 @@ export default function CartItem({ item, currency = ECOMMERCE.currency }: CartIt
           </button>
         </div>
 
-        {/* Quantity Selector */}
-        <div className="mt-4 flex items-center gap-4">
-          <label className="text-[var(--text-secondary)] text-sm">Quantity:</label>
-          <div className="flex items-center gap-2">
+        {/* Quantity Selector - Horizontal layout on all screens */}
+        <div className="mt-4 flex flex-wrap items-center gap-2 sm:gap-3">
+          <label className="text-[var(--text-secondary)] text-sm whitespace-nowrap flex-shrink-0">Quantity:</label>
+          <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
             <button
               type="button"
               onClick={() => handleQuantityChange(localQuantity - 1)}
               disabled={isLoading || isUpdating || localQuantity <= 1}
-              className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center border border-[var(--border-light)] rounded-lg bg-[var(--cream)] text-[var(--text-on-cream)] hover:bg-[var(--beige)] hover:text-[var(--text-on-beige)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-h-[44px] min-w-[44px] touch-target focus:outline-none focus:ring-2 focus:ring-[var(--beige)] focus:ring-offset-2"
+              className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 flex items-center justify-center border border-[var(--border-light)] rounded-lg bg-[var(--cream)] text-[var(--text-on-cream)] hover:bg-[var(--beige)] hover:text-[var(--text-on-beige)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-h-[44px] min-w-[44px] touch-target focus:outline-none focus:ring-2 focus:ring-[var(--beige)] focus:ring-offset-2 text-lg sm:text-xl font-medium"
               aria-label="Decrease quantity"
             >
               −
@@ -143,20 +143,20 @@ export default function CartItem({ item, currency = ECOMMERCE.currency }: CartIt
                 }
               }}
               disabled={isLoading || isUpdating}
-              className="w-16 sm:w-20 h-10 sm:h-12 text-center border border-[var(--border-light)] rounded-lg bg-[var(--cream)] text-[var(--text-on-cream)] font-medium focus:outline-none focus:border-[var(--beige)] focus:ring-2 focus:ring-[var(--beige)] focus:ring-offset-2 disabled:opacity-50 min-h-[44px] touch-target"
+              className="w-12 sm:w-14 md:w-16 h-10 sm:h-11 md:h-12 text-center border border-[var(--border-light)] rounded-lg bg-[var(--cream)] text-[var(--text-on-cream)] font-medium focus:outline-none focus:border-[var(--beige)] focus:ring-2 focus:ring-[var(--beige)] focus:ring-offset-2 disabled:opacity-50 min-h-[44px] touch-target text-sm sm:text-base"
               aria-label={`Quantity for ${item.title}`}
             />
             <button
               type="button"
               onClick={() => handleQuantityChange(localQuantity + 1)}
               disabled={isLoading || isUpdating || localQuantity >= 100}
-              className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center border border-[var(--border-light)] rounded-lg bg-[var(--cream)] text-[var(--text-on-cream)] hover:bg-[var(--beige)] hover:text-[var(--text-on-beige)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-h-[44px] min-w-[44px] touch-target focus:outline-none focus:ring-2 focus:ring-[var(--beige)] focus:ring-offset-2"
+              className="w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 flex items-center justify-center border border-[var(--border-light)] rounded-lg bg-[var(--cream)] text-[var(--text-on-cream)] hover:bg-[var(--beige)] hover:text-[var(--text-on-beige)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-h-[44px] min-w-[44px] touch-target focus:outline-none focus:ring-2 focus:ring-[var(--beige)] focus:ring-offset-2 text-lg sm:text-xl font-medium"
               aria-label="Increase quantity"
             >
               +
             </button>
           </div>
-          <div className="ml-auto text-[var(--text-on-cream)] font-medium">
+          <div className="text-[var(--text-on-cream)] font-medium text-sm sm:text-base md:text-lg whitespace-nowrap ml-auto">
             {formatPrice(item.subtotal, { currencyCode: currency })}
           </div>
         </div>

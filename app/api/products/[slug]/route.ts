@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { getProduct } from '@/lib/data/products';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
+import { validateSlugParam } from '@/lib/utils/api-helpers';
 import { SECURITY_CONFIG } from '@/lib/security/constants';
 import { ECOMMERCE } from '@/lib/constants';
 import type { GetProductResponse } from '@/types/api';
@@ -20,7 +21,6 @@ export async function GET(
     const { slug } = await params;
     
     // Validate and sanitize slug parameter
-    const { validateSlugParam } = await import('@/lib/utils/api-helpers');
     const validationResult = await validateSlugParam(slug, 'product identifier', request);
     if ('error' in validationResult) {
       return validationResult.error;

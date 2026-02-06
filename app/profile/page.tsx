@@ -17,6 +17,7 @@ import SectionHeading from '@/components/ui/SectionHeading';
 import ScrollReveal from '@/components/ui/ScrollReveal';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
+import LoadingState from '@/components/ui/LoadingState';
 import { useAuthStore } from '@/lib/store/auth-store';
 import ProfileForm from '@/components/profile/ProfileForm';
 import EmailVerification from '@/components/profile/EmailVerification';
@@ -47,9 +48,7 @@ export default function ProfilePage() {
     return (
       <PageContainer maxWidth="2xl">
         <SectionHeading as="h2">MY PROFILE</SectionHeading>
-        <div className="text-center py-12">
-          <p className="text-[var(--text-secondary)]">Loading...</p>
-        </div>
+        <LoadingState label="Loading profile..." />
       </PageContainer>
     );
   }

@@ -15,6 +15,7 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import CartItem from '@/components/cart/CartItem';
 import CartSummary from '@/components/cart/CartSummary';
+import LoadingState from '@/components/ui/LoadingState';
 import { useCartStore } from '@/lib/store/cart-store';
 import { ECOMMERCE } from '@/lib/constants';
 
@@ -32,12 +33,7 @@ export default function CartPage() {
           <SectionHeading as="h2">SHOPPING CART</SectionHeading>
         </ScrollReveal>
         <ScrollReveal delay={0.1}>
-          <Card className="text-center py-12">
-            <div className="space-y-4">
-              <div className="inline-block w-8 h-8 border-4 border-[var(--beige)] border-t-transparent rounded-full animate-spin" aria-label="Loading cart" role="status" />
-              <p className="text-[var(--text-secondary)]">Loading cart...</p>
-            </div>
-          </Card>
+          <LoadingState label="Loading cart..." />
         </ScrollReveal>
       </PageContainer>
     );

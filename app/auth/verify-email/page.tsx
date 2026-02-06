@@ -9,6 +9,7 @@ import SectionHeading from '@/components/ui/SectionHeading';
 import ScrollReveal from '@/components/ui/ScrollReveal';
 import OTPVerificationForm from '@/components/auth/OTPVerificationForm';
 import { useAuthStore } from '@/lib/store/auth-store';
+import LoadingState from '@/components/ui/LoadingState';
 
 export default function VerifyEmailPage() {
   const router = useRouter();
@@ -55,9 +56,7 @@ export default function VerifyEmailPage() {
   if (isLoading) {
     return (
       <PageContainer maxWidth="md">
-        <div className="text-center py-12">
-          <p className="text-[var(--text-secondary)]">Loading...</p>
-        </div>
+        <LoadingState label="Loading..." />
       </PageContainer>
     );
   }

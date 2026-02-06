@@ -9,6 +9,7 @@ import SectionHeading from '@/components/ui/SectionHeading';
 import ScrollReveal from '@/components/ui/ScrollReveal';
 import LoginForm from '@/components/auth/LoginForm';
 import { useAuthStore } from '@/lib/store/auth-store';
+import LoadingState from '@/components/ui/LoadingState';
 
 function LoginPageContent() {
   const router = useRouter();
@@ -28,9 +29,7 @@ function LoginPageContent() {
   if (isLoading) {
     return (
       <PageContainer maxWidth="md">
-        <div className="text-center py-12">
-          <p className="text-[var(--text-secondary)]">Loading...</p>
-        </div>
+        <LoadingState label="Loading..." />
       </PageContainer>
     );
   }
@@ -57,9 +56,7 @@ export default function LoginPage() {
   return (
     <Suspense fallback={
       <PageContainer maxWidth="md">
-        <div className="text-center py-12">
-          <p className="text-[var(--text-secondary)]">Loading...</p>
-        </div>
+        <LoadingState label="Loading..." />
       </PageContainer>
     }>
       <LoginPageContent />

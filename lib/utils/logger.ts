@@ -54,17 +54,14 @@ function formatLogData(data?: LogData | unknown): string {
  * Should log at this level?
  */
 function shouldLog(level: LogLevel): boolean {
-  // Always log errors and warnings
   if (level === 'error' || level === 'warn') {
     return true;
   }
   
-  // Only log debug in development/test
   if (level === 'debug') {
     return isDevelopment() || isTest();
   }
   
-  // Always log info
   return true;
 }
 

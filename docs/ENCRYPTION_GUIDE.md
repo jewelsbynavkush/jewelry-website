@@ -269,12 +269,9 @@ export async function GET(request: NextRequest) {
 
 ## 7. Security Layers Summary
 
-| Layer | Technology | Protects | When to Use |
-|-------|-----------|----------|-------------|
-| **HTTPS/TLS** | TLS 1.2+ | All data in transit | Always (required) |
-| **Field Encryption** | AES-256-GCM | Extremely sensitive fields | Payment cards, SSN, medical data |
-| **Response Masking** | Pattern matching | API responses | All sensitive data in responses |
-| **JWT Security** | Signed tokens | Authentication tokens | All authenticated requests |
+| Layer | Technology | Protects | When to Use |  |-------| ------------ |----------| ------------- |
+| **HTTPS/TLS** | TLS 1.2+ | All data in transit | Always (required) |  | **Field Encryption** | AES-256-GCM | Extremely sensitive fields | Payment cards, SSN, medical data |
+| **Response Masking** | Pattern matching | API responses | All sensitive data in responses |  | **JWT Security** | Signed tokens | Authentication tokens | All authenticated requests |
 
 ## 8. Environment Variables
 
@@ -314,14 +311,16 @@ This encryption strategy supports compliance with:
 ### What Was Implemented
 
 #### 1. HTTPS/TLS Enforcement ✅
+
 - **Status**: Already implemented, now enforced in production
 - **Location**: `lib/security/api-security.ts`
-- **What it does**: 
+- **What it does**:
   - Enforces HTTPS for all API requests in production
   - Rejects non-HTTPS requests with 403 error
   - Already configured via HSTS headers
 
 #### 2. Field-Level Encryption ✅
+
 - **Status**: New implementation
 - **Location**: `lib/security/encryption.ts`
 - **What it does**:
@@ -331,6 +330,7 @@ This encryption strategy supports compliance with:
   - Functions: `encryptField()`, `decryptField()`, `encryptFields()`, `decryptFields()`
 
 #### 3. Response Data Masking ✅
+
 - **Status**: New implementation
 - **Location**: `lib/security/response-masking.ts`
 - **What it does**:
@@ -340,6 +340,7 @@ This encryption strategy supports compliance with:
   - Functions: `maskUserData()`, `maskOrderData()`, `maskSensitiveFields()`, `maskAddress()`, `maskAddresses()`
 
 #### 4. Client-Side Encryption Utilities ✅
+
 - **Status**: New implementation
 - **Location**: `lib/client/encryption.ts`
 - **What it does**:
@@ -351,12 +352,14 @@ This encryption strategy supports compliance with:
 ### Files Created/Modified
 
 #### New Files
+
 1. `lib/security/encryption.ts` - Server-side encryption utilities
 2. `lib/security/response-masking.ts` - Response data masking utilities
 3. `lib/client/encryption.ts` - Client-side encryption utilities
 4. `docs/ENCRYPTION_GUIDE.md` - This comprehensive encryption guide
 
 #### Modified Files
+
 1. `lib/security/api-security.ts` - Added HTTPS enforcement
 2. `app/api/auth/login/route.ts` - Added user data masking
 3. `app/api/auth/register/route.ts` - Added user data masking
@@ -369,20 +372,24 @@ This encryption strategy supports compliance with:
 ### API Routes Updated with Masking
 
 #### Authentication APIs
+
 - **`/api/auth/login`** - Masks email and mobile in user response
 - **`/api/auth/register`** - Masks email and mobile in user response
 
 #### User Profile APIs
+
 - **`/api/users/profile`** (GET) - Masks email and mobile
 - **`/api/users/profile`** (PATCH) - Masks email and mobile in response
 
 #### Address APIs
+
 - **`/api/users/addresses`** (GET) - Masks phone numbers and address lines
 - **`/api/users/addresses`** (POST) - Masks phone numbers and address lines
 - **`/api/users/addresses/[addressId]`** (PATCH) - Masks phone numbers and address lines
 - **`/api/users/addresses/[addressId]`** (DELETE) - Masks phone numbers and address lines
 
 #### Order APIs
+
 - **`/api/orders`** (GET) - Masks shipping/billing addresses and payment methods
 - **`/api/orders/[orderId]`** (GET) - Masks shipping/billing addresses and payment methods
 - **`/api/orders/[orderId]/cancel`** (POST) - Masks shipping/billing addresses and payment methods
@@ -407,6 +414,7 @@ expect(response.user.email).toBe('u***r@example.com');
 ```
 
 **Important Notes:**
+
 - Masking is applied **only in responses**, not in database storage
 - Full data is still available server-side for processing
 - Masking patterns are consistent across all APIs

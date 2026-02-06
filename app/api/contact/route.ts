@@ -4,6 +4,7 @@ import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } fro
 import { sanitizeString, sanitizeEmail, sanitizePhone } from '@/lib/security/sanitize';
 import { logError } from '@/lib/security/error-handler';
 import { formatZodError } from '@/lib/utils/zod-error';
+import { isDevelopment } from '@/lib/utils/env';
 import { SECURITY_CONFIG } from '@/lib/security/constants';
 import type { ContactRequest, ContactResponse } from '@/types/api';
 
@@ -64,7 +65,6 @@ export async function POST(request: NextRequest) {
     // Integration points: email service, database, webhook, or file storage
     
     // Log submission details only in development for debugging
-    const { isDevelopment } = await import('@/lib/utils/env');
     if (isDevelopment()) {
       logError('contact form submission', {
         name: sanitizedData.name,
