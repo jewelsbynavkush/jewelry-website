@@ -65,6 +65,7 @@ export async function POST(request: NextRequest) {
     // Integration points: email service, database, webhook, or file storage
     
     // Log submission details only in development for debugging
+    // Prevents sensitive data exposure in production logs
     if (isDevelopment()) {
       logError('contact form submission', {
         name: sanitizedData.name,

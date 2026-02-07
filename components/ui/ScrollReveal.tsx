@@ -16,12 +16,19 @@ interface ScrollRevealProps {
 /**
  * ScrollReveal Component
  * 
- * Simple wrapper component maintained for backward compatibility.
+ * Simple wrapper component for consistent layout structure.
  * Scroll-triggered animations were removed due to iOS Safari performance issues.
+ * Deprecated props (delay, direction, stagger) are accepted for backward compatibility but ignored.
  */
 export default function ScrollReveal({ 
   children, 
   className = '',
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  delay,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  direction,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  stagger,
 }: ScrollRevealProps) {
   return (
     <div className={className}>

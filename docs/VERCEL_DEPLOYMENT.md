@@ -471,6 +471,49 @@ After deployment:
 
 ---
 
+## 🚨 **Production Deployment Fixes**
+
+### **Common Production Issues & Fixes**
+
+#### **1. CSP Violation - Vercel Live Scripts Blocked**
+
+**Issue:** Content Security Policy blocks Vercel Live feedback script.
+
+**Fix:** `middleware.ts` allows `https://vercel.live` in `script-src` for production only.
+
+#### **2. Image 400 Errors - File Extension Mismatch**
+
+**Issue:** Hero and about images return 400 due to incorrect file extensions in database.
+
+**Fix:**
+- Default fallback paths updated in `lib/data/site-settings.ts`
+- Run migration script: `npm run update:image-paths`
+- Or manually update MongoDB records:
+  ```javascript
+  db.site_settings.updateOne(
+    { type: 'hero' },
+    { $set: { 'data.hero.image': '/assets/hero/hero-image.png' } }
+  );
+  db.site_settings.updateOne(
+    { type: 'about' },
+    { $set: { 'data.about.image': '/assets/about/about-image.png' } }
+  );
+  ```
+
+#### **3. 401 Unauthorized - Expected Errors Logged**
+
+**Issue:** Expected 401 errors for unauthenticated profile fetches are logged unnecessarily.
+
+**Fix:** `lib/api/client.ts` suppresses expected 401 errors for profile endpoint.
+
+#### **4. 429 Too Many Requests - Rate Limit Too Strict**
+
+**Issue:** Refresh token endpoint rate limit too strict (10 per 15 minutes).
+
+**Fix:** Increased to 20 per 15 minutes in `lib/security/constants.ts`.
+
+---
+
 ## 🎯 **Quick Start Deployment**
 
 ### **Fastest Path to Production (~40 minutes):**
@@ -497,6 +540,7 @@ After deployment:
    - Update base URL
    - Test all functionality
    - Verify everything works
+   - Run `npm run update:image-paths` if needed
 
 5. **Custom Domain** (10 min - optional)
    - Add domain in Vercel

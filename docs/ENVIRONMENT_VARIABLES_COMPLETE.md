@@ -262,3 +262,36 @@ ENABLE_SWAGGER=false
 ---
 
 **Status:** ✅ **COMPLETE - ALL SECRETS MOVED TO ENVIRONMENT VARIABLES**
+
+---
+
+## 📝 **Environment Variable Naming Clarification**
+
+### **`ACCESS_TOKEN_EXPIRES_IN` vs `JWT_EXPIRES_IN`**
+
+**The correct environment variable is:** `ACCESS_TOKEN_EXPIRES_IN`
+
+**Why `ACCESS_TOKEN_EXPIRES_IN` is Correct:**
+1. **More Descriptive:** Specifically indicates it's for access tokens (not refresh tokens)
+2. **OAuth 2.0 Standard:** Follows OAuth 2.0 naming conventions where access tokens and refresh tokens are separate
+3. **Code Implementation:** The actual code uses `ACCESS_TOKEN_EXPIRES_IN` in:
+   - `lib/utils/env.ts` - `getAccessTokenExpiresIn()`
+   - `lib/auth/jwt.ts` - `generateAccessToken()`
+
+**Why `JWT_EXPIRES_IN` is Incorrect:**
+1. **Too Generic:** JWT is just the token format, not the token type
+2. **Not Used in Code:** The codebase does not reference `JWT_EXPIRES_IN` anywhere
+3. **Misleading:** Could be confused with refresh token expiration
+
+**Valid Values:**
+- `'15m'` - 15 minutes
+- `'30m'` - 30 minutes
+- `'1h'` - 1 hour (recommended)
+- `'2h'` - 2 hours
+- `'1d'` - 1 day (not recommended for access tokens)
+
+**Note:** Refresh token expiration is hardcoded to 30 days in `lib/auth/session.ts` (not configurable via env var)
+
+---
+
+**Last Updated:** February 7, 2025

@@ -31,7 +31,7 @@ export async function getSiteSettings(): Promise<SiteSettingsType> {
     title: 'COLLECTION 2025',
     description: 'Discover our collection of unique, beautifully designed jewelry pieces.',
     buttonText: 'DISCOVER',
-    image: '/assets/hero/hero-image.jpg',
+    image: '/assets/hero/hero-image.png',
     alt: 'Jewelry collection',
   };
 
@@ -72,7 +72,7 @@ export async function getSiteSettings(): Promise<SiteSettingsType> {
         : {
             title: 'ABOUT US',
             content: [],
-            image: '/assets/about/about-image.jpg',
+            image: '/assets/about/about-image.png',
             alt: 'About us',
             buttonText: 'MORE ABOUT US',
           },
@@ -120,7 +120,7 @@ export async function getSiteSettings(): Promise<SiteSettingsType> {
       about: {
         title: 'ABOUT US',
         content: [],
-        image: '/assets/about/about-image.jpg',
+        image: '/assets/about/about-image.png',
         alt: 'About us',
         buttonText: 'MORE ABOUT US',
       },

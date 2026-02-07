@@ -201,8 +201,16 @@ async function apiRequest<T = unknown>(
         }
       }
       
-      // Refresh failed or skip refresh endpoint - return error
+      // Refresh failed or skip refresh endpoint - return error silently for expected 401s
+      // Expected 401s (e.g., profile fetch when not authenticated) should not log errors
+      const isExpected401 = endpoint === '/api/users/profile' && retryCount === 0;
       const data = await response.json().catch(() => ({ error: 'Unauthorized' }));
+      
+      // Only log unexpected 401 errors (not profile fetch when not authenticated)
+      if (!isExpected401) {
+        logError(`API request failed: ${endpoint}`, new Error(data.error || 'Authentication required'));
+      }
+      
       return {
         success: false,
         error: data.error || 'Authentication required',

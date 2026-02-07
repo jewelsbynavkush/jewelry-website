@@ -281,7 +281,30 @@ JWT_SECRET=your-secret-key-here
 
 # HTTPS Enforcement
 NODE_ENV=production # Enables HTTPS enforcement
+
+# Obfuscation Keys
+NEXT_PUBLIC_OBFUSCATION_KEY=your-client-side-key-here
+OBFUSCATION_KEY=your-server-side-key-here
 ```
+
+### **Obfuscation Keys Clarification**
+
+**Key Differences:**
+
+| Aspect | `NEXT_PUBLIC_OBFUSCATION_KEY` | `OBFUSCATION_KEY` |
+|--------|------------------------------|-------------------|
+| **Location** | Client-side (browser) | Server-side (Node.js) |
+| **Exposure** | ✅ Exposed to client bundle | ❌ Server-only, never exposed |
+| **Usage** | Obfuscates data before sending | Deobfuscates data after receiving |
+| **File** | `lib/client/request-encryption.ts` | `lib/security/request-decryption.ts` |
+| **Security** | ⚠️ Visible in browser dev tools | ✅ Secure, server-only |
+| **Required** | ✅ Required for client-side obfuscation | ✅ Required (or falls back to `JWT_SECRET`) |
+
+**Important:**
+- Both keys must match for obfuscation/deobfuscation to work
+- If keys don't match, the server cannot deobfuscate the data
+- Server prioritizes `OBFUSCATION_KEY` over `NEXT_PUBLIC_OBFUSCATION_KEY` for security
+- For XOR obfuscation, both keys must have the same value
 
 ## 9. Testing
 

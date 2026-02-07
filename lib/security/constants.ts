@@ -45,10 +45,11 @@ export const SECURITY_CONFIG = {
       windowMs: TIME_DURATIONS_MS.FIFTEEN_MINUTES,
       maxRequests: 50, // 50 login attempts per 15 minutes
     },
-    // Token refresh - strict limit to prevent abuse
+    // Token refresh - moderate limit to prevent abuse while allowing active sessions
+    // Increased from 10 to 20 to accommodate active user sessions with frequent refreshes
     REFRESH: {
       windowMs: TIME_DURATIONS_MS.FIFTEEN_MINUTES,
-      maxRequests: 10, // 10 refreshes per 15 minutes
+      maxRequests: 20, // 20 refreshes per 15 minutes (allows ~1.3 refreshes per minute)
     },
     // Email verification - moderate limit
     AUTH_VERIFY: {

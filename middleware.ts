@@ -48,9 +48,16 @@ export default function middleware(request: NextRequest) {
     }
   }
   
+  // Allow Vercel Live feedback script in production (only in production)
+  // Vercel Live is a development/preview feature that requires external scripts
+  const isProduction = process.env.NODE_ENV === 'production';
+  const scriptSrc = isProduction
+    ? "'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live"
+    : "'self' 'unsafe-eval' 'unsafe-inline'";
+  
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+    `script-src ${scriptSrc}`,
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: https: blob:",
     "font-src 'self' data: https://fonts.gstatic.com",

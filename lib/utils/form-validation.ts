@@ -112,3 +112,77 @@ export function validateAddressLine(
   }
   return null;
 }
+
+/**
+ * Validate city name
+ * 
+ * @param city - City name string to validate
+ * @returns Error message if invalid, null if valid
+ */
+export function validateCity(city: string): string | null {
+  if (!city.trim()) {
+    return 'City is required';
+  }
+  if (city.trim().length < 2) {
+    return 'City name must be at least 2 characters';
+  }
+  if (city.length > 100) {
+    return 'City name must not exceed 100 characters';
+  }
+  if (!/^[a-zA-Z0-9\s\-'\.]+$/.test(city)) {
+    return 'City name can only contain letters, numbers, spaces, hyphens, apostrophes, and dots';
+  }
+  return null;
+}
+
+/**
+ * Validate state name
+ * 
+ * @param state - State name string to validate
+ * @returns Error message if invalid, null if valid
+ */
+export function validateState(state: string): string | null {
+  if (!state.trim()) {
+    return 'State is required';
+  }
+  if (state.length > 100) {
+    return 'State name must not exceed 100 characters';
+  }
+  return null;
+}
+
+/**
+ * Validate pincode (6 digits for India)
+ * 
+ * @param pincode - Pincode string to validate
+ * @returns Error message if invalid, null if valid
+ */
+export function validatePincode(pincode: string): string | null {
+  if (!pincode.trim()) {
+    return 'Pincode is required';
+  }
+  if (!/^[0-9]{6}$/.test(pincode.trim())) {
+    return 'Pincode must be exactly 6 digits';
+  }
+  return null;
+}
+
+/**
+ * Validate phone number (10 digits)
+ * 
+ * @param phone - Phone number string to validate
+ * @param required - Whether the field is required (default: true)
+ * @returns Error message if invalid, null if valid
+ */
+export function validatePhone(phone: string, required: boolean = true): string | null {
+  if (!phone || !phone.trim()) {
+    if (required) {
+      return 'Phone number is required';
+    }
+    return null; // Optional field
+  }
+  if (!/^[0-9]{10}$/.test(phone.trim())) {
+    return 'Phone number must be exactly 10 digits';
+  }
+  return null;
+}

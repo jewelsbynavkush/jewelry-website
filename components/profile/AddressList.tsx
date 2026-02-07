@@ -19,6 +19,7 @@ import Input from '@/components/ui/Input';
 import CountryCodeSelect from '@/components/ui/CountryCodeSelect';
 import Autocomplete from '@/components/ui/Autocomplete';
 import { getAllStates, getCitiesByState } from '@/lib/data/indian-addresses';
+import { validateName, validateAddressLine, validateCity, validateState, validatePincode, validatePhone } from '@/lib/utils/form-validation';
 
 export interface Address {
   id: string;
@@ -152,45 +153,23 @@ export default function AddressList() {
       }
     }
 
-    if (!formData.city.trim()) {
-      setError('City is required');
-      setIsLoading(false);
-      return;
-    }
-    if (formData.city.length < 2) {
-      setError('City name must be at least 2 characters');
-      setIsLoading(false);
-      return;
-    }
-    if (formData.city.length > 100) {
-      setError('City name must not exceed 100 characters');
-      setIsLoading(false);
-      return;
-    }
-    if (!/^[a-zA-Z0-9\s\-'\.]+$/.test(formData.city)) {
-      setError('City name can only contain letters, numbers, spaces, hyphens, apostrophes, and dots');
+    const cityError = validateCity(formData.city);
+    if (cityError) {
+      setError(cityError);
       setIsLoading(false);
       return;
     }
 
-    if (!formData.state.trim()) {
-      setError('State is required');
-      setIsLoading(false);
-      return;
-    }
-    if (formData.state.length > 100) {
-      setError('State name must not exceed 100 characters');
+    const stateError = validateState(formData.state);
+    if (stateError) {
+      setError(stateError);
       setIsLoading(false);
       return;
     }
 
-    if (!formData.zipCode.trim()) {
-      setError('Pincode is required');
-      setIsLoading(false);
-      return;
-    }
-    if (!/^[0-9]{6}$/.test(formData.zipCode.trim())) {
-      setError('Pincode must be exactly 6 digits');
+    const pincodeError = validatePincode(formData.zipCode);
+    if (pincodeError) {
+      setError(pincodeError);
       setIsLoading(false);
       return;
     }
@@ -206,9 +185,9 @@ export default function AddressList() {
       return;
     }
 
-    // Validate phone number
-    if (!formData.phone || !/^[0-9]{10}$/.test(formData.phone.trim())) {
-      setError('Phone number is required and must be exactly 10 digits');
+    const phoneError = validatePhone(formData.phone || '', true);
+    if (phoneError) {
+      setError(phoneError);
       setIsLoading(false);
       return;
     }
@@ -247,97 +226,65 @@ export default function AddressList() {
     setIsLoading(true);
     setError(null);
 
-    // Validate all fields with proper limits (same as handleAdd)
+    // Use centralized validation utilities for consistent validation
     if (formData.firstName && formData.firstName.trim()) {
-      if (formData.firstName.length > 50) {
-        setError('First name must not exceed 50 characters');
-        setIsLoading(false);
-        return;
-      }
-      if (!/^[a-zA-Z\s\-'\.]+$/.test(formData.firstName)) {
-        setError('First name can only contain letters, spaces, hyphens, apostrophes, and dots');
+      const firstNameError = validateName(formData.firstName, 'First name');
+      if (firstNameError) {
+        setError(firstNameError);
         setIsLoading(false);
         return;
       }
     }
 
     if (formData.lastName && formData.lastName.trim()) {
-      if (formData.lastName.length > 50) {
-        setError('Last name must not exceed 50 characters');
-        setIsLoading(false);
-        return;
-      }
-      if (!/^[a-zA-Z\s\-'\.]+$/.test(formData.lastName)) {
-        setError('Last name can only contain letters, spaces, hyphens, apostrophes, and dots');
+      const lastNameError = validateName(formData.lastName, 'Last name');
+      if (lastNameError) {
+        setError(lastNameError);
         setIsLoading(false);
         return;
       }
     }
 
     if (formData.addressLine1 && formData.addressLine1.trim()) {
-      if (formData.addressLine1.trim().length < 5) {
-        setError('Address line 1 must be at least 5 characters');
-        setIsLoading(false);
-        return;
-      }
-      if (formData.addressLine1.length > 200) {
-        setError('Address line 1 must not exceed 200 characters');
-        setIsLoading(false);
-        return;
-      }
-      if (!/^[a-zA-Z0-9\s\-'.,\/#()]+$/.test(formData.addressLine1)) {
-        setError('Address line 1 can only contain letters, numbers, spaces, and common address characters (hyphens, apostrophes, commas, periods, forward slashes, hash symbols, parentheses)');
+      const addressLine1Error = validateAddressLine(formData.addressLine1, 'Address line 1');
+      if (addressLine1Error) {
+        setError(addressLine1Error);
         setIsLoading(false);
         return;
       }
     }
 
     if (formData.addressLine2 && formData.addressLine2.trim()) {
-      if (formData.addressLine2.length > 200) {
-        setError('Address line 2 must not exceed 200 characters');
+      const addressLine2Error = validateAddressLine(formData.addressLine2, 'Address line 2', false);
+      if (addressLine2Error) {
+        setError(addressLine2Error);
         setIsLoading(false);
         return;
       }
-      if (!/^[a-zA-Z0-9\s\-'.,\/#()]*$/.test(formData.addressLine2)) {
-        setError('Address line 2 can only contain letters, numbers, spaces, and common address characters (hyphens, apostrophes, commas, periods, forward slashes, hash symbols, parentheses)');
-        setIsLoading(false);
-        return;
-      }
-    }
-
-    if (formData.addressLine2 && formData.addressLine2.length > 200) {
-      setError('Address line 2 must not exceed 200 characters');
-      setIsLoading(false);
-      return;
     }
 
     if (formData.city && formData.city.trim()) {
-      if (formData.city.length < 2) {
-        setError('City name must be at least 2 characters');
-        setIsLoading(false);
-        return;
-      }
-      if (formData.city.length > 100) {
-        setError('City name must not exceed 100 characters');
-        setIsLoading(false);
-        return;
-      }
-      if (!/^[a-zA-Z0-9\s\-'\.]+$/.test(formData.city)) {
-        setError('City name can only contain letters, numbers, spaces, hyphens, apostrophes, and dots');
+      const cityError = validateCity(formData.city);
+      if (cityError) {
+        setError(cityError);
         setIsLoading(false);
         return;
       }
     }
 
-    if (formData.state && formData.state.trim() && formData.state.length > 100) {
-      setError('State name must not exceed 100 characters');
-      setIsLoading(false);
-      return;
+    if (formData.state && formData.state.trim()) {
+      const stateError = validateState(formData.state);
+      if (stateError) {
+        setError(stateError);
+        setIsLoading(false);
+        return;
+      }
     }
 
     if (formData.zipCode && formData.zipCode.trim()) {
-      if (!/^[0-9]{6}$/.test(formData.zipCode.trim())) {
-        setError('Pincode must be exactly 6 digits');
+      const pincodeError = validatePincode(formData.zipCode);
+      if (pincodeError) {
+        setError(pincodeError);
         setIsLoading(false);
         return;
       }
@@ -349,10 +296,10 @@ export default function AddressList() {
       return;
     }
 
-    // Validate phone number if provided
     if (formData.phone && formData.phone.trim()) {
-      if (!/^[0-9]{10}$/.test(formData.phone.trim())) {
-        setError('Phone number must be exactly 10 digits');
+      const phoneError = validatePhone(formData.phone, false);
+      if (phoneError) {
+        setError(phoneError);
         setIsLoading(false);
         return;
       }

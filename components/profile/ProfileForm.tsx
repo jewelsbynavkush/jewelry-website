@@ -18,6 +18,7 @@ import Card from '@/components/ui/Card';
 import ErrorMessage from '@/components/ui/ErrorMessage';
 import SuccessMessage from '@/components/ui/SuccessMessage';
 import CountryCodeSelect from '@/components/ui/CountryCodeSelect';
+import { validateName, validateEmail, validateMobile } from '@/lib/utils/form-validation';
 
 export default function ProfileForm() {
   const { user, fetchProfile } = useAuthStore();
@@ -58,54 +59,26 @@ export default function ProfileForm() {
     setIsLoading(true);
 
     try {
-      // Validate first name
-      if (!formData.firstName.trim()) {
-        setError('First name is required');
+      // Use centralized validation utilities for consistent validation
+      const firstNameError = validateName(formData.firstName, 'First name');
+      if (firstNameError) {
+        setError(firstNameError);
         setIsLoading(false);
         return;
       }
 
-      if (formData.firstName.length > 50) {
-        setError('First name must not exceed 50 characters');
-        setIsLoading(false);
-        return;
-      }
-
-      if (!/^[a-zA-Z\s\-'\.]+$/.test(formData.firstName)) {
-        setError('First name can only contain letters, spaces, hyphens, apostrophes, and dots');
-        setIsLoading(false);
-        return;
-      }
-
-      // Validate last name
-      if (!formData.lastName.trim()) {
-        setError('Last name is required');
-        setIsLoading(false);
-        return;
-      }
-
-      if (formData.lastName.length > 50) {
-        setError('Last name must not exceed 50 characters');
-        setIsLoading(false);
-        return;
-      }
-
-      if (!/^[a-zA-Z\s\-'\.]+$/.test(formData.lastName)) {
-        setError('Last name can only contain letters, spaces, hyphens, apostrophes, and dots');
+      const lastNameError = validateName(formData.lastName, 'Last name');
+      if (lastNameError) {
+        setError(lastNameError);
         setIsLoading(false);
         return;
       }
 
       // Validate email if provided and not verified
       if (!user?.emailVerified && formData.email.trim()) {
-        if (formData.email.length > 254) {
-          setError('Email must not exceed 254 characters');
-          setIsLoading(false);
-          return;
-        }
-
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
-          setError('Invalid email format');
+        const emailError = validateEmail(formData.email);
+        if (emailError) {
+          setError(emailError);
           setIsLoading(false);
           return;
         }
@@ -113,8 +86,9 @@ export default function ProfileForm() {
 
       // Validate mobile if provided
       if (formData.mobile && formData.mobile.trim()) {
-        if (!/^[0-9]{10}$/.test(formData.mobile.trim())) {
-          setError('Mobile number must be exactly 10 digits');
+        const mobileError = validateMobile(formData.mobile);
+        if (mobileError) {
+          setError(mobileError);
           setIsLoading(false);
           return;
         }

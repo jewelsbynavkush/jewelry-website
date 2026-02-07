@@ -94,7 +94,8 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
 
-    // Get e-commerce settings once for use throughout the function
+    // Fetch e-commerce settings once to avoid repeated database queries
+    // Settings include currency, tax rates, shipping thresholds used in calculations
     const ecommerce = await getEcommerceSettings();
 
     // Check idempotency before transaction (read-only check, no transaction needed)

@@ -78,7 +78,7 @@ Complete documentation for the Jewels by NavKush jewelry website.
 
 - **[CSS Responsiveness Audit](./CSS_RESPONSIVENESS_AUDIT_2025.md)** - Responsiveness standards and best practices
 
-- **[Security Audit](./SECURITY_AUDIT_2025.md)** - Security standards and best practices
+- **[Security Audit](./SECURITY_DEEP_AUDIT_2025.md)** - Security standards and best practices
 
 - **[SEO Audit](./SEO_AUDIT_2025.md)** - SEO standards and best practices
 
@@ -102,7 +102,7 @@ Complete documentation for the Jewels by NavKush jewelry website.
 
 - **[API Guide](./API_GUIDE.md)** - Complete API documentation (includes quick reference)
 
-- **[Swagger Documentation](./SWAGGER_API_DOCUMENTATION.md)** - Interactive API docs
+- **[Swagger Documentation](./SWAGGER_API_DOCUMENTATION.md)** - Interactive API docs (includes security configuration)
 
 ---
 
@@ -120,7 +120,7 @@ Complete documentation for the Jewels by NavKush jewelry website.
 
 - **[Code Quality Audit](./CODE_QUALITY_AUDIT_2025.md)** - Code quality and clean code audit
 
-- **[Security Audit](./SECURITY_AUDIT_2025.md)** - Security standards and best practices
+- **[Security Audit](./SECURITY_DEEP_AUDIT_2025.md)** - Security standards and best practices
 
 - **[Comment Standards](./COMMENT_STANDARDS.md)** - Comment standards (includes audit history)
 
