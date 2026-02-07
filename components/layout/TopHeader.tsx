@@ -302,16 +302,16 @@ export default function TopHeader() {
           )}
 
           {/* Right Icons: Cart and User */}
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-0 sm:gap-4">
             <motion.div
               initial={{ scale: 1, rotate: 0 }}
               whileHover={ANIMATION_PRESETS.ICON_HOVER}
               whileTap={ANIMATION_PRESETS.ICON_TAP}
-              className="flex items-center relative"
+              className="flex items-center relative -mr-1 sm:mr-0"
             >
               <SmoothLink
                 href="/cart"
-                className="transition-colors p-2 sm:p-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center relative"
+                className="transition-colors p-2 pr-1 sm:p-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center relative"
                 style={{ color: textColor }}
                 aria-label="Shopping cart"
               >
@@ -328,7 +328,7 @@ export default function TopHeader() {
                 {/* Cart item count badge - very close to icon on mobile, slightly away on desktop */}
                 {cartItemCount > 0 && (
                   <motion.span
-                    className="absolute top-3 -right-1 sm:top-0 sm:right-0 min-w-[18px] h-[18px] sm:min-w-[20px] sm:h-[20px] px-1 sm:px-1.5 flex items-center justify-center bg-[var(--active-dark)] text-[var(--text-on-beige)] text-[0.625rem] sm:text-xs font-bold rounded-full shadow-lg z-20 pointer-events-none -translate-x-1/2 -translate-y-1/2 sm:translate-x-1/2 sm:-translate-y-1/2"
+                    className="absolute top-3 -right-1 sm:top-0 sm:right-1 min-w-[18px] h-[18px] sm:min-w-[20px] sm:h-[20px] px-1 sm:px-1.5 flex items-center justify-center bg-[var(--active-dark)] text-[var(--text-on-beige)] text-[0.625rem] sm:text-xs font-bold rounded-full shadow-lg z-20 pointer-events-none -translate-x-1/2 -translate-y-1/2 sm:translate-x-1/2 sm:-translate-y-1/2"
                     style={{ 
                       lineHeight: '1',
                       border: `2px solid ${headerBgColor === 'var(--cream)' ? 'var(--cream)' : 'var(--beige)'}`,

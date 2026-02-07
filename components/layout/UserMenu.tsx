@@ -100,7 +100,7 @@ export default function UserMenu({ textColor }: UserMenuProps) {
       <motion.button
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className="transition-colors p-2 -mr-2 sm:p-0 sm:mr-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center relative focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--active-dark)] focus-visible:ring-offset-2 cursor-pointer"
+        className="transition-colors p-2 pl-1 -mr-4 sm:p-0 sm:mr-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center relative focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--active-dark)] focus-visible:ring-offset-2 cursor-pointer"
         style={{ color: textColor || 'var(--text-on-beige)' }}
         aria-label={`User menu for ${user?.firstName}`}
         aria-haspopup="true"

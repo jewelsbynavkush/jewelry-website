@@ -45,7 +45,7 @@ export default function ToastContainer() {
 
   return (
     <div
-      className="fixed top-4 right-4 z-50 flex flex-col gap-2 sm:gap-3 max-w-sm w-full sm:w-auto pointer-events-none"
+      className="fixed top-4 left-4 right-4 sm:left-auto sm:right-4 z-50 flex flex-col gap-2 sm:gap-3 w-full max-w-[min(24rem,calc(100vw-2rem))] sm:max-w-sm pointer-events-none"
       aria-live="polite"
       aria-atomic="true"
     >
@@ -104,7 +104,7 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
       className="pointer-events-auto"
     >
       <div
-        className="p-4 rounded-lg shadow-lg border flex items-start gap-3 min-h-[44px]"
+        className="p-4 rounded-lg shadow-lg border flex items-start gap-3 min-h-[44px] min-w-0 overflow-hidden"
         style={{
           backgroundColor: style.bg,
           color: style.text,
@@ -115,7 +115,9 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
         <span className="text-lg font-bold flex-shrink-0" aria-hidden="true">
           {style.icon}
         </span>
-        <p className="flex-1 text-body-sm sm:text-body-base font-medium">{toast.message}</p>
+        <p className="flex-1 min-w-0 text-body-sm sm:text-body-base font-medium break-words">
+          {toast.message}
+        </p>
         <button
           onClick={onClose}
           className="flex-shrink-0 text-lg font-bold opacity-70 hover:opacity-100 transition-opacity min-w-[44px] min-h-[44px] flex items-center justify-center touch-target cursor-pointer"
