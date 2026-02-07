@@ -7,12 +7,13 @@
  * - Edge cases
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { GET } from '@/app/api/categories/route';
 import { createGuestRequest, getJsonResponse, expectStatus } from '../helpers/api-helpers';
 import connectDB from '@/lib/mongodb';
 import Category from '@/models/Category';
 import { createTestCategory } from '../helpers/test-utils';
+import * as categoriesModule from '@/lib/data/categories';
 
 describe('GET /api/categories', () => {
   beforeEach(async () => {
@@ -36,7 +37,13 @@ describe('GET /api/categories', () => {
     });
 
     it('should return empty array when no active categories', async () => {
+      // Clear all categories first
+      await Category.deleteMany({});
+      // Create only inactive category
       await Category.create(createTestCategory({ active: false }));
+
+      // Override mock to return empty array
+      vi.mocked(categoriesModule.getCategories).mockResolvedValueOnce([]);
 
       const request = createGuestRequest('GET', 'http://localhost:3000/api/categories');
 

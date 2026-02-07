@@ -63,11 +63,17 @@ export async function GET(request: NextRequest) {
       healthStatus.status = 'unhealthy';
     }
   } catch (error) {
+    // Security: Don't expose error details in health check response
+    // Generic error message prevents information disclosure
     healthStatus.services.database = {
       status: 'error',
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: 'Database connection failed',
     };
     healthStatus.status = 'unhealthy';
+    
+    // Log full error details for debugging (not exposed to client)
+    const { logError } = await import('@/lib/security/error-handler');
+    logError('health check - database connection', error);
   }
 
   // Determine overall status

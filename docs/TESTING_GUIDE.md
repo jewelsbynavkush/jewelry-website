@@ -50,7 +50,7 @@ Create `.env.test`:
 NODE_ENV=test
 MONGODB_URI=mongodb://localhost:27017/test
 JWT_SECRET=test-jwt-secret-key-for-testing-only
-JWT_EXPIRES_IN=1h
+ACCESS_TOKEN_EXPIRES_IN=1h
 ```
 
 ---

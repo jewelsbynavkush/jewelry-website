@@ -5,7 +5,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
  */
 
 export interface ISiteSettings extends Document {
-  type: 'general' | 'hero' | 'about' | 'contact' | 'social' | 'seo' | 'shipping' | 'payment';
+  type: 'general' | 'hero' | 'about' | 'contact' | 'social' | 'seo' | 'shipping' | 'payment' | 'ecommerce';
   data: Record<string, unknown>;
   updatedAt: Date;
 }
@@ -15,7 +15,7 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
     type: {
       type: String,
       required: true,
-      enum: ['general', 'hero', 'about', 'contact', 'social', 'seo', 'shipping', 'payment'],
+      enum: ['general', 'hero', 'about', 'contact', 'social', 'seo', 'shipping', 'payment', 'ecommerce'],
       unique: true,
       index: true,
     },

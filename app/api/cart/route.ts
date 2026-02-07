@@ -20,6 +20,7 @@ import { formatZodError } from '@/lib/utils/zod-error';
 import { getSessionId } from '@/lib/utils/api-helpers';
 import { ECOMMERCE } from '@/lib/constants';
 import { SECURITY_CONFIG } from '@/lib/security/constants';
+import { getEcommerceSettings } from '@/lib/utils/site-settings-helpers';
 import type { GetCartResponse, AddToCartRequest, AddToCartResponse } from '@/types/api';
 import { z } from 'zod';
 import mongoose from 'mongoose';
@@ -55,6 +56,9 @@ export async function GET(request: NextRequest) {
   try {
     await connectDB();
 
+    // Get e-commerce settings once for use throughout the function
+    const ecommerce = await getEcommerceSettings();
+
     // Try to authenticate (optional for guest carts)
     const user = await optionalAuth(request);
     const sessionId = getSessionId(request);
@@ -72,21 +76,21 @@ export async function GET(request: NextRequest) {
     if (!cart) {
       // Return empty cart structure for consistent API response format
       // Ensures frontend always receives a valid cart object even when no cart exists
-    return createSecureResponse(
-      {
-        cart: {
-          items: [],
-          subtotal: 0,
-          tax: 0,
-          shipping: 0,
-          discount: 0,
-          total: 0,
-          currency: ECOMMERCE.currency,
+      return createSecureResponse(
+        {
+          cart: {
+            items: [],
+            subtotal: 0,
+            tax: 0,
+            shipping: 0,
+            discount: 0,
+            total: 0,
+            currency: ecommerce.currency ?? ECOMMERCE.currency,
+          },
         },
-      },
-      200,
-      request
-    );
+        200,
+        request
+      );
     }
 
     // E-commerce best practice: Validate cart items on retrieval
@@ -181,7 +185,7 @@ export async function GET(request: NextRequest) {
       // Update price if changed significantly (allow configured variance threshold to avoid frequent updates)
       // E-commerce best practice: Update prices to reflect current product pricing
       const priceVariance = Math.abs(product.price - item.price) / item.price;
-      if (priceVariance > ECOMMERCE.priceVarianceThreshold) {
+      if (priceVariance > (ecommerce.priceVarianceThreshold ?? ECOMMERCE.priceVarianceThreshold)) {
         cartNeedsUpdate = true;
         itemPrice = product.price;
         itemSubtotal = product.price * itemQuantity;
@@ -218,10 +222,14 @@ export async function GET(request: NextRequest) {
         .select('items subtotal tax shipping discount total currency');
       if (cartDoc) {
         cartDoc.items = validItems;
-        cartDoc.calculateTotals(ECOMMERCE.freeShippingThreshold, ECOMMERCE.defaultShippingCost);
-        if (ECOMMERCE.calculateTax && ECOMMERCE.taxRate > 0) {
-          cartDoc.tax = Math.round(cartDoc.subtotal * ECOMMERCE.taxRate * 100) / 100;
-          cartDoc.calculateTotals(ECOMMERCE.freeShippingThreshold, ECOMMERCE.defaultShippingCost);
+        const freeShippingThreshold = ecommerce.freeShippingThreshold ?? ECOMMERCE.freeShippingThreshold;
+        const defaultShippingCost = ecommerce.defaultShippingCost ?? ECOMMERCE.defaultShippingCost;
+        cartDoc.calculateTotals(freeShippingThreshold, defaultShippingCost);
+        const calculateTax = ecommerce.calculateTax ?? ECOMMERCE.calculateTax;
+        const taxRate = ecommerce.taxRate ?? ECOMMERCE.taxRate;
+        if (calculateTax && taxRate > 0) {
+          cartDoc.tax = Math.round(cartDoc.subtotal * taxRate * 100) / 100;
+          cartDoc.calculateTotals(freeShippingThreshold, defaultShippingCost);
         }
         await cartDoc.save();
         // Use updated cart document for response to ensure consistency
@@ -275,6 +283,9 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
 
+    // Get e-commerce settings once for use throughout the function
+    const ecommerce = await getEcommerceSettings();
+
     // Validate request body to prevent invalid data from reaching database
     const body = await request.json() as AddToCartRequest;
     const validatedData = addToCartSchema.parse(body);
@@ -297,7 +308,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (product.status !== 'active') {
-      return createSecureErrorResponse('Product is not available', 400, request);
+      return createSecureErrorResponse('Product is no longer available', 400, request);
     }
 
     // Prevent overselling by checking available stock before allowing item addition
@@ -320,25 +331,26 @@ export async function POST(request: NextRequest) {
     );
 
     if (!cart) {
-      // Initialize new cart with default currency from constants
+      // Initialize new cart with default currency from database settings
       // Ensures consistent currency across all cart operations
       // E-commerce best practice: Guest carts expire (30 days), user carts don't expire
       cart = new Cart({
         userId: user?.userId,
         sessionId: user ? undefined : sessionId,
         items: [],
-        currency: ECOMMERCE.currency,
+        currency: ecommerce.currency ?? ECOMMERCE.currency,
         // Only set expiresAt for guest carts (sessionId-based)
         // User carts (userId-based) should not expire
-        expiresAt: user ? undefined : new Date(Date.now() + ECOMMERCE.guestCartExpirationDays * 24 * 60 * 60 * 1000),
+        expiresAt: user ? undefined : new Date(Date.now() + (ecommerce.guestCartExpirationDays ?? ECOMMERCE.guestCartExpirationDays) * 24 * 60 * 60 * 1000),
       });
     }
 
     // E-commerce best practice: Enforce maximum cart items limit
     // Prevents cart bloat and ensures reasonable cart sizes
-    if (cart.items.length >= ECOMMERCE.maxCartItems) {
+    const maxCartItems = ecommerce.maxCartItems ?? ECOMMERCE.maxCartItems;
+    if (cart.items.length >= maxCartItems) {
       return createSecureErrorResponse(
-        `Cart cannot exceed ${ECOMMERCE.maxCartItems} items. Please remove some items before adding more.`,
+        `Cart cannot exceed ${maxCartItems} items. Please remove some items before adding more.`,
         400,
         request
       );
@@ -413,17 +425,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Calculate cart totals including tax and shipping
-    // Applies free shipping threshold and tax rate from e-commerce constants
     // E-commerce best practice: Apply free shipping when subtotal meets threshold
-    cart.calculateTotals(ECOMMERCE.freeShippingThreshold, ECOMMERCE.defaultShippingCost);
+    const freeShippingThreshold = ecommerce.freeShippingThreshold ?? ECOMMERCE.freeShippingThreshold;
+    const defaultShippingCost = ecommerce.defaultShippingCost ?? ECOMMERCE.defaultShippingCost;
+    cart.calculateTotals(freeShippingThreshold, defaultShippingCost);
     
     // Calculate tax based on e-commerce configuration (18% GST in India)
     // Tax calculation is configurable and can be disabled for tax-exempt regions
-    if (ECOMMERCE.calculateTax && ECOMMERCE.taxRate > 0) {
+    const calculateTax = ecommerce.calculateTax ?? ECOMMERCE.calculateTax;
+    const taxRate = ecommerce.taxRate ?? ECOMMERCE.taxRate;
+    if (calculateTax && taxRate > 0) {
       // Round tax to 2 decimal places for financial precision
-      cart.tax = Math.round(cart.subtotal * ECOMMERCE.taxRate * 100) / 100;
+      cart.tax = Math.round(cart.subtotal * taxRate * 100) / 100;
       // Recalculate cart totals including tax to ensure accurate final amount
-      cart.calculateTotals(ECOMMERCE.freeShippingThreshold, ECOMMERCE.defaultShippingCost);
+      cart.calculateTotals(freeShippingThreshold, defaultShippingCost);
     }
     
     await cart.save();

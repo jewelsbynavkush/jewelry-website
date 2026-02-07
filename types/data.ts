@@ -61,6 +61,26 @@ export interface SiteSettings {
   intro: {
     rightColumnSlogan?: string;
   };
+  ecommerce?: {
+    currency?: string;
+    currencySymbol?: string;
+    defaultShippingDays?: number;
+    freeShippingThreshold?: number;
+    defaultShippingCost?: number;
+    returnWindowDays?: number;
+    taxRate?: number;
+    calculateTax?: boolean;
+    priceVarianceThreshold?: number;
+    guestCartExpirationDays?: number;
+    userCartExpirationDays?: number | null;
+    maxQuantityPerItem?: number;
+    maxCartItems?: number;
+  };
+  general?: {
+    businessHours?: string;
+    contactEmail?: string;
+    supportEmail?: string;
+  };
 }
 
 export interface Category {

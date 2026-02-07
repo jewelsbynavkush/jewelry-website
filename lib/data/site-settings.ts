@@ -17,32 +17,37 @@ import { logError } from '@/lib/security/error-handler';
  * @returns Site settings object with brand, hero, about, and other configuration
  */
 export async function getSiteSettings(): Promise<SiteSettingsType> {
+  // Default values (defined outside try/catch for use in both blocks)
+  const defaultBrand: { name: string; tagline?: string } = {
+    name: 'Jewels by NavKush',
+    tagline: 'A CELESTIAL TOUCH FOR TIMELESS MOMENTS',
+  };
+  
+  const defaultIntro: { rightColumnSlogan?: string } = {
+    rightColumnSlogan: 'Discover our most cherished pieces',
+  };
+  
+  const defaultHero: { title: string; description: string; buttonText: string; image: string; alt: string } = {
+    title: 'COLLECTION 2025',
+    description: 'Discover our collection of unique, beautifully designed jewelry pieces.',
+    buttonText: 'DISCOVER',
+    image: '/assets/hero/hero-image.jpg',
+    alt: 'Jewelry collection',
+  };
+
   try {
     await connectDB();
     
     // Fetch all site settings types
-    const [general, hero, about, contact, social, seo] = await Promise.all([
+    const [general, hero, about, contact, social, seo, ecommerce] = await Promise.all([
       SiteSettings.findOne({ type: 'general' }).lean(),
       SiteSettings.findOne({ type: 'hero' }).lean(),
       SiteSettings.findOne({ type: 'about' }).lean(),
       SiteSettings.findOne({ type: 'contact' }).lean(),
       SiteSettings.findOne({ type: 'social' }).lean(),
       SiteSettings.findOne({ type: 'seo' }).lean(),
+      SiteSettings.findOne({ type: 'ecommerce' }).lean(),
     ]);
-    
-    // Combine settings with safe defaults
-    const defaultBrand: { name: string; tagline?: string } = {
-      name: 'Jewels by NavKush',
-      tagline: 'A CELESTIAL TOUCH FOR TIMELESS MOMENTS',
-    };
-    
-    const defaultHero: { title: string; description: string; buttonText: string; image: string; alt: string } = {
-      title: 'COLLECTION 2025',
-      description: 'Discover our collection of unique, beautifully designed jewelry pieces.',
-      buttonText: 'DISCOVER',
-      image: '/assets/hero/hero-image.jpg',
-      alt: 'Jewelry collection',
-    };
     
     return {
       brand: (general?.data?.brand && 
@@ -90,24 +95,28 @@ export async function getSiteSettings(): Promise<SiteSettingsType> {
           },
       contact: contact?.data?.contact || {},
       social: social?.data?.social || {},
-      intro: seo?.data?.intro || {},
+      intro: (general?.data?.intro && 
+              typeof general.data.intro === 'object' && 
+              general.data.intro !== null)
+        ? (general.data.intro as { rightColumnSlogan?: string })
+        : (seo?.data?.intro && 
+           typeof seo.data.intro === 'object' && 
+           seo.data.intro !== null)
+          ? (seo.data.intro as { rightColumnSlogan?: string })
+          : defaultIntro,
+      ecommerce: (ecommerce?.data?.ecommerce && 
+                  typeof ecommerce.data.ecommerce === 'object' && 
+                  ecommerce.data.ecommerce !== null)
+        ? (ecommerce.data.ecommerce as SiteSettingsType['ecommerce'])
+        : undefined,
     };
   } catch (error) {
     logError('getSiteSettings', error);
     // Return safe defaults to prevent app crash if database connection fails
     // Ensures site remains functional even if settings can't be loaded
     return {
-      brand: {
-        name: 'Jewels by NavKush',
-        tagline: 'A CELESTIAL TOUCH FOR TIMELESS MOMENTS',
-      },
-      hero: {
-        title: 'COLLECTION 2025',
-        description: 'Discover our collection of unique, beautifully designed jewelry pieces.',
-        buttonText: 'DISCOVER',
-        image: '/assets/hero/hero-image.jpg',
-        alt: 'Jewelry collection',
-      },
+      brand: defaultBrand,
+      hero: defaultHero,
       about: {
         title: 'ABOUT US',
         content: [],
@@ -124,7 +133,8 @@ export async function getSiteSettings(): Promise<SiteSettingsType> {
       },
       contact: {},
       social: {},
-      intro: {},
+      intro: defaultIntro,
+      ecommerce: undefined,
     };
   }
 }

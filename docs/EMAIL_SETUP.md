@@ -7,8 +7,7 @@
 ## 📋 **Table of Contents**
 
 1. [Gmail Setup (Free)](#gmail-setup-free)
-2. [Zoho Mail Setup (Business Email)](#zoho-mail-setup-business-email)
-3. [Environment Variables](#environment-variables)
+2. [Environment Variables](#environment-variables)
 4. [Testing](#testing)
 5. [Troubleshooting](#troubleshooting)
 
@@ -60,38 +59,6 @@ The code automatically:
 
 ---
 
-## 📧 **Zoho Mail Setup (Business Email)**
-
-For professional business email addresses (e.g., support@jewelsbynavkush.com), use Zoho Mail.
-
-### **Free Tier Details**
-
-- ✅ **5 free email accounts** per domain
-- ✅ **5GB storage** per account
-- ✅ **25MB attachment** limit
-- ✅ **Webmail interface**
-- ✅ **Mobile apps** (iOS & Android)
-- ✅ **IMAP/POP3** support
-- ✅ **Email forwarding**
-
-### **Setup Steps**
-
-See **[Zoho Mail Setup Guide](./ZOHO_MAIL_SETUP.md)** for complete setup instructions.
-
-### **Zoho Mail API Key**
-
-After setting up Zoho Mail, generate an API key:
-
-1. Go to [Zoho Mail API Console](https://api-console.zoho.com/)
-2. Create a new API key
-3. Add to environment variables:
-
-```env
-ZOHO_MAIL_API_KEY=your_zoho_api_key
-```
-
----
-
 ## 🔧 **Environment Variables**
 
 ### **Gmail Configuration**
@@ -103,12 +70,6 @@ GMAIL_APP_PASSWORD=your_16_char_app_password
 GMAIL_FROM_NAME=Jewels by NavKush
 ```
 
-### **Zoho Mail Configuration**
-
-```env
-# Zoho Mail API (for business emails)
-ZOHO_MAIL_API_KEY=your_zoho_api_key
-```
 
 ### **Important Notes**
 
@@ -127,11 +88,6 @@ ZOHO_MAIL_API_KEY=your_zoho_api_key
 3. Verify OTP works correctly
 4. Done! 🎉
 
-### **Test Zoho Mail Setup**
-
-1. Send a test email using Zoho Mail API
-2. Verify email is received
-3. Check email formatting and content
 
 ---
 
@@ -153,9 +109,6 @@ ZOHO_MAIL_API_KEY=your_zoho_api_key
 - Check Gmail account for security alerts
 - Verify daily sending limit hasn't been reached
 
-### **Zoho Mail Issues**
-
-See **[Zoho Mail Setup Guide](./ZOHO_MAIL_SETUP.md)** troubleshooting section.
 
 ---
 
@@ -165,7 +118,6 @@ See **[Zoho Mail Setup Guide](./ZOHO_MAIL_SETUP.md)** troubleshooting section.
 - ✅ Use **Gmail** (free, easy setup, 500 emails/day)
 
 **For Production:**
-- ✅ Use **Zoho Mail** (professional business emails, 5 free accounts)
 
 **Both services are free and work perfectly for the jewelry website!**
 

@@ -295,24 +295,14 @@ export async function PATCH(request: NextRequest) {
     try {
       await userDoc.save();
     } catch (saveError: unknown) {
-      // Handle Mongoose validation errors with user-friendly messages
-      if (saveError && typeof saveError === 'object' && 'name' in saveError && saveError.name === 'ValidationError') {
-        const errors = Object.values('errors' in saveError && saveError.errors ? saveError.errors : {}).map((err: unknown) => 
-          err && typeof err === 'object' && 'message' in err ? String(err.message) : 'Validation error'
-        );
-        return createSecureErrorResponse(errors.join(', ') || 'Validation error', 400, request);
+      // Handle Mongoose errors with reusable utility
+      const { handleMongooseSaveError } = await import('@/lib/utils/mongoose-error-handler');
+      const errorResponse = handleMongooseSaveError(saveError, request, 'user profile update');
+      if (errorResponse) {
+        return errorResponse;
       }
       
-      // Handle unique constraint violations (duplicate email, mobile, etc.)
-      if (saveError && typeof saveError === 'object' && 'code' in saveError && saveError.code === 11000) {
-        const keyPattern = 'keyPattern' in saveError && saveError.keyPattern ? saveError.keyPattern : {};
-        const field = Object.keys(keyPattern)[0];
-        if (field === 'email') {
-          return createSecureErrorResponse('Email already in use', 400, request);
-        }
-        return createSecureErrorResponse(`${field} already exists`, 400, request);
-      }
-      
+      // Re-throw other errors for outer catch block
       throw saveError;
     }
 

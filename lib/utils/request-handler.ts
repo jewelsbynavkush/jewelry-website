@@ -34,12 +34,16 @@ export async function parseAndValidateRequest<T>(
     const validatedData = schema.parse(body);
     return { data: validatedData };
   } catch (error) {
+    // Handle JSON parsing errors separately from validation errors
+    // SyntaxError indicates malformed JSON in request body
     if (error instanceof SyntaxError || (error as Error).name === 'SyntaxError') {
       return {
         error: createSecureErrorResponse('Invalid JSON', 400, request),
       };
     }
 
+    // Check for Zod validation errors to provide structured error response
+    // Zod errors contain field-level validation details
     const zodError = formatZodError(error);
     if (zodError) {
       return {
@@ -47,6 +51,8 @@ export async function parseAndValidateRequest<T>(
       };
     }
 
+    // Log unexpected errors for debugging while returning generic error to client
+    // Prevents information disclosure while maintaining error tracking
     logError('request parsing', error);
     return {
       error: createSecureErrorResponse('Invalid request', 400, request),

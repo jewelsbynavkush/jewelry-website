@@ -6,7 +6,7 @@
  */
 
 import { NextResponse } from 'next/server';
-import { isDevelopment, getBaseUrl, getCorsAllowedOrigins } from '@/lib/utils/env';
+import { getBaseUrl, getCorsAllowedOrigins, isProduction } from '@/lib/utils/env';
 
 export interface CorsConfig {
   /** Allowed origins (use '*' for all, or specific domains) */
@@ -170,20 +170,21 @@ export function getCorsConfig(): CorsConfig {
   if (envOrigins.length > 0) {
     allowedOrigins.push(...envOrigins);
   } else {
-    // Default: allow same-origin and localhost in development
-    const baseUrl = getBaseUrl();
-    if (baseUrl && baseUrl !== 'https://yourdomain.com') {
-      try {
+    // In production, CORS origins must be explicitly configured
+    if (isProduction()) {
+      throw new Error('CORS_ALLOWED_ORIGINS environment variable must be set in production');
+    }
+    
+    // In development, derive from base URL if set
+    try {
+      const baseUrl = getBaseUrl();
+      if (baseUrl) {
         const url = new URL(baseUrl);
         allowedOrigins.push(url.origin);
-      } catch {
-        // Invalid URL
       }
-    }
-
-    // Allow localhost in development
-    if (isDevelopment()) {
-      allowedOrigins.push('http://localhost:3000', 'http://127.0.0.1:3000');
+    } catch {
+      // If getBaseUrl() throws, CORS will be empty (same-origin only)
+      // This is acceptable for development
     }
   }
 

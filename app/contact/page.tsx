@@ -6,6 +6,7 @@ import InfoCard from '@/components/ui/InfoCard';
 import ScrollReveal from '@/components/ui/ScrollReveal';
 import { generateStandardMetadata } from '@/lib/seo/metadata';
 import { getBaseUrl } from '@/lib/utils/env';
+import { getSiteSettings } from '@/lib/data/site-settings';
 
 export const metadata: Metadata = generateStandardMetadata({
   title: 'Contact Us',
@@ -13,7 +14,20 @@ export const metadata: Metadata = generateStandardMetadata({
   url: `${getBaseUrl()}/contact`,
 });
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const settings = await getSiteSettings();
+  
+  // Use only site settings from MongoDB
+  // Show "--" if values are not set in site settings
+  const getValueOrPlaceholder = (value: string | undefined): string => {
+    return (value && value.trim()) ? value.trim() : '--';
+  };
+  
+  const contactEmail = getValueOrPlaceholder(settings.contact?.email);
+  const contactPhone = getValueOrPlaceholder(settings.contact?.phone);
+  const contactAddress = getValueOrPlaceholder(settings.contact?.address);
+  const businessHours = getValueOrPlaceholder(settings.general?.businessHours);
+
   return (
     <PageContainer maxWidth="3xl">
       <ScrollReveal>
@@ -30,21 +44,25 @@ export default function ContactPage() {
           <InfoCard title="Get in Touch">
             <div className="standard-space-y-small text-[var(--text-secondary)] text-body-base">
               <p>
-                <strong className="text-[var(--text-on-cream)]">Email:</strong> info@jewelrystore.com
+                <strong className="text-[var(--text-on-cream)]">Email:</strong> {contactEmail}
               </p>
               <p>
-                <strong className="text-[var(--text-on-cream)]">Phone:</strong> +1 (555) 123-4567
+                <strong className="text-[var(--text-on-cream)]">Phone:</strong> {contactPhone}
               </p>
               <p>
-                <strong className="text-[var(--text-on-cream)]">Address:</strong> 123 Jewelry Street, City, State 12345
+                <strong className="text-[var(--text-on-cream)]">Address:</strong> {contactAddress}
               </p>
             </div>
           </InfoCard>
           <InfoCard title="Business Hours">
             <div className="standard-space-y-small text-[var(--text-secondary)] text-body-base">
-              <p>Monday - Friday: 9:00 AM - 6:00 PM</p>
-              <p>Saturday: 10:00 AM - 4:00 PM</p>
-              <p>Sunday: Closed</p>
+              {businessHours === '--' ? (
+                <p>--</p>
+              ) : (
+                businessHours.split('\n').map((line, index) => (
+                  <p key={index}>{line}</p>
+                ))
+              )}
             </div>
           </InfoCard>
         </div>

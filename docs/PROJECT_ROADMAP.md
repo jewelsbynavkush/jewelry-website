@@ -73,8 +73,7 @@
   NEXT_PUBLIC_BASE_URL=https://dev2026.jewelsbynavkush.com
   MONGODB_URI=mongodb+srv://username:password@dev-cluster.mongodb.net/jewelry-website-dev?retryWrites=true&w=majority
   JWT_SECRET=your-secure-random-secret-key-change-in-production
-  JWT_EXPIRES_IN=5m
-  ZOHO_MAIL_API_KEY=dev_mail_key
+  ACCESS_TOKEN_EXPIRES_IN=5m
   ```
 
 #### **Vercel Setup**
@@ -99,8 +98,7 @@
   NEXT_PUBLIC_BASE_URL=https://jewelsbynavkush.com
   MONGODB_URI=mongodb+srv://username:password@prod-cluster.mongodb.net/jewelry-website-prod?retryWrites=true&w=majority
   JWT_SECRET=your-secure-random-secret-key-change-in-production
-  JWT_EXPIRES_IN=5m
-  ZOHO_MAIL_API_KEY=prod_mail_key
+  ACCESS_TOKEN_EXPIRES_IN=5m
   ```
 
 #### **Vercel Setup**
@@ -117,8 +115,7 @@ NEXT_PUBLIC_ENV=development
 NEXT_PUBLIC_BASE_URL=https://dev2026.jewelsbynavkush.com
 MONGODB_URI=mongodb+srv://username:password@dev-cluster.mongodb.net/jewelry-website-dev?retryWrites=true&w=majority
 JWT_SECRET=your-secure-random-secret-key-change-in-production
-JWT_EXPIRES_IN=5m
-ZOHO_MAIL_API_KEY=dev_mail_key
+ACCESS_TOKEN_EXPIRES_IN=5m
 # RAZORPAY_KEY_ID=dev_razorpay_key (future phase)
 # RAZORPAY_KEY_SECRET=dev_razorpay_secret (future phase)
 
@@ -127,8 +124,7 @@ NEXT_PUBLIC_ENV=production
 NEXT_PUBLIC_BASE_URL=https://jewelsbynavkush.com
 MONGODB_URI=mongodb+srv://username:password@prod-cluster.mongodb.net/jewelry-website-prod?retryWrites=true&w=majority
 JWT_SECRET=your-secure-random-secret-key-change-in-production
-JWT_EXPIRES_IN=5m
-ZOHO_MAIL_API_KEY=prod_mail_key
+ACCESS_TOKEN_EXPIRES_IN=5m
 # RAZORPAY_KEY_ID=prod_razorpay_key (future phase)
 # RAZORPAY_KEY_SECRET=prod_razorpay_secret (future phase)
 ```
@@ -1083,7 +1079,7 @@ MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/jewelry-website?
 
 # JWT Authentication
 JWT_SECRET=your-secure-random-secret-key-min-32-chars
-JWT_EXPIRES_IN=7d
+ACCESS_TOKEN_EXPIRES_IN=7d
 
 # CORS (optional - defaults work for localhost)
 CORS_ALLOWED_ORIGINS=http://localhost:3000

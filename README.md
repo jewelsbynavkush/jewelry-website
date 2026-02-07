@@ -25,9 +25,9 @@ All documentation is organized in the [`docs/`](./docs/) folder.
 - [Development Guide](./docs/DEVELOPMENT_GUIDE.md) - Complete development workflow
 - [MongoDB Atlas Setup](./docs/MONGODB_ATLAS_COMPLETE_GUIDE.md) - Database setup ⭐ **READ THIS FIRST**
 - [Email Setup Guide](./docs/EMAIL_SETUP.md) - Gmail and Zoho Mail configuration
-- [Overall Best Practices](./docs/OVERALL_BEST_PRACTICES_FINAL_2025.md) - Complete best practices verification
+- [Comprehensive Best Practices Audit](./docs/COMPREHENSIVE_BEST_PRACTICES_AUDIT_2025.md) - Complete best practices verification
 - [E-commerce Best Practices](./docs/E_COMMERCE_BEST_PRACTICES_FINAL.md) - Complete e-commerce guide and best practices
-- [Backend Audit Report](./docs/BACKEND_AUDIT_FINAL_2025.md) - Complete backend and comprehensive audit
+- [Backend Comprehensive Audit](./docs/BACKEND_COMPREHENSIVE_AUDIT_2025_FINAL.md) - Complete backend and comprehensive audit
 - [Models Guide](./docs/MODELS_GUIDE.md) - Database models
 - [Inventory Guide](./docs/INVENTORY_GUIDE.md) - Complete inventory management
 - [API Guide](./docs/API_GUIDE.md) - API documentation

@@ -15,15 +15,15 @@ import { logError } from '@/lib/security/error-handler';
 import { sanitizeString, sanitizePhone } from '@/lib/security/sanitize';
 import { formatZodError } from '@/lib/utils/zod-error';
 import { SECURITY_CONFIG } from '@/lib/security/constants';
-import { indianAddressSchema } from '@/lib/validations/address';
+import { createAddressSchema } from '@/lib/validations/address-country-aware';
 import type { UpdateAddressRequest, UpdateAddressResponse, DeleteAddressResponse } from '@/types/api';
 import { z } from 'zod';
 
 /**
- * Schema for updating address with Indian address validation
+ * Schema for updating address with country-aware validation
  * All fields are optional for partial updates
  */
-const updateAddressSchema = indianAddressSchema.partial().extend({
+const updateAddressSchema = createAddressSchema().partial().extend({
   type: z.enum(['shipping', 'billing', 'both']).optional(),
   isDefault: z.boolean().optional(),
 });
@@ -66,7 +66,7 @@ export async function PATCH(
     await connectDB();
 
     const body = await request.json() as UpdateAddressRequest;
-    const validatedData = updateAddressSchema.parse(body);
+    const validatedData = await updateAddressSchema.parseAsync(body);
 
     const userDoc = await User.findById(user.userId)
       .select('addresses defaultShippingAddressId defaultBillingAddressId');

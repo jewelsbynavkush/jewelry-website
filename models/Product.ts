@@ -30,7 +30,7 @@ export interface IProduct extends Document {
   currency: string; // Default: 'INR' or 'USD'
   
   // Category & Classification
-  category: 'rings' | 'earrings' | 'necklaces' | 'bracelets' | 'other'; // String for filtering
+  category: string; // Category slug - validated against DB categories in pre-save hook
   categoryId?: mongoose.Types.ObjectId; // Foreign key reference to Category
   subcategory?: string;
   tags?: string[]; // For filtering and search
@@ -163,13 +163,17 @@ const ProductSchema = new Schema<IProduct>(
     },
     currency: {
       type: String,
-      default: 'INR',
-      enum: ['INR', 'USD', 'EUR'],
+      // Default removed - will be set from DB ecommerce settings or country settings in pre-save hook
+      // Falls back to 'INR' if DB unavailable
+      uppercase: true,
+      trim: true,
     },
     category: {
       type: String,
       required: true,
-      enum: ['rings', 'earrings', 'necklaces', 'bracelets', 'other'],
+      lowercase: true,
+      trim: true,
+      // Enum removed - validated against DB categories in pre-save hook
       // Index defined via ProductSchema.index() below (compound with status)
     },
     categoryId: {
@@ -629,12 +633,42 @@ ProductSchema.pre('save', async function() {
     this.sku = sku;
   }
   
-  // Validate categoryId foreign key if provided
-  if (this.categoryId) {
-    const Category = mongoose.model('Category');
-    const category = await Category.findById(this.categoryId);
-    if (!category) {
-      throw new Error('Category does not exist');
+  // Validate category against DB categories
+  const Category = mongoose.model('Category');
+  const category = this.categoryId 
+    ? await Category.findById(this.categoryId)
+    : await Category.findOne({ slug: this.category.toLowerCase(), active: true });
+  
+  if (!category) {
+    // Allow 'other' as fallback category if not found in DB
+    if (this.category.toLowerCase() !== 'other') {
+      throw new Error(`Category "${this.category}" does not exist or is not active. Use an active category slug or "other".`);
+    }
+  } else {
+    // Sync categoryId if category slug was provided
+    if (!this.categoryId) {
+      this.categoryId = category._id;
+    }
+    // Ensure category slug matches
+    this.category = category.slug;
+  }
+  
+  // Set default currency from DB if not provided
+  if (!this.currency) {
+    try {
+      const { getDefaultCountry } = await import('@/lib/data/country-settings');
+      const defaultCountry = await getDefaultCountry();
+      if (defaultCountry?.currency) {
+        this.currency = defaultCountry.currency;
+      } else {
+        // Fallback to ecommerce settings or INR
+        const { getSiteSettings } = await import('@/lib/data/site-settings');
+        const settings = await getSiteSettings();
+        this.currency = settings.ecommerce?.currency || 'INR';
+      }
+    } catch {
+      // If DB unavailable, use fallback
+      this.currency = 'INR';
     }
   }
   

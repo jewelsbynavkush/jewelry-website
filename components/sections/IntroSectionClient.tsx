@@ -1,10 +1,11 @@
 'use client';
 
-import { CATEGORIES, DEFAULTS } from '@/lib/constants';
+import { DEFAULTS } from '@/lib/constants';
 import Button from '@/components/ui/Button';
 import CategoryLink from '@/components/ui/CategoryLink';
 import ScrollReveal from '@/components/ui/ScrollReveal';
 import HeroImage3D from './HeroImage3D';
+import type { Category } from '@/types/data';
 
 interface IntroSectionClientProps {
   brandName?: string;
@@ -14,6 +15,7 @@ interface IntroSectionClientProps {
   heroImage?: string;
   heroImageAlt?: string;
   rightColumnSlogan?: string;
+  categories: Array<Category & { href: string }>;
 }
 
 /**
@@ -27,6 +29,7 @@ export default function IntroSectionClient({
   heroImage,
   heroImageAlt,
   rightColumnSlogan = DEFAULTS.rightColumnSlogan,
+  categories,
 }: IntroSectionClientProps) {
   return (
     <section 
@@ -77,14 +80,14 @@ export default function IntroSectionClient({
 
           {/* Mobile: Category Menu */}
           <div className="flex flex-col standard-gap-small">
-            {CATEGORIES.map((category, index) => (
+            {categories.map((category, index) => (
               <div key={category.slug} className="w-full">
                 <CategoryLink
-                  name={category.name}
+                  name={category.displayName}
                   href={category.href}
                   variant="intro"
                   index={index}
-                  total={CATEGORIES.length}
+                  total={categories.length}
                 />
               </div>
             ))}
@@ -127,14 +130,14 @@ export default function IntroSectionClient({
               
               {/* Bottom: Category Menu - Each link takes full row with dividers */}
               <div className="flex flex-col justify-end w-full mt-auto">
-                {CATEGORIES.map((category, index) => (
+                {categories.map((category, index) => (
                   <div key={category.slug} className="w-full">
                     <CategoryLink
-                      name={category.name}
+                      name={category.displayName}
                       href={category.href}
                       variant="intro"
                       index={index}
-                      total={CATEGORIES.length}
+                      total={categories.length}
                     />
                   </div>
                 ))}

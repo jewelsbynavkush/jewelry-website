@@ -1,19 +1,29 @@
-import { CATEGORIES } from '@/lib/constants';
+import type { Category } from '@/types/data';
 
-export type CategoryType = typeof CATEGORIES[number];
+export type CategoryType = Category;
 
 /**
  * Returns array of random category image paths for placeholder products
+ * Uses provided categories from DB, falls back to generic pattern if no categories provided
+ * 
  * @param count - Number of images to return
+ * @param categories - Optional array of categories from DB to use for image paths
  * @returns Array of image paths
  */
-export function getRandomCategoryImages(count: number): string[] {
-  const categoryImages = [
-    '/assets/categories/rings.png',
-    '/assets/categories/earrings.png',
-    '/assets/categories/necklaces.png',
-    '/assets/categories/bracelets.png',
-  ];
+export function getRandomCategoryImages(count: number, categories?: CategoryType[]): string[] {
+  if (!categories || categories.length === 0) {
+    // If no categories provided, return empty array or generic placeholder
+    // This ensures we don't use hardcoded category lists
+    return [];
+  }
+  
+  const categoryImages = categories.map(cat => 
+    cat.image || `/assets/categories/${cat.slug}.png`
+  );
+  
+  if (categoryImages.length === 0) {
+    return [];
+  }
   
   const selected: string[] = [];
   for (let i = 0; i < count; i++) {
@@ -42,26 +52,22 @@ export function getCategoryImageSource(
   if (imageUrl) {
     return {
       src: imageUrl,
-      alt: `${category.name} jewelry collection`,
+      alt: category.alt || `${category.name} jewelry collection`,
     };
   }
   
-  const publicImageMap: Record<string, string> = {
-    'rings': '/assets/categories/rings.png',
-    'earrings': '/assets/categories/earrings.png',
-    'necklaces': '/assets/categories/necklaces.png',
-    'bracelets': '/assets/categories/bracelets.png',
-  };
-  
-  const publicImagePath = publicImageMap[category.slug];
-  if (publicImagePath) {
+  if (category.image) {
     return {
-      src: publicImagePath,
-      alt: `${category.name} jewelry collection - Exquisite handcrafted ${category.name.toLowerCase()} pieces`,
+      src: category.image,
+      alt: category.alt || `${category.name} jewelry collection - Exquisite handcrafted ${category.name.toLowerCase()} pieces`,
     };
   }
   
-  return null;
+  const publicImagePath = `/assets/categories/${category.slug}.png`;
+  return {
+    src: publicImagePath,
+    alt: category.alt || `${category.name} jewelry collection - Exquisite handcrafted ${category.name.toLowerCase()} pieces`,
+  };
 }
 
 /**

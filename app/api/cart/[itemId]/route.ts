@@ -18,6 +18,7 @@ import { formatZodError } from '@/lib/utils/zod-error';
 import { getSessionId } from '@/lib/utils/api-helpers';
 import { ECOMMERCE } from '@/lib/constants';
 import { SECURITY_CONFIG } from '@/lib/security/constants';
+import { getEcommerceSettings } from '@/lib/utils/site-settings-helpers';
 import type { UpdateCartItemRequest, UpdateCartItemResponse } from '@/types/api';
 import { z } from 'zod';
 import { reserveStockForCart, releaseReservedStock } from '@/lib/inventory/inventory-service';
@@ -50,6 +51,9 @@ export async function PATCH(
 
   try {
     await connectDB();
+
+    // Get e-commerce settings once for use throughout the function
+    const ecommerce = await getEcommerceSettings();
 
     const { itemId } = await params;
     const sanitizedItemId = sanitizeString(itemId);
@@ -120,7 +124,7 @@ export async function PATCH(
       // E-commerce best practice: Update price to current product price if changed significantly
       // Maintains price consistency while allowing minor price fluctuations
       const priceVariance = Math.abs(product.price - currentItem.price) / currentItem.price;
-      if (priceVariance > ECOMMERCE.priceVarianceThreshold) {
+      if (priceVariance > (ecommerce.priceVarianceThreshold ?? ECOMMERCE.priceVarianceThreshold)) {
         // Price changed significantly - update to current price and metadata
         cart.items[itemIndex].price = product.price;
         cart.items[itemIndex].sku = product.sku;
@@ -167,14 +171,17 @@ export async function PATCH(
     }
 
     // Recalculate totals after quantity change
-    // Applies free shipping threshold and default shipping cost
-    cart.calculateTotals(ECOMMERCE.freeShippingThreshold, ECOMMERCE.defaultShippingCost);
+    const freeShippingThreshold = ecommerce.freeShippingThreshold ?? ECOMMERCE.freeShippingThreshold;
+    const defaultShippingCost = ecommerce.defaultShippingCost ?? ECOMMERCE.defaultShippingCost;
+    cart.calculateTotals(freeShippingThreshold, defaultShippingCost);
     
     // Calculate tax after cart totals to ensure tax is applied to correct subtotal
-    // Tax calculation depends on ECOMMERCE configuration (18% GST in India)
-    if (ECOMMERCE.calculateTax && ECOMMERCE.taxRate > 0) {
-      cart.tax = Math.round(cart.subtotal * ECOMMERCE.taxRate * 100) / 100;
-      cart.calculateTotals(ECOMMERCE.freeShippingThreshold, ECOMMERCE.defaultShippingCost);
+    // Tax calculation depends on e-commerce configuration (18% GST in India)
+    const calculateTax = ecommerce.calculateTax ?? ECOMMERCE.calculateTax;
+    const taxRate = ecommerce.taxRate ?? ECOMMERCE.taxRate;
+    if (calculateTax && taxRate > 0) {
+      cart.tax = Math.round(cart.subtotal * taxRate * 100) / 100;
+      cart.calculateTotals(freeShippingThreshold, defaultShippingCost);
     }
     
     await cart.save();
@@ -231,6 +238,9 @@ export async function DELETE(
   try {
     await connectDB();
 
+    // Get e-commerce settings once for use throughout the function
+    const ecommerce = await getEcommerceSettings();
+
     const { itemId } = await params;
     const sanitizedItemId = sanitizeString(itemId);
 
@@ -276,14 +286,17 @@ export async function DELETE(
     cart.items.splice(itemIndex, 1);
 
     // Recalculate totals after item removal
-    // Applies free shipping threshold and default shipping cost
-    cart.calculateTotals(ECOMMERCE.freeShippingThreshold, ECOMMERCE.defaultShippingCost);
+    const freeShippingThreshold = ecommerce.freeShippingThreshold ?? ECOMMERCE.freeShippingThreshold;
+    const defaultShippingCost = ecommerce.defaultShippingCost ?? ECOMMERCE.defaultShippingCost;
+    cart.calculateTotals(freeShippingThreshold, defaultShippingCost);
     
     // Calculate tax after cart totals to ensure tax is applied to correct subtotal
-    // Tax calculation depends on ECOMMERCE configuration (18% GST in India)
-    if (ECOMMERCE.calculateTax && ECOMMERCE.taxRate > 0) {
-      cart.tax = Math.round(cart.subtotal * ECOMMERCE.taxRate * 100) / 100;
-      cart.calculateTotals(ECOMMERCE.freeShippingThreshold, ECOMMERCE.defaultShippingCost);
+    // Tax calculation depends on e-commerce configuration (18% GST in India)
+    const calculateTax = ecommerce.calculateTax ?? ECOMMERCE.calculateTax;
+    const taxRate = ecommerce.taxRate ?? ECOMMERCE.taxRate;
+    if (calculateTax && taxRate > 0) {
+      cart.tax = Math.round(cart.subtotal * taxRate * 100) / 100;
+      cart.calculateTotals(freeShippingThreshold, defaultShippingCost);
     }
     
     await cart.save();

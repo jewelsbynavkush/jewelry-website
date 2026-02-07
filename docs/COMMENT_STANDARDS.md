@@ -445,5 +445,35 @@ The codebase demonstrates:
 
 ---
 
-**Last Updated:** January 25, 2025  
+---
+
+## 📝 **Audit History (Continued)**
+
+### **February 7, 2025 - Comment Audit Update**
+
+**Updates Made:**
+
+**1. Mongoose Error Handler (`lib/utils/mongoose-error-handler.ts`)**
+- ✅ Improved comments to explain WHY we extract validation errors (for user feedback)
+- ✅ Added explanation of MongoDB error code 11000 (unique constraint violation)
+- ✅ Clarified error propagation rationale
+
+**2. Request Handler (`lib/utils/request-handler.ts`)**
+- ✅ Added comments explaining WHY SyntaxError is handled separately
+- ✅ Explained WHAT Zod errors contain (field-level details)
+- ✅ Documented security rationale for logging vs. returning generic errors
+
+**3. JSDoc Improvements**
+- ✅ Removed unused `@param defaultMessage` parameter
+- ✅ Added specific examples for context parameter
+- ✅ Clarified WHEN to use functions (after Zod validation)
+
+**Verification Results:**
+- ✅ **Lint Status:** 0 errors, 0 warnings
+- ✅ **Build Status:** Successful
+- ✅ **All Comments:** Follow standards
+
+---
+
+**Last Updated:** February 7, 2025  
 **Next Review:** When adding new features or refactoring

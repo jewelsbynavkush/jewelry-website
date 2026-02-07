@@ -58,21 +58,71 @@ const registerSchema = z.object({
     .max(50, 'Last name must not exceed 50 characters')
     .regex(/^[a-zA-Z\s\-'\.]+$/, 'Last name can only contain letters, spaces, hyphens, apostrophes, and dots')
     .trim(),
-  mobile: z
-    .string()
-    .regex(/^[0-9]{10}$/, 'Mobile number must be exactly 10 digits')
-    .optional()
-    .or(z.literal('')),
   countryCode: z
     .string()
-    .refine((code) => !code || code === '+91', 'Only +91 (India) country code is supported')
-    .default('+91')
+    .refine(
+      async (code) => {
+        if (!code) return true; // Optional
+        const { getCountryByPhoneCode } = await import('@/lib/data/country-settings');
+        const country = await getCountryByPhoneCode(code.trim());
+        return country !== null;
+      },
+      'Please select a valid country code'
+    )
     .optional(),
+  mobile: z
+    .string()
+    .optional()
+    .or(z.literal('')),
   password: z
     .string()
     .min(6, 'Password must be at least 6 characters')
     .max(100, 'Password must not exceed 100 characters')
     .regex(/^[\S]+$/, 'Password cannot contain spaces'),
+}).superRefine(async (data, ctx) => {
+  // Validate mobile against country code if both are provided
+  if (data.mobile && data.mobile.trim() !== '') {
+    const countryCode = data.countryCode;
+    let isValid = false;
+    let errorMessage = 'Mobile number format is invalid';
+    
+    if (!countryCode) {
+      // Use default country validation
+      const { getDefaultCountry } = await import('@/lib/data/country-settings');
+      const defaultCountry = await getDefaultCountry();
+      if (defaultCountry) {
+        const regex = new RegExp(defaultCountry.phonePattern);
+        isValid = regex.test(data.mobile.trim());
+        if (!isValid) {
+          errorMessage = `Mobile number must be exactly ${defaultCountry.phoneLength} digits for ${defaultCountry.countryName}`;
+        }
+      } else {
+        // Fallback to 10 digits
+        isValid = /^[0-9]{10}$/.test(data.mobile.trim());
+      }
+    } else {
+      const { getCountryByPhoneCode } = await import('@/lib/data/country-settings');
+      const country = await getCountryByPhoneCode(countryCode.trim());
+      if (country) {
+        const regex = new RegExp(country.phonePattern);
+        isValid = regex.test(data.mobile.trim());
+        if (!isValid) {
+          errorMessage = `Mobile number must be exactly ${country.phoneLength} digits for ${country.countryName}`;
+        }
+      } else {
+        // Fallback validation
+        isValid = /^[0-9]{5,15}$/.test(data.mobile.trim());
+      }
+    }
+    
+    if (!isValid) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: errorMessage,
+        path: ['mobile'],
+      });
+    }
+  }
 });
 
 /**
@@ -101,7 +151,7 @@ export async function POST(request: NextRequest) {
       ['password']
     ) as unknown as RegisterRequest;
     
-    const validatedData = registerSchema.parse(deobfuscatedBody);
+    const validatedData = await registerSchema.parseAsync(deobfuscatedBody);
 
     // Prevent duplicate verified accounts while allowing re-registration for unverified emails
     const sanitizedEmail = sanitizeEmail(validatedData.email);
@@ -117,9 +167,17 @@ export async function POST(request: NextRequest) {
 
     // Verify mobile uniqueness if provided (mobile is optional during registration)
     if (validatedData.mobile) {
+      // Get default country code if not provided
+      let countryCode = validatedData.countryCode;
+      if (!countryCode) {
+        const { getDefaultCountry } = await import('@/lib/data/country-settings');
+        const defaultCountry = await getDefaultCountry();
+        countryCode = defaultCountry?.phoneCountryCode || '+91';
+      }
+      
       const existingUser = await User.findOne({ 
         mobile: validatedData.mobile,
-        countryCode: validatedData.countryCode || '+91'
+        countryCode: countryCode
       })
         .select('_id')
         .lean();

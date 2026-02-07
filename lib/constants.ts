@@ -1,19 +1,17 @@
 /**
  * Application-wide constants
+ * 
+ * NOTE: Categories are now fetched from the database.
+ * Use getCategories() from @/lib/data/categories instead of hardcoded CATEGORIES.
+ * This constant is kept for backward compatibility and type definitions only.
  */
 
-export const CATEGORIES = [
-  { name: 'RINGS', slug: 'rings', href: '/designs?category=rings' },
-  { name: 'EARRINGS', slug: 'earrings', href: '/designs?category=earrings' },
-  { name: 'NECKLACES', slug: 'necklaces', href: '/designs?category=necklaces' },
-  { name: 'BRACELETS', slug: 'bracelets', href: '/designs?category=bracelets' },
-] as const;
+export const CATEGORIES = [] as const;
 
-export const CATEGORY_SLUGS = CATEGORIES.map(cat => cat.slug);
+export const CATEGORY_SLUGS = [] as const;
 
 export const NAVIGATION_LINKS = [
   { name: 'ALL PRODUCTS', href: '/designs' },
-  ...CATEGORIES,
   { name: 'ABOUT US', href: '/about' },
   { name: 'CONTACT', href: '/contact' },
 ] as const;
@@ -60,6 +58,10 @@ export const COLORS = {
 
 /**
  * Default values
+ * 
+ * NOTE: These are fallback values only. Actual values should come from site-settings DB.
+ * Use getSiteSettings() from @/lib/data/site-settings to get current values.
+ * These defaults are kept for backward compatibility and error handling.
  */
 export const DEFAULTS = {
   brandName: 'Jewels by NavKush',
@@ -71,7 +73,16 @@ export const DEFAULTS = {
 
 /**
  * E-commerce constants
- * Centralized configuration for all e-commerce operations
+ * 
+ * NOTE: These are fallback values only. Actual values should come from site-settings DB.
+ * Use getSiteSettings() from @/lib/data/site-settings to get current ecommerce values.
+ * These defaults are kept for backward compatibility and error handling.
+ * 
+ * To get ecommerce settings:
+ * ```typescript
+ * const settings = await getSiteSettings();
+ * const ecommerce = settings.ecommerce || ECOMMERCE; // Use DB values with fallback
+ * ```
  */
 export const ECOMMERCE = {
   currency: 'INR',

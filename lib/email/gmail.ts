@@ -23,25 +23,30 @@ interface SendEmailOptions {
 /**
  * Create Gmail transporter
  * Uses centralized environment utilities for secure credential access
+ * 
+ * @returns Nodemailer transporter or null if credentials are not configured
  */
 function createTransporter() {
-  const gmailUser = getGmailUser();
-  const gmailAppPassword = getGmailAppPassword();
+  try {
+    const gmailUser = getGmailUser();
+    const gmailAppPassword = getGmailAppPassword();
+    // Note: gmailFromName is retrieved via getGmailFromName() when needed in email templates
 
-  if (!gmailUser || !gmailAppPassword) {
+    return nodemailer.createTransport({
+      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false, // true for 465, false for other ports
+      auth: {
+        user: gmailUser,
+        pass: gmailAppPassword,
+      },
+    });
+  } catch (error) {
+    // Gmail credentials not configured - return null to indicate email service unavailable
+    logger.error('Gmail credentials not configured', error);
     return null;
   }
-
-  return nodemailer.createTransport({
-    service: 'gmail',
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false, // true for 465, false for other ports
-    auth: {
-      user: gmailUser,
-      pass: gmailAppPassword,
-    },
-  });
 }
 
 /**

@@ -67,6 +67,16 @@ export async function POST(request: NextRequest) {
       ['password']
     ) as unknown as LoginRequest;
     
+    // Log deobfuscation result for debugging (password length only, not actual value)
+    if (body.password && typeof body.password === 'string' && body.password.length > 0) {
+      const originalLength = body.password.length;
+      const deobfuscatedLength = deobfuscatedBody.password?.length || 0;
+      if (originalLength !== deobfuscatedLength && originalLength >= 8) {
+        // Password was likely obfuscated, log for debugging
+        logError('login password deobfuscation', new Error(`Password length changed: ${originalLength} -> ${deobfuscatedLength}. Check if NEXT_PUBLIC_OBFUSCATION_KEY matches OBFUSCATION_KEY or JWT_SECRET.`));
+      }
+    }
+    
     const validatedData = loginSchema.parse(deobfuscatedBody);
 
     const email = sanitizeEmail(validatedData.identifier);

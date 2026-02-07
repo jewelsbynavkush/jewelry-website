@@ -27,18 +27,19 @@ import { confirmOrderAndUpdateStock, retryWithBackoff, isTransientError } from '
 import { generateIdempotencyKey } from '@/lib/utils/idempotency';
 import { ECOMMERCE } from '@/lib/constants';
 import { SECURITY_CONFIG } from '@/lib/security/constants';
+import { getEcommerceSettings } from '@/lib/utils/site-settings-helpers';
 import type { CreateOrderRequest, CreateOrderResponse, GetOrdersResponse } from '@/types/api';
 import { z } from 'zod';
 import mongoose from 'mongoose';
-import { indianAddressSchema } from '@/lib/validations/address';
+import { createAddressSchema } from '@/lib/validations/address-country-aware';
 
 /**
- * Schema for creating order with Indian address validation
+ * Schema for creating order with country-aware address validation
  */
 const createOrderSchema = z.object({
   cartId: z.string().min(1, 'Cart ID is required').max(100).optional(),
-  shippingAddress: indianAddressSchema,
-  billingAddress: indianAddressSchema,
+  shippingAddress: createAddressSchema(),
+  billingAddress: createAddressSchema(),
   paymentMethod: z.enum(['razorpay', 'cod', 'bank_transfer', 'other']),
   customerNotes: z.string().max(1000, 'Customer notes must not exceed 1000 characters').optional(),
   idempotencyKey: z.string().max(100).optional(),
@@ -89,9 +90,12 @@ export async function POST(request: NextRequest) {
       return createSecureErrorResponse('Invalid request body', 400, request);
     }
     
-    const validatedData = createOrderSchema.parse(body);
+    const validatedData = await createOrderSchema.parseAsync(body);
 
     await connectDB();
+
+    // Get e-commerce settings once for use throughout the function
+    const ecommerce = await getEcommerceSettings();
 
     // Check idempotency before transaction (read-only check, no transaction needed)
     const idempotencyKey = validatedData.idempotencyKey || generateIdempotencyKey('order');
@@ -163,7 +167,7 @@ export async function POST(request: NextRequest) {
 
         // Reject order if price changed significantly (prevents price manipulation)
         const priceVariance = Math.abs(product.price - item.price) / item.price;
-        if (priceVariance > ECOMMERCE.priceVarianceThreshold) {
+        if (priceVariance > (ecommerce.priceVarianceThreshold ?? ECOMMERCE.priceVarianceThreshold)) {
           await session.abortTransaction();
           session.endSession();
           return createSecureErrorResponse(`Price has changed for ${item.sku}. Please refresh your cart.`, 400, request);
@@ -202,8 +206,10 @@ export async function POST(request: NextRequest) {
       // Ensure tax is calculated if not already set
       // E-commerce best practice: Calculate tax before creating order
       let orderTax = cart.tax;
-      if (ECOMMERCE.calculateTax && ECOMMERCE.taxRate > 0 && orderTax === 0) {
-        orderTax = Math.round(cart.subtotal * ECOMMERCE.taxRate * 100) / 100;
+      const calculateTax = ecommerce.calculateTax ?? ECOMMERCE.calculateTax;
+      const taxRate = ecommerce.taxRate ?? ECOMMERCE.taxRate;
+      if (calculateTax && taxRate > 0 && orderTax === 0) {
+        orderTax = Math.round(cart.subtotal * taxRate * 100) / 100;
       }
       
       // Calculate final order total including subtotal, tax, shipping, and discount
@@ -417,10 +423,11 @@ export async function POST(request: NextRequest) {
       return createSecureResponse(zodError, 400, request);
     }
 
-    // Handle Mongoose validation errors
-    if (error && typeof error === 'object' && 'name' in error && error.name === 'ValidationError') {
-      logError('orders POST API - validation error', error);
-      return createSecureErrorResponse('Validation failed. Please check your input.', 400, request);
+    // Handle Mongoose errors with reusable utility
+    const { handleMongooseError } = await import('@/lib/utils/mongoose-error-handler');
+    const mongooseErrorResponse = handleMongooseError(error, request, 'orders POST API');
+    if (mongooseErrorResponse) {
+      return mongooseErrorResponse;
     }
 
     logError('orders POST API', error);

@@ -140,10 +140,11 @@ export async function POST(
       return createSecureResponse(zodError, 400, request);
     }
 
-    // Handle Mongoose validation errors
-    if (error && typeof error === 'object' && 'name' in error && error.name === 'ValidationError') {
-      logError('inventory restock API - validation error', error);
-      return createSecureErrorResponse('Validation failed. Please check your input.', 400, request);
+    // Handle Mongoose errors with reusable utility
+    const { handleMongooseError } = await import('@/lib/utils/mongoose-error-handler');
+    const mongooseErrorResponse = handleMongooseError(error, request, 'inventory restock API');
+    if (mongooseErrorResponse) {
+      return mongooseErrorResponse;
     }
 
     logError('inventory restock API', error);

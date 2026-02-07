@@ -1,5 +1,27 @@
 /**
- * Address Validation Utilities
+ * @deprecated This file is deprecated and will be removed in a future version.
+ * 
+ * ⚠️ **DEPRECATION NOTICE:**
+ * This file contains India-specific address validation that has been replaced
+ * by country-aware validation in `address-country-aware.ts`.
+ * 
+ * **Migration Guide:**
+ * - Replace `indianAddressSchema` with `createAddressSchema()` from `address-country-aware.ts`
+ * - Replace `isValidIndianPincode()` with `isValidPincode()` from `address-country-aware.ts`
+ * - Replace `isValidIndianState()` with `isValidState()` from `address-country-aware.ts`
+ * - Replace `INDIAN_STATES` with country settings from database
+ * 
+ * **Why deprecated:**
+ * - Only supports India-specific validation
+ * - Hardcoded patterns and states
+ * - Cannot support multiple countries
+ * 
+ * **Use instead:**
+ * ```typescript
+ * import { createAddressSchema, isValidPincode, isValidState } from '@/lib/validations/address-country-aware';
+ * ```
+ * 
+ * Address Validation Utilities (Legacy - India-specific)
  * 
  * Provides validation functions for Indian addresses including:
  * - Pincode validation (6-digit Indian postal codes)
@@ -12,6 +34,9 @@ import { z } from 'zod';
 import { isTest } from '@/lib/utils/env';
 
 /**
+ * @deprecated Use country settings from database instead.
+ * This constant is kept for backward compatibility only.
+ * 
  * Indian States and Union Territories
  */
 export const INDIAN_STATES = [
@@ -54,6 +79,8 @@ export const INDIAN_STATES = [
 ] as const;
 
 /**
+ * @deprecated Use `isValidPincode()` from `address-country-aware.ts` instead.
+ * 
  * Validates Indian pincode (6-digit postal code)
  * 
  * @param pincode - Pincode string to validate
@@ -66,6 +93,8 @@ export function isValidIndianPincode(pincode: string): boolean {
 }
 
 /**
+ * @deprecated Use `isValidState()` from `address-country-aware.ts` instead.
+ * 
  * Validates Indian state name
  * 
  * @param state - State name to validate
@@ -98,6 +127,8 @@ export function isValidCityName(city: string): boolean {
 }
 
 /**
+ * @deprecated Use `createPincodeSchema()` from `address-country-aware.ts` instead.
+ * 
  * Zod schema for Indian pincode
  */
 export const indianPincodeSchema = z
@@ -117,6 +148,8 @@ export const indianPincodeSchema = z
   );
 
 /**
+ * @deprecated Use `createStateSchema()` from `address-country-aware.ts` instead.
+ * 
  * Zod schema for Indian state
  */
 export const indianStateSchema = z
@@ -141,6 +174,8 @@ export const cityNameSchema = z
   );
 
 /**
+ * @deprecated Use `createCountryCodeSchema()` from `address-country-aware.ts` instead.
+ * 
  * Zod schema for country (India only for now)
  */
 export const countrySchema = z
@@ -153,6 +188,8 @@ export const countrySchema = z
   );
 
 /**
+ * @deprecated Use `createAddressSchema()` from `address-country-aware.ts` instead.
+ * 
  * Complete address schema for Indian addresses
  */
 export const indianAddressSchema = z.object({

@@ -202,13 +202,11 @@ MONGODB_URI=mongodb+srv://username:password@dev-cluster.mongodb.net/jewelry-webs
 
 # JWT Authentication
 JWT_SECRET=your-secure-random-secret-key-change-in-production
-JWT_EXPIRES_IN=5m
+ACCESS_TOKEN_EXPIRES_IN=5m
 
 # CORS Configuration
 CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
 
-# Zoho Mail (Dev - optional for now)
-ZOHO_MAIL_API_KEY=your_dev_mail_key
 
 # Add to all environments: Production, Preview, Development
 ```
@@ -262,13 +260,11 @@ MONGODB_URI=mongodb+srv://username:password@prod-cluster.mongodb.net/jewelry-web
 
 # JWT Authentication
 JWT_SECRET=your-secure-random-secret-key-change-in-production
-JWT_EXPIRES_IN=5m
+ACCESS_TOKEN_EXPIRES_IN=5m
 
 # CORS Configuration
 CORS_ALLOWED_ORIGINS=https://jewelsbynavkush.com,https://www.jewelsbynavkush.com
 
-# Zoho Mail (Prod)
-ZOHO_MAIL_API_KEY=your_prod_mail_key
 
 # Add to all environments: Production, Preview, Development
 ```
@@ -341,7 +337,7 @@ JWT authentication requires the following environment variables:
 ```bash
 # JWT Authentication
 JWT_SECRET=your-secure-random-secret-key-change-in-production
-JWT_EXPIRES_IN=5m
+ACCESS_TOKEN_EXPIRES_IN=5m
 ```
 
 **Generating a Secure JWT_SECRET:**
@@ -360,7 +356,7 @@ openssl rand -hex 64
 Use a secure random string generator (at least 32 characters, preferably 64+).
 
 **Important Notes:**
-- `JWT_EXPIRES_IN=5m` means tokens expire after 5 minutes
+- `ACCESS_TOKEN_EXPIRES_IN=5m` means access tokens expire after 5 minutes
 - Use a **different** `JWT_SECRET` for production than development
 - Never commit `JWT_SECRET` to version control
 
@@ -380,24 +376,16 @@ MONGODB_URI=mongodb+srv://username:password@dev-cluster.mongodb.net/jewelry-webs
 
 # JWT Authentication
 JWT_SECRET=your-secure-random-secret-key-change-in-production
-JWT_EXPIRES_IN=5m
+ACCESS_TOKEN_EXPIRES_IN=5m
 
 # CORS Configuration
 CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
 
-# Zoho Mail (Dev)
-ZOHO_MAIL_API_KEY=your_dev_mail_key
-
-# Fast2SMS Quick SMS Service (Dev) - No DLT Required
-FAST2SMS_API_KEY=your_fast2sms_api_key
 
 # Gmail Email Service (Dev)
 GMAIL_USER=your-email@gmail.com
 GMAIL_APP_PASSWORD=your_16_char_app_password
 GMAIL_FROM_NAME=Jewels by NavKush
-
-# Fast2SMS Quick SMS Service (Dev) - No DLT Required
-FAST2SMS_API_KEY=your_fast2sms_api_key
 ```
 
 #### **`.env.production.local`**
@@ -410,19 +398,11 @@ NEXT_PUBLIC_BASE_URL=https://jewelsbynavkush.com
 # MongoDB Atlas (Prod)
 MONGODB_URI=mongodb+srv://username:password@prod-cluster.mongodb.net/jewelry-website-prod?retryWrites=true&w=majority
 
-# Zoho Mail (Prod)
-ZOHO_MAIL_API_KEY=your_prod_mail_key
-
-# Fast2SMS Quick SMS Service (Prod) - No DLT Required
-FAST2SMS_API_KEY=your_fast2sms_api_key
 
 # Gmail Email Service (Prod)
 GMAIL_USER=your-email@gmail.com
 GMAIL_APP_PASSWORD=your_16_char_app_password
 GMAIL_FROM_NAME=Jewels by NavKush
-
-# Fast2SMS Quick SMS Service (Prod) - No DLT Required
-FAST2SMS_API_KEY=your_fast2sms_api_key
 ```
 
 #### **`.env.example`** (Template - commit this)
@@ -437,24 +417,16 @@ MONGODB_URI=
 
 # JWT Authentication
 JWT_SECRET=
-JWT_EXPIRES_IN=5m
+ACCESS_TOKEN_EXPIRES_IN=5m
 
 # CORS Configuration
 CORS_ALLOWED_ORIGINS=
 
-# Zoho Mail
-ZOHO_MAIL_API_KEY=
-
-# Fast2SMS Quick SMS Service (No DLT Required)
-FAST2SMS_API_KEY=
 
 # Gmail Email Service
 GMAIL_USER=
 GMAIL_APP_PASSWORD=
 GMAIL_FROM_NAME=Jewels by NavKush
-
-# Fast2SMS Quick SMS Service (No DLT Required)
-FAST2SMS_API_KEY=
 ```
 
 ### **5.3 Vercel Environment Variables**
@@ -464,8 +436,7 @@ FAST2SMS_API_KEY=
 1. Go to Vercel dev project → **Settings** → **Environment Variables**
 2. Add:
    - `JWT_SECRET` = `your-secure-random-secret-key-change-in-production`
-   - `JWT_EXPIRES_IN` = `5m`
-   - `FAST2SMS_API_KEY` = `your_fast2sms_api_key`
+   - `ACCESS_TOKEN_EXPIRES_IN` = `5m`
    - `GMAIL_USER` = `your-email@gmail.com`
    - `GMAIL_APP_PASSWORD` = `your_16_char_app_password`
    - `GMAIL_FROM_NAME` = `Jewels by NavKush` (optional)
@@ -476,8 +447,7 @@ FAST2SMS_API_KEY=
 1. Go to Vercel prod project → **Settings** → **Environment Variables**
 2. Add:
    - `JWT_SECRET` = `your-different-secure-random-secret-key-for-production`
-   - `JWT_EXPIRES_IN` = `5m`
-   - `FAST2SMS_API_KEY` = `your_fast2sms_api_key`
+   - `ACCESS_TOKEN_EXPIRES_IN` = `5m`
    - `GMAIL_USER` = `your-email@gmail.com`
    - `GMAIL_APP_PASSWORD` = `your_16_char_app_password`
    - `GMAIL_FROM_NAME` = `Jewels by NavKush` (optional)

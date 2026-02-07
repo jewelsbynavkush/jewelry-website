@@ -21,8 +21,7 @@ async function getValidActiveCategories(): Promise<string[]> {
     return activeCategories.map(cat => cat.slug);
   } catch (error) {
     logError('Error loading active categories', error);
-    // Fallback to default categories if DB fails
-    return ['rings', 'earrings', 'necklaces', 'bracelets'];
+    return [];
   }
 }
 

@@ -230,7 +230,8 @@ const UserSchema = new Schema<IUser>(
     countryCode: {
       type: String,
       required: false,
-      default: '+91',
+      // Default removed - will be set from DB country settings in pre-save hook
+      // Falls back to '+91' if DB unavailable
       trim: true,
     },
     firstName: {
@@ -382,6 +383,44 @@ UserSchema.pre('save', async function() {
 UserSchema.pre('save', async function() {
   if (!this.displayName) {
     this.displayName = `${this.firstName} ${this.lastName}`.trim();
+  }
+});
+
+// Pre-save hook to set default country code from DB
+UserSchema.pre('save', async function() {
+  if (!this.countryCode) {
+    try {
+      const { getDefaultCountry } = await import('@/lib/data/country-settings');
+      const defaultCountry = await getDefaultCountry();
+      this.countryCode = defaultCountry?.phoneCountryCode || '+91'; // Fallback to +91 if DB unavailable
+    } catch {
+      // If DB unavailable, use fallback
+      this.countryCode = '+91';
+    }
+  }
+  
+  // Validate mobile against country pattern if mobile is provided
+  if (this.mobile && this.countryCode) {
+    try {
+      const { getCountryByPhoneCode } = await import('@/lib/data/country-settings');
+      const country = await getCountryByPhoneCode(this.countryCode);
+      if (country) {
+        const regex = new RegExp(country.phonePattern);
+        if (!regex.test(this.mobile.trim())) {
+          throw new Error(`Mobile number must match pattern for ${country.countryName}: ${country.phonePattern}`);
+        }
+      }
+    } catch (error) {
+      // If validation fails, throw error
+      if (error instanceof Error && error.message.includes('Mobile number')) {
+        throw error;
+      }
+      // If DB unavailable, use default validation (10 digits)
+      const defaultRegex = /^[0-9]{10}$/;
+      if (!defaultRegex.test(this.mobile.trim())) {
+        throw new Error('Mobile number must be 10 digits');
+      }
+    }
   }
 });
 

@@ -10,10 +10,11 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { applyApiSecurity, createSecureResponse } from '@/lib/security/api-security';
-import { getSecurityHeaders } from '@/lib/security/api-headers';
-import { getBaseUrl } from '@/lib/utils/env';
+import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
+import { getSwaggerSecurityHeaders } from '@/lib/security/api-headers';
+import { getBaseUrl, isProduction, getSupportEmail } from '@/lib/utils/env';
 import { ECOMMERCE } from '@/lib/constants';
+import { requireAdmin } from '@/lib/auth/middleware';
 
 const baseUrl = getBaseUrl();
 
@@ -25,17 +26,13 @@ const openApiSpec = {
     description: 'Complete API documentation for the Jewels by NavKush e-commerce platform',
     contact: {
       name: 'API Support',
-      email: 'support@jewelsbynavkush.com',
+      email: getSupportEmail(),
     },
   },
   servers: [
     {
       url: `${baseUrl}/api`,
-      description: 'Production Server',
-    },
-    {
-      url: 'http://localhost:3000/api',
-      description: 'Development Server',
+      description: 'API Server',
     },
   ],
   components: {
@@ -1654,7 +1651,44 @@ const openApiSpec = {
  * GET /api/docs
  * Returns OpenAPI 3.0 specification (JSON) or Swagger UI (HTML)
  */
+/**
+ * Get client IP address from request
+ * Handles various proxy headers (X-Forwarded-For, X-Real-IP) for accurate IP detection
+ */
+function getClientIp(request: NextRequest): string {
+  const forwardedFor = request.headers.get('x-forwarded-for');
+  if (forwardedFor) {
+    return forwardedFor.split(',')[0].trim();
+  }
+  const realIp = request.headers.get('x-real-ip');
+  if (realIp) {
+    return realIp;
+  }
+  return 'unknown';
+}
+
+
 export async function GET(request: NextRequest) {
+  // Security: Disable Swagger UI in production unless explicitly enabled
+  const { isSwaggerEnabled } = await import('@/lib/utils/env');
+  if (isProduction() && !isSwaggerEnabled()) {
+    return createSecureErrorResponse('API documentation is not available in production', 404, request);
+  }
+
+  // Security: Require admin authentication for Swagger UI access
+  const authResult = await requireAdmin(request);
+  if ('error' in authResult) {
+    return authResult.error;
+  }
+
+  // Security: Optional IP whitelisting
+  const clientIp = getClientIp(request);
+  const { getSwaggerIpWhitelist } = await import('@/lib/utils/env');
+  const allowedIps = getSwaggerIpWhitelist();
+  if (allowedIps.length > 0 && !allowedIps.includes(clientIp)) {
+    return createSecureErrorResponse('Access denied from this IP address', 403, request);
+  }
+
   // Apply security (CORS, CSRF, rate limiting) for API documentation
   // More lenient rate limiting for documentation endpoint
   const securityResponse = applyApiSecurity(request, {
@@ -1663,7 +1697,8 @@ export async function GET(request: NextRequest) {
   if (securityResponse) return securityResponse;
 
   const acceptHeader = request.headers.get('accept') || '';
-  const isHtmlRequest = acceptHeader.includes('text/html') || request.nextUrl.searchParams.get('ui') === 'true';
+  const uiParam = request.nextUrl.searchParams.get('ui');
+  const isHtmlRequest = uiParam === 'true' || (acceptHeader.includes('text/html') && !acceptHeader.includes('application/json') && !acceptHeader.includes('application/yaml'));
 
   // Serve Swagger UI HTML interface when HTML is requested
   // Provides interactive API documentation and testing interface directly in browser
@@ -1686,18 +1721,19 @@ export async function GET(request: NextRequest) {
   <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-bundle.js"></script>
   <script>
     window.onload = function() {
+      const spec = ${JSON.stringify(openApiSpec)};
       SwaggerUIBundle({
-        url: '/api/docs',
+        spec: spec,
         dom_id: '#swagger-ui',
         presets: [
           SwaggerUIBundle.presets.apis,
           SwaggerUIBundle.presets.standalone,
         ],
-        layout: 'StandaloneLayout',
         deepLinking: true,
         displayRequestDuration: true,
         filter: true,
         tryItOutEnabled: true,
+        validatorUrl: null,
       });
     };
   </script>
@@ -1706,7 +1742,7 @@ export async function GET(request: NextRequest) {
 
     return new NextResponse(html, {
       headers: {
-        ...getSecurityHeaders(),
+        ...getSwaggerSecurityHeaders(),
         'Content-Type': 'text/html',
         'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
       },

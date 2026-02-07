@@ -17,14 +17,14 @@ export async function GET(request: NextRequest) {
     
     // Map to API response format
     const settings: GetSiteSettingsResponse['settings'] = {
-      siteName: settingsData.brand.name,
-      siteDescription: settingsData.brand.tagline,
-      contactEmail: settingsData.contact.email,
-      contactPhone: settingsData.contact.phone,
+      siteName: settingsData.brand?.name || '',
+      siteDescription: settingsData.brand?.tagline || '',
+      contactEmail: settingsData.contact?.email || undefined,
+      contactPhone: settingsData.contact?.phone || undefined,
       socialMedia: {
-        facebook: settingsData.social.facebook,
-        instagram: settingsData.social.instagram,
-        twitter: settingsData.social.twitter,
+        facebook: settingsData.social?.facebook || undefined,
+        instagram: settingsData.social?.instagram || undefined,
+        twitter: settingsData.social?.twitter || undefined,
       },
     };
     

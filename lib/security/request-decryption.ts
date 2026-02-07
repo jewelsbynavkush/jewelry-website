@@ -7,6 +7,8 @@
  * This reverses the simple XOR obfuscation applied on the client side.
  */
 
+/* eslint-disable @typescript-eslint/no-require-imports */
+
 /**
  * Check if a string looks like base64-encoded obfuscated data
  * Base64 strings are typically longer and contain only base64 characters
@@ -66,7 +68,11 @@ export function deobfuscateSensitiveValue(obfuscatedValue: string): string {
     const decoded = Buffer.from(obfuscatedValue, 'base64').toString('binary');
     
     // XOR is symmetric: (A XOR K) XOR K = A
-    const key = 'JWELRY_NAVKUSH_2025_SECURE_KEY';
+    // Security: Uses environment variable if available, fallback for backward compatibility
+    // Note: This is obfuscation, not encryption. HTTPS/TLS provides real encryption.
+    // Use dynamic import to avoid circular dependencies
+    const { getObfuscationKey } = require('@/lib/utils/env');
+    const key = getObfuscationKey();
     let deobfuscated = '';
     
     for (let i = 0; i < decoded.length; i++) {
@@ -75,9 +81,24 @@ export function deobfuscateSensitiveValue(obfuscatedValue: string): string {
       deobfuscated += String.fromCharCode(charCode ^ keyChar);
     }
     
+    // Validate deobfuscated result: check if it contains only printable ASCII characters
+    // If deobfuscation fails (wrong key), result will contain non-printable characters
+    const hasNonPrintableChars = /[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/.test(deobfuscated);
+    if (hasNonPrintableChars) {
+      // Likely wrong key - deobfuscation produced garbage
+      // Log error but return original to allow backward compatibility
+      // Use dynamic import to avoid circular dependencies
+      const logger = require('@/lib/utils/logger').default;
+      logger.warn('Deobfuscation may have failed - result contains non-printable characters. Check if NEXT_PUBLIC_OBFUSCATION_KEY matches OBFUSCATION_KEY or JWT_SECRET.');
+      // Still return the deobfuscated value - let password comparison fail naturally
+      // This allows the system to work even if keys don't match (backward compatibility)
+    }
+    
     return deobfuscated;
-  } catch {
+  } catch (error) {
     // Handles edge cases: direct API calls, test data, client-side obfuscation failures
+    const logger = require('@/lib/utils/logger').default;
+    logger.warn('Deobfuscation failed, treating as plain text', { error: error instanceof Error ? error.message : 'Unknown error' });
     return obfuscatedValue;
   }
 }

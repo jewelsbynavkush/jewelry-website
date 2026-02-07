@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "migrate:mongodb": "tsx scripts/migrate-to-mongodb.ts",
+    "migrate:site-settings": "tsx scripts/migrate-site-settings.ts",
+    "migrate:country-settings": "tsx scripts/migrate-country-settings.ts",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",

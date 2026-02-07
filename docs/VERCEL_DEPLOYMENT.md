@@ -153,8 +153,6 @@ ZOHO_CATALYST_PROJECT_ID=your_prod_project_id
 ZOHO_CATALYST_CLIENT_ID=your_prod_client_id
 ZOHO_CATALYST_CLIENT_SECRET=your_prod_client_secret
 
-# Zoho Mail (Production)
-ZOHO_MAIL_API_KEY=your_prod_mail_key
 ```
 
 **Note:** For current JSON-based architecture, only `NEXT_PUBLIC_ENV`, `NEXT_PUBLIC_BASE_URL`, and `NEXT_PUBLIC_SITE_NAME` are required. Zoho Catalyst variables are for future implementation.

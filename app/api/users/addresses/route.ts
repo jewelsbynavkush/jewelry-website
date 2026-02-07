@@ -15,14 +15,16 @@ import { logError } from '@/lib/security/error-handler';
 import { sanitizeString, sanitizePhone } from '@/lib/security/sanitize';
 import { formatZodError } from '@/lib/utils/zod-error';
 import { SECURITY_CONFIG } from '@/lib/security/constants';
-import { indianAddressSchema } from '@/lib/validations/address';
+import { createAddressSchema } from '@/lib/validations/address-country-aware';
+import { getDefaultPhoneCountryCode } from '@/lib/utils/country-helpers';
 import type { GetAddressesResponse, AddAddressRequest, AddAddressResponse } from '@/types/api';
 import { z } from 'zod';
 
 /**
- * Schema for adding address with Indian address validation
+ * Schema for adding address with country-aware validation
+ * Uses default country from DB, falls back to India if unavailable
  */
-const addAddressSchema = indianAddressSchema.extend({
+const addAddressSchema = createAddressSchema().extend({
   type: z.enum(['shipping', 'billing', 'both']),
   isDefault: z.boolean().default(false),
 });
@@ -132,7 +134,7 @@ export async function POST(request: NextRequest) {
 
     // Validate address data to ensure all required fields are present and properly formatted
     const body = await request.json() as AddAddressRequest;
-    const validatedData = addAddressSchema.parse(body);
+    const validatedData = await addAddressSchema.parseAsync(body);
 
     // Optimize: Only select fields needed for address operations
     // Optimize: Only select address-related fields needed for POST operation
@@ -141,6 +143,9 @@ export async function POST(request: NextRequest) {
     if (!userDoc) {
       return createSecureErrorResponse('User not found', 404, request);
     }
+
+    // Get default country code if not provided
+    const defaultCountryCode = validatedData.countryCode || (await getDefaultPhoneCountryCode());
 
     // Sanitize address data
     const addressData = {
@@ -155,7 +160,7 @@ export async function POST(request: NextRequest) {
       zipCode: sanitizeString(validatedData.zipCode),
       country: sanitizeString(validatedData.country),
       phone: sanitizePhone(validatedData.phone),
-      countryCode: sanitizeString(validatedData.countryCode || '+91'),
+      countryCode: sanitizeString(defaultCountryCode),
       isDefault: validatedData.isDefault,
     };
 
@@ -184,9 +189,9 @@ export async function POST(request: NextRequest) {
     }));
     
     const responseData: AddAddressResponse = {
-      success: true,
-      message: 'Address added successfully',
-      addressId,
+        success: true,
+        message: 'Address added successfully',
+        addressId,
       addresses,
       defaultShippingAddressId: userDoc.defaultShippingAddressId?.toString(),
       defaultBillingAddressId: userDoc.defaultBillingAddressId?.toString(),

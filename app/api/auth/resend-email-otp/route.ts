@@ -84,22 +84,15 @@ export async function POST(request: NextRequest) {
       try {
         await userDoc.save();
       } catch (saveError: unknown) {
-        // Handle MongoDB schema validation errors during OTP save
-        // Provides user-friendly error messages for validation failures
-        if (saveError && typeof saveError === 'object' && 'name' in saveError && saveError.name === 'ValidationError') {
-          const errors = Object.values('errors' in saveError && saveError.errors ? saveError.errors : {}).map((err: unknown) => 
-            err && typeof err === 'object' && 'message' in err ? String(err.message) : 'Validation error'
-          );
-          logError('User validation error in resend-email-otp', saveError);
-          return createSecureErrorResponse(errors.join(', ') || 'Validation error', 400, request);
+        // Handle Mongoose errors with reusable utility
+        const { handleMongooseSaveError } = await import('@/lib/utils/mongoose-error-handler');
+        const errorResponse = handleMongooseSaveError(saveError, request, 'resend-email-otp');
+        if (errorResponse) {
+          return errorResponse;
         }
-        // Handle MongoDB duplicate key errors (unique constraint violations)
-        // Prevents duplicate email addresses or other unique field conflicts
-        if (saveError && typeof saveError === 'object' && 'code' in saveError && saveError.code === 11000) {
-          logError('Duplicate key error in resend-email-otp', saveError);
-          return createSecureErrorResponse('Email already in use', 400, request);
-        }
-        throw saveError; // Re-throw other errors
+        
+        // Re-throw other errors
+        throw saveError;
       }
 
       // Send OTP email via Gmail SMTP for email verification

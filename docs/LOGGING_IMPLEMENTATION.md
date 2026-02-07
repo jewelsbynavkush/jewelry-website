@@ -62,7 +62,6 @@ Example:
 - ✅ `lib/utils/logger.ts` - Centralized logger implementation
 
 ### Services
-- ✅ `lib/sms/fast2sms.ts` - Replaced local logger with centralized logger
 - ✅ `lib/email/gmail.ts` - Replaced local logger with centralized logger
 
 ### Error Handling

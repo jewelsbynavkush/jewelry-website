@@ -8,6 +8,7 @@
 import Cart from '@/models/Cart';
 import Product from '@/models/Product';
 import { ECOMMERCE } from '@/lib/constants';
+import { getEcommerceSettings } from '@/lib/utils/site-settings-helpers';
 import mongoose from 'mongoose';
 
 /**
@@ -114,11 +115,17 @@ export async function mergeGuestCartToUser(
     }
   }
 
-  userCart.calculateTotals(ECOMMERCE.freeShippingThreshold, ECOMMERCE.defaultShippingCost);
+  // Use database-driven e-commerce settings with fallback to constants
+  const ecommerce = await getEcommerceSettings();
+  const freeShippingThreshold = ecommerce.freeShippingThreshold ?? ECOMMERCE.freeShippingThreshold;
+  const defaultShippingCost = ecommerce.defaultShippingCost ?? ECOMMERCE.defaultShippingCost;
+  userCart.calculateTotals(freeShippingThreshold, defaultShippingCost);
   
-  if (ECOMMERCE.calculateTax && ECOMMERCE.taxRate > 0) {
-    userCart.tax = Math.round(userCart.subtotal * ECOMMERCE.taxRate * 100) / 100;
-    userCart.calculateTotals(ECOMMERCE.freeShippingThreshold, ECOMMERCE.defaultShippingCost);
+  const calculateTax = ecommerce.calculateTax ?? ECOMMERCE.calculateTax;
+  const taxRate = ecommerce.taxRate ?? ECOMMERCE.taxRate;
+  if (calculateTax && taxRate > 0) {
+    userCart.tax = Math.round(userCart.subtotal * taxRate * 100) / 100;
+    userCart.calculateTotals(freeShippingThreshold, defaultShippingCost);
   }
 
   // Cart is now tied to user account instead of guest session

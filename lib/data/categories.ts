@@ -72,3 +72,17 @@ export async function getCategory(slug: string): Promise<CategoryType | null> {
   }
 }
 
+
+/**
+ * Transform database categories to component format with href
+ * Used for navigation links and UI components
+ * 
+ * @param categories - Array of categories from database
+ * @returns Array of categories with href property
+ */
+export function transformCategoriesForUI(categories: CategoryType[]): Array<CategoryType & { href: string }> {
+  return categories.map(cat => ({
+    ...cat,
+    href: `/designs?category=${cat.slug}`,
+  }));
+}

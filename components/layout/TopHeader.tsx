@@ -8,10 +8,18 @@ import { ANIMATION_PRESETS, SCALE, ROTATE, DURATION, STAGGER } from '@/lib/anima
 import { useCartStore } from '@/lib/store/cart-store';
 import UserMenu from './UserMenu';
 
+interface Category {
+  slug: string;
+  name: string;
+  displayName: string;
+  href: string;
+}
+
 export default function TopHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [headerBgColor, setHeaderBgColor] = useState('var(--beige)');
   const [textColor, setTextColor] = useState('var(--text-on-beige)');
+  const [categories, setCategories] = useState<Category[]>([]);
   const pathname = usePathname();
   const isHomePage = pathname === '/';
   const { cart, fetchCart, isLoading } = useCartStore();
@@ -23,6 +31,28 @@ export default function TopHeader() {
       fetchCart();
     }
   }, [cart, isLoading, fetchCart]);
+
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('/api/categories');
+        if (response.ok) {
+          const data = await response.json();
+          const categoriesWithHref = data.categories.map((cat: { slug: string; name: string }) => ({
+            slug: cat.slug,
+            name: cat.name,
+            displayName: cat.name.toUpperCase(),
+            href: `/designs?category=${cat.slug}`,
+          }));
+          setCategories(categoriesWithHref);
+        }
+      } catch (error) {
+        console.error('Failed to fetch categories:', error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     /**
@@ -215,13 +245,6 @@ export default function TopHeader() {
     };
   }, [pathname]);
 
-  const categories = [
-    { name: 'RINGS', slug: 'rings', href: '/designs?category=rings' },
-    { name: 'EARRINGS', slug: 'earrings', href: '/designs?category=earrings' },
-    { name: 'NECKLACES', slug: 'necklaces', href: '/designs?category=necklaces' },
-    { name: 'BRACELETS', slug: 'bracelets', href: '/designs?category=bracelets' },
-  ];
-
   return (
     <header 
       className="relative z-50 overflow-visible"
@@ -374,7 +397,7 @@ export default function TopHeader() {
                       whileHover={{ x: 4 }}
                       transition={ANIMATION_PRESETS.MENU_ITEM_HOVER.transition}
                     >
-                      {category.name}
+                      {category.displayName}
                     </motion.span>
                   </SmoothLink>
                 </motion.div>

@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next';
 import { getProducts } from '@/lib/data/products';
-import { CATEGORIES } from '@/lib/constants';
+import { getCategories, transformCategoriesForUI } from '@/lib/data/categories';
 import { logError } from '@/lib/security/error-handler';
 import { getBaseUrl } from '@/lib/utils/env';
 
@@ -75,12 +75,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   // Category pages
-  const categoryPages: MetadataRoute.Sitemap = CATEGORIES.map((category) => ({
-    url: `${baseUrl}${category.href}`,
-    lastModified: now,
-    changeFrequency: 'daily',
-    priority: 0.8,
-  }));
+  let categoryPages: MetadataRoute.Sitemap = [];
+  try {
+    const categories = await getCategories();
+    const categoriesForUI = transformCategoriesForUI(categories);
+    categoryPages = categoriesForUI.map((category) => ({
+      url: `${baseUrl}${category.href}`,
+      lastModified: now,
+      changeFrequency: 'daily' as const,
+      priority: 0.8,
+    }));
+  } catch (error) {
+    logError('sitemap categories', error);
+  }
 
   // Dynamic product pages
   try {
