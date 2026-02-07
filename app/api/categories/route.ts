@@ -26,6 +26,9 @@ export async function GET(request: NextRequest) {
   if (securityResponse) return securityResponse;
 
   try {
+    const url = new URL(request.url);
+    const noCache = url.searchParams.get('no-cache') === 'true';
+    
     const categoriesData = await getCategories();
 
     // Map to API response format with id field
@@ -41,7 +44,11 @@ export async function GET(request: NextRequest) {
     const responseData: GetCategoriesResponse = { categories };
     const response = createSecureResponse(responseData, 200, request);
     
-    response.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+    if (noCache) {
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    } else {
+      response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=1800');
+    }
     return response;
   } catch (error) {
     logError('categories API', error);
