@@ -43,6 +43,7 @@ input:disabled, textarea:disabled, select:disabled {
   --white-opacity-20: rgba(255, 255, 255, 0.2);    /* White 20% opacity */
   --white-opacity-30: rgba(255, 255, 255, 0.3);    /* White 30% opacity */
   --white-opacity-40: rgba(255, 255, 255, 0.4);    /* White 40% opacity */
+  --white-opacity-50: rgba(255, 255, 255, 0.5);    /* White 50% opacity - for borders on beige */
   --white-opacity-60: rgba(255, 255, 255, 0.6);    /* White 60% opacity */
   
   /* Black with Opacity - Standardized for hover states on light backgrounds */

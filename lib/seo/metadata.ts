@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { getBrandName } from '@/lib/utils/text-formatting';
 import { getBaseUrl } from '@/lib/utils/env';
+import { getCDNUrl } from '@/lib/utils/cdn';
 
 const baseUrl = getBaseUrl();
 const siteName = getBrandName();
@@ -43,7 +44,10 @@ export function generateStandardMetadata({
   const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
   const optimizedDescription = optimizeDescription(description);
   // Use provided image, or fallback to hero image (exists in public folder)
-  const imageUrl = image || `${baseUrl}/hero-image.png`;
+  // Convert to CDN URL if CDN is configured
+  const imageUrl = image 
+    ? (image.startsWith('http') ? image : getCDNUrl(image))
+    : getCDNUrl('/assets/hero/hero-image.png');
   const pageUrl = url || baseUrl;
 
   return {
@@ -143,9 +147,10 @@ export function generateProductMetadata({
   keywords?: string[];
 }): Metadata {
   // Use provided image, or fallback to hero image (exists in public folder)
+  // Convert to CDN URL if CDN is configured
   const imageUrl = image 
-    ? `${baseUrl}${image}`
-    : `${baseUrl}/hero-image.png`;
+    ? (image.startsWith('http') ? image : getCDNUrl(image))
+    : getCDNUrl('/assets/hero/hero-image.png');
 
   return generateStandardMetadata({
     title,

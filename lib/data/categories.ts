@@ -72,7 +72,6 @@ export async function getCategory(slug: string): Promise<CategoryType | null> {
   }
 }
 
-
 /**
  * Transform database categories to component format with href
  * Used for navigation links and UI components
@@ -86,3 +85,4 @@ export function transformCategoriesForUI(categories: CategoryType[]): Array<Cate
     href: `/designs?category=${cat.slug}`,
   }));
 }
+

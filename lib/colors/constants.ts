@@ -75,6 +75,7 @@ export const WHITE_OPACITY = {
   OPACITY_20: 'var(--white-opacity-20)',     // 20% opacity
   OPACITY_30: 'var(--white-opacity-30)',     // 30% opacity
   OPACITY_40: 'var(--white-opacity-40)',     // 40% opacity
+  OPACITY_50: 'var(--white-opacity-50)',     // 50% opacity - for borders on beige
   OPACITY_60: 'var(--white-opacity-60)',     // 60% opacity
 } as const;
 

@@ -10,6 +10,7 @@ import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { apiGet } from '@/lib/api/client';
 import { formatPrice } from '@/lib/utils/price-formatting';
+import { getCDNUrl } from '@/lib/utils/cdn';
 import { useAuthStore } from '@/lib/store/auth-store';
 import ErrorMessage from '@/components/ui/ErrorMessage';
 import LoadingState from '@/components/ui/LoadingState';
@@ -268,7 +269,7 @@ export default function OrderDetailsPage() {
                 >
                   {item.image && (
                     <Image
-                      src={item.image}
+                      src={getCDNUrl(item.image)}
                       alt={item.title || 'Order item'}
                       width={80}
                       height={80}

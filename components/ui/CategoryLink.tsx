@@ -35,7 +35,7 @@ export default function CategoryLink({
   // 50% opacity provides better visibility on beige background
   // Use light border for cream background (intro variant)
   const borderColor = isProductsVariant 
-    ? 'border-[rgba(255,255,255,0.5)]' 
+    ? 'border-[var(--white-opacity-50)]' 
     : 'border-[var(--border-light)]';
   
   // Products variant: Always show both top and bottom borders for all items

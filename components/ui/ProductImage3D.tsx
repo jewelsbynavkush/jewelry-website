@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { getCDNUrl } from '@/lib/utils/cdn';
 
 interface ProductImage3DProps {
   image: string;
@@ -12,6 +13,8 @@ interface ProductImage3DProps {
  * Product detail image component (animations removed for iOS scroll compatibility)
  */
 export default function ProductImage3D({ image, alt, priority = false }: ProductImage3DProps) {
+  const imageUrl = getCDNUrl(image);
+  
   return (
     <div className="relative w-full h-64 sm:h-80 md:h-96 lg:h-[500px] rounded-lg overflow-hidden bg-[var(--cream)] p-4 sm:p-6 md:p-8">
       {/* Gradient background */}
@@ -24,7 +27,7 @@ export default function ProductImage3D({ image, alt, priority = false }: Product
       
       <div className="relative w-full h-full z-10">
         <Image
-          src={image}
+          src={imageUrl}
           alt={alt}
           fill
           className="object-contain mix-blend-multiply relative z-10"

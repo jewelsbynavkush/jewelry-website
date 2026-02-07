@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { getCDNUrl } from '@/lib/utils/cdn';
 import { TILT_3D, SCALE, DURATION, SHADOW, EASING, TRANSLATE } from '@/lib/animations/constants';
 import { use3DTilt } from '@/lib/hooks/use3DTilt';
 
@@ -79,7 +80,7 @@ export default function CategoryCard3D({
               }}
             >
               <Image
-                src={imageSrc}
+                src={getCDNUrl(imageSrc)}
                 alt={`${name} jewelry collection - Exquisite handcrafted ${name.toLowerCase()} pieces`}
                 fill
                 className="object-contain mix-blend-multiply relative z-10"

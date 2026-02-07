@@ -1,7 +1,7 @@
 # Color Shades & Text Color Consistency Audit - 2025
 
-**Date:** February 7, 2025  
-**Status:** ✅ **100% COMPLIANT - ALL BEST PRACTICES MET**
+**Date:** February 2025  
+**Status:** ✅ **100% COMPLIANT - UPDATED**
 
 ---
 
@@ -12,7 +12,7 @@ Comprehensive audit confirms **100% compliance** with color consistency and text
 - ✅ **CSS Variables** - All colors use CSS variables (single source of truth)
 - ✅ **Context-Aware Text** - Text colors correctly match background contexts
 - ✅ **WCAG Compliance** - All contrast ratios meet WCAG AA/AAA standards
-- ✅ **No Hardcoded Colors** - Zero hardcoded RGB/hex values in components
+- ✅ **No Hardcoded Colors** - Zero hardcoded RGB/hex values in components (except acceptable exceptions)
 - ✅ **Consistent Patterns** - Background → text color mapping is standardized
 - ✅ **Hover States** - Consistent hover color transitions
 
@@ -47,12 +47,16 @@ Comprehensive audit confirms **100% compliance** with color consistency and text
 
 **Border Colors:**
 - ✅ `--border-light: #e8e5e0` - Light border for cards/inputs
-- ✅ `--border-white-light: rgba(255, 255, 255, 0.3)` - White border for beige
+- ✅ `--border-white-light: rgba(255, 255, 255, 0.3)` - White border for beige (30% opacity)
+- ✅ `--white-opacity-50: rgba(255, 255, 255, 0.5)` - White 50% opacity for borders on beige
 
-**Shadow Colors:**
-- ✅ `--shadow-light: rgba(0, 0, 0, 0.1)`
-- ✅ `--shadow-medium: rgba(0, 0, 0, 0.25)`
-- ✅ `--shadow-dark: rgba(0, 0, 0, 0.3)`
+**White Opacity Values:**
+- ✅ `--white-opacity-10: rgba(255, 255, 255, 0.1)` - 10% opacity
+- ✅ `--white-opacity-20: rgba(255, 255, 255, 0.2)` - 20% opacity
+- ✅ `--white-opacity-30: rgba(255, 255, 255, 0.3)` - 30% opacity
+- ✅ `--white-opacity-40: rgba(255, 255, 255, 0.4)` - 40% opacity
+- ✅ `--white-opacity-50: rgba(255, 255, 255, 0.5)` - 50% opacity (NEW - for borders on beige)
+- ✅ `--white-opacity-60: rgba(255, 255, 255, 0.6)` - 60% opacity
 
 **Status:** ✅ **100% Consistent - All colors defined in CSS variables**
 
@@ -126,6 +130,7 @@ bg-[var(--cream)] text-[var(--text-on-cream)]
 **Navigation:**
 - ✅ `Footer.tsx` - `bg-[var(--beige)]`, `text-[var(--text-on-beige)]`
 - ✅ `CategoryLink.tsx` - `text-[var(--text-on-beige)]`, `hover:text-[var(--text-on-beige-hover)]`
+- ✅ `CategoryLink.tsx` - Border: `border-[var(--white-opacity-50)]` (FIXED - was hardcoded)
 - ✅ `TopHeader.tsx` - Dynamic color detection (runtime, acceptable)
 
 **Sections:**
@@ -133,19 +138,25 @@ bg-[var(--cream)] text-[var(--text-on-cream)]
 - ✅ `SectionHeading.tsx` - Context-aware: `background='beige'` → `text-[var(--text-on-beige)]`
 - ✅ `SectionHeading.tsx` - Context-aware: `background='cream'` → `text-[var(--text-on-cream)]`
 
-**Interactive:**
-- ✅ `QuantitySelector.tsx` - `bg-[var(--cream)]`, `text-[var(--text-on-cream)]`, hover: `bg-[var(--beige)]`, `text-[var(--text-on-beige)]`
-- ✅ `CartItem.tsx` - Quantity buttons: `bg-[var(--cream)]`, `text-[var(--text-on-cream)]`, hover: `bg-[var(--beige)]`, `text-[var(--text-on-beige)]`
-
-**Status Messages:**
-- ✅ `AlertMessage.tsx` - Uses `text-[var(--success-text)]`, `text-[var(--error-text)]`, etc.
-- ✅ `ProductBadge.tsx` - All badges use `text-[var(--text-on-beige)]` on colored backgrounds
-
 **Status:** ✅ **100% Consistent - All components use correct color combinations**
 
 ---
 
-## 4. Hardcoded Colors Check ✅ **0 ISSUES FOUND**
+## 4. Hardcoded Colors Check ✅ **FIXED**
+
+### Issues Found and Fixed
+
+**1. CategoryLink.tsx - Border Color (FIXED):**
+```typescript
+// Before (hardcoded):
+border-[rgba(255,255,255,0.5)]
+
+// After (using CSS variable):
+border-[var(--white-opacity-50)]
+```
+- ✅ **Fixed** - Now uses CSS variable `--white-opacity-50`
+- ✅ **Added** - New CSS variable `--white-opacity-50` in `globals.css`
+- ✅ **Updated** - Added to `WHITE_OPACITY` constant in `lib/colors/constants.ts`
 
 ### Acceptable Hardcoded Colors
 
@@ -168,14 +179,7 @@ if (color.includes('#FAF8F5') || color.includes('#faf8f5')) return true;
 - ✅ **Justified** - Used for dynamic text color switching based on scroll position
 - ✅ **Matches** - Values match CSS variable definitions
 
-### No Other Hardcoded Colors Found
-
-- ✅ **No hardcoded RGB values** in component styles
-- ✅ **No hardcoded hex colors** in component styles
-- ✅ **No Tailwind color classes** (text-gray, bg-white, etc.)
-- ✅ **All colors use CSS variables** via `var(--variable-name)` or `text-[var(--variable-name)]`
-
-**Status:** ✅ **100% Compliant - Only acceptable hardcoded colors found**
+**Status:** ✅ **100% Compliant - All hardcoded colors fixed or justified**
 
 ---
 
@@ -254,57 +258,33 @@ text-[var(--text-on-beige)] → hover:text-[var(--text-on-beige-hover)]
 
 ---
 
-## 8. Section Heading Context-Aware Colors ✅ **100% IMPLEMENTED**
+## 8. Changes Made
 
-### SectionHeading Component
+### Fixed Issues:
 
-**Implementation:**
-```typescript
-// Context-aware text color selection
-const textColor = background === 'beige' 
-  ? 'text-[var(--text-on-beige)]' 
-  : 'text-[var(--text-on-cream)]';
-```
+1. **CategoryLink.tsx - Hardcoded Border Color**
+   - **Before:** `border-[rgba(255,255,255,0.5)]` (hardcoded)
+   - **After:** `border-[var(--white-opacity-50)]` (CSS variable)
+   - **Added:** `--white-opacity-50` CSS variable in `globals.css`
+   - **Updated:** `WHITE_OPACITY.OPACITY_50` constant in `lib/colors/constants.ts`
 
-**Usage:**
-- ✅ `background='cream'` → Uses `text-[var(--text-on-cream)]`
-- ✅ `background='beige'` → Uses `text-[var(--text-on-beige)]`
-- ✅ Default: `background='cream'` (most common)
+### Verified (No Changes Needed):
 
-**Status:** ✅ **100% Consistent - Context-aware colors correctly applied**
-
----
-
-## 9. Color Constants Files ✅ **100% ORGANIZED**
-
-### File Structure
-
-**1. `app/globals.css`:**
-- ✅ All CSS variables defined in `:root`
-- ✅ Tailwind theme integration via `@theme inline`
-- ✅ Comprehensive color palette
-
-**2. `lib/constants.ts`:**
-- ✅ `COLORS` constant with color definitions
-- ✅ Matches CSS variable values
-- ✅ Used for TypeScript type safety
-
-**3. `lib/colors/constants.ts`:**
-- ✅ Organized color constants by category
-- ✅ Usage guidelines and best practices
-- ✅ Contrast ratio documentation
-
-**Status:** ✅ **100% Organized - Clear separation of concerns**
+1. ✅ All other components use CSS variables correctly
+2. ✅ Text colors match background contexts
+3. ✅ WCAG contrast ratios meet standards
+4. ✅ Hover states are consistent
+5. ✅ Status colors are standardized
 
 ---
 
-## 10. Best Practices Checklist ✅ **100% COMPLETE**
+## 9. Best Practices Compliance ✅ **100% COMPLETE**
 
 ### Color System
 - ✅ CSS variables for all colors (single source of truth)
 - ✅ Context-aware text colors (match backgrounds)
 - ✅ WCAG AA/AAA contrast compliance
-- ✅ No hardcoded colors in components
+- ✅ No hardcoded colors in components (except acceptable exceptions)
 - ✅ Consistent hover states
 - ✅ Clear text color hierarchy
 
@@ -326,32 +306,7 @@ const textColor = background === 'beige'
 
 ---
 
-## 11. Recommendations
-
-### Current Status: ✅ **PRODUCTION READY**
-
-All color shades and text colors are consistent and follow best practices.
-
-### Optional Enhancements (Future)
-
-1. **Dark Mode Support**
-   - Add dark mode color variables
-   - Context-aware color switching
-   - Maintain contrast ratios
-
-2. **Color Theme Customization**
-   - Allow theme customization via database
-   - Dynamic CSS variable updates
-   - Preset theme options
-
-3. **Accessibility Testing**
-   - Automated contrast ratio testing
-   - Color blindness simulation
-   - Visual regression testing
-
----
-
-## 12. Conclusion
+## 10. Conclusion
 
 **✅ ALL COLOR BEST PRACTICES MET**
 
@@ -367,6 +322,6 @@ The codebase demonstrates:
 
 ---
 
-**Last Updated:** February 7, 2025  
+**Last Updated:** February 2025  
 **Audited By:** Color Consistency Audit System  
 **Next Review:** Quarterly or after major design changes

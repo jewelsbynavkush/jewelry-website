@@ -1,4 +1,5 @@
 import type { Category } from '@/types/data';
+import { getCDNUrl } from './cdn';
 
 export type CategoryType = Category;
 
@@ -18,7 +19,7 @@ export function getRandomCategoryImages(count: number, categories?: CategoryType
   }
   
   const categoryImages = categories.map(cat => 
-    cat.image || `/assets/categories/${cat.slug}.png`
+    getCDNUrl(cat.image || `/assets/categories/${cat.slug}.png`)
   );
   
   if (categoryImages.length === 0) {
@@ -51,21 +52,21 @@ export function getCategoryImageSource(
 ): CategoryImageSource | null {
   if (imageUrl) {
     return {
-      src: imageUrl,
+      src: getCDNUrl(imageUrl),
       alt: category.alt || `${category.name} jewelry collection`,
     };
   }
   
   if (category.image) {
     return {
-      src: category.image,
+      src: getCDNUrl(category.image),
       alt: category.alt || `${category.name} jewelry collection - Exquisite handcrafted ${category.name.toLowerCase()} pieces`,
     };
   }
   
   const publicImagePath = `/assets/categories/${category.slug}.png`;
   return {
-    src: publicImagePath,
+    src: getCDNUrl(publicImagePath),
     alt: category.alt || `${category.name} jewelry collection - Exquisite handcrafted ${category.name.toLowerCase()} pieces`,
   };
 }

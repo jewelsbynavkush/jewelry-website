@@ -125,8 +125,7 @@ export function applyApiSecurity(
 ): NextResponse | null {
   const securityConfig = { ...defaultConfig, ...config };
 
-  // Enforce HTTPS for sensitive operations (production only)
-  // Industry standard: HTTPS/TLS is the primary encryption layer
+  // Enforce HTTPS in production - TLS encryption prevents man-in-the-middle attacks
   if (securityConfig.enforceHttps !== false && isProduction()) {
     const httpsResponse = enforceHttps(request);
     if (httpsResponse) {
@@ -143,8 +142,7 @@ export function applyApiSecurity(
     }
   }
 
-  // Handle CORS preflight requests (OPTIONS) before processing actual request
-  // Preflight allows browsers to check if cross-origin request is allowed
+  // Handle CORS preflight requests - browsers send OPTIONS to verify cross-origin permissions
   if (securityConfig.enableCors) {
     const corsConfig = getCorsConfig();
     const preflightResponse = handleCorsPreflight(request, corsConfig);
@@ -153,8 +151,7 @@ export function applyApiSecurity(
     }
   }
 
-  // Validate HTTP method against allowed methods to prevent unauthorized operations
-  // Security: Restricts endpoints to specific HTTP verbs (GET, POST, etc.)
+  // Restrict endpoints to allowed HTTP methods to prevent unauthorized operations (e.g., blocking DELETE on read-only endpoints)
   if (securityConfig.allowedMethods && !validateMethod(request, securityConfig.allowedMethods)) {
     return NextResponse.json(
       { error: 'Method not allowed' },
@@ -169,8 +166,7 @@ export function applyApiSecurity(
     );
   }
 
-  // Validate Content-Type header when required to ensure proper request format
-  // Security: Prevents content-type confusion attacks
+  // Validate Content-Type header to prevent content-type confusion attacks (malicious payloads disguised as different formats)
   if (securityConfig.requireContentType && !validateContentType(request, securityConfig.requireContentType)) {
     return NextResponse.json(
       { error: 'Content-Type header required' },
@@ -184,8 +180,7 @@ export function applyApiSecurity(
     );
   }
 
-  // Validate request size to prevent DoS attacks from oversized payloads
-  // Security: Limits request body size to prevent memory exhaustion
+  // Limit request size to prevent DoS attacks from memory exhaustion via oversized payloads
   if (securityConfig.maxRequestSize && !validateRequestSize(request, securityConfig.maxRequestSize)) {
     return NextResponse.json(
       { error: 'Request too large' },
@@ -199,7 +194,7 @@ export function applyApiSecurity(
     );
   }
 
-  // CSRF protection
+  // Validate request origin to prevent CSRF attacks on state-changing operations
   if (securityConfig.enableCsrf && requiresCsrfProtection(request.method)) {
     const csrfValidation = validateCsrf(request, securityConfig.requireCsrfToken);
     if (!csrfValidation.isValid) {
@@ -216,7 +211,7 @@ export function applyApiSecurity(
     }
   }
 
-  // Rate limiting (disabled in test environment)
+  // Enforce rate limits to prevent abuse and DoS attacks (disabled in test for faster test execution)
   if (securityConfig.enableRateLimit && !isTest()) {
     const rateLimit = checkRateLimit(request, securityConfig.rateLimitConfig);
     if (!rateLimit.allowed) {
@@ -237,7 +232,6 @@ export function applyApiSecurity(
     }
   }
 
-  // Request is valid, return null to proceed
   return null;
 }
 

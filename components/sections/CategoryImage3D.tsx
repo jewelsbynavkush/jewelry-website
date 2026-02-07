@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import ImagePlaceholder from '@/components/ui/ImagePlaceholder';
+import { getCDNUrl } from '@/lib/utils/cdn';
 import { TILT_3D, SCALE, DURATION, SHADOW, EASING } from '@/lib/animations/constants';
 import { CategoryImageSource, CategoryType } from '@/lib/utils/image-helpers';
 import { use3DTilt } from '@/lib/hooks/use3DTilt';
@@ -87,7 +88,7 @@ export default function CategoryImage3D({ category, imageSource }: CategoryImage
                   }}
                 >
                   <Image
-                    src={imageSource.src}
+                    src={getCDNUrl(imageSource.src)}
                     alt={imageSource.alt || `${category.name} jewelry collection - Exquisite handcrafted ${category.name.toLowerCase()} pieces`}
                     fill
                     className="object-contain mix-blend-multiply relative"

@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { getCDNUrl } from '@/lib/utils/cdn';
 
 interface AboutImage3DProps {
   aboutImage?: string;
@@ -12,7 +13,7 @@ interface AboutImage3DProps {
  * Simple about us image component without any effects
  */
 export default function AboutImage3D({ aboutImage, aboutImageAlt, isMobile = false }: AboutImage3DProps) {
-  const imageUrl = aboutImage || '/about-image.png';
+  const imageUrl = getCDNUrl(aboutImage || '/assets/about/about-image.png');
   
   const imageAlt = aboutImageAlt || 'About Jewels by NavKush - Our craftsmanship and dedication to creating timeless jewelry';
 

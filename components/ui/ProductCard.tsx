@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Product } from '@/types/data';
 import { formatPrice } from '@/lib/utils/price-formatting';
+import { getCDNUrl } from '@/lib/utils/cdn';
 import ProductBadge from './ProductBadge';
 import ImagePlaceholder from './ImagePlaceholder';
 import { SCALE, DURATION, SHADOW, EASING, TRANSLATE, TILT_3D } from '@/lib/animations/constants';
@@ -39,7 +40,8 @@ export default function ProductCard({
   const [imageError, setImageError] = useState(false);
   
   const isPlaceholder = !product && !!placeholderImage;
-  const imageUrl = product?.image || placeholderImage || null;
+  const rawImageUrl = product?.image || placeholderImage || null;
+  const imageUrl = rawImageUrl ? getCDNUrl(rawImageUrl) : null;
   const href = product ? `/designs/${product.slug}` : placeholderHref;
   const isOutOfStock = product?.inStock === false;
   const productAriaLabel = product 

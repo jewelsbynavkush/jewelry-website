@@ -1,6 +1,6 @@
 # CSS & Responsiveness Best Practices Audit - 2025
 
-**Date:** February 7, 2025  
+**Date:** February 2025  
 **Status:** ✅ **100% COMPLIANT - ALL BEST PRACTICES MET**
 
 ---
@@ -34,31 +34,11 @@ Comprehensive audit confirms **100% compliance** with CSS and responsiveness bes
 - ✅ **Consistent Naming:** Clear, semantic naming conventions
 
 **CSS Variables (globals.css):**
-```css
-:root {
-  /* Colors */
-  --beige: #CCC4BA;
-  --cream: #faf8f5;
-  --text-on-beige: rgb(255, 255, 255);
-  --text-on-cream: rgb(42, 42, 42);
-  
-  /* Typography */
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
-  --text-base: 1rem;
-  /* ... through --text-6xl */
-  
-  /* Spacing */
-  --leading-tight: 1.25;
-  --leading-normal: 1.5;
-  /* ... */
-  
-  /* Shadows */
-  --shadow-light: rgba(0, 0, 0, 0.1);
-  --shadow-medium: rgba(0, 0, 0, 0.25);
-  --shadow-dark: rgba(0, 0, 0, 0.3);
-}
-```
+- ✅ Colors: `--beige`, `--cream`, `--text-on-beige`, `--text-on-cream`, etc.
+- ✅ Typography: `--text-xs` through `--text-6xl`
+- ✅ Spacing: `--leading-tight`, `--leading-normal`, etc.
+- ✅ Shadows: `--shadow-light`, `--shadow-medium`, `--shadow-dark`
+- ✅ White Opacity: `--white-opacity-10` through `--white-opacity-60`
 
 **Utility Classes:**
 - ✅ `.section-container` - `container mx-auto px-4 sm:px-6`
@@ -239,10 +219,13 @@ className="text-button" // Consistent size
 }
 ```
 
-**Hero Titles:**
-```tsx
-// Footer.tsx - Acceptable inline style for fluid typography
-style={{ fontSize: 'clamp(2.5rem, 6vw, 5rem)' }}
+**Mobile Optimization:**
+```css
+@media (max-width: 640px) {
+  .font-section-heading {
+    font-size: clamp(2rem, 8vw, 3rem);
+  }
+}
 ```
 
 **Status:** ✅ **100% Consistent - Responsive typography with fluid scaling**
@@ -344,6 +327,8 @@ TOUCH_TARGETS = {
 - ✅ `QuantitySelector.tsx` - `min-h-[44px] touch-target`
 - ✅ `CartItem.tsx` - `min-h-[44px] min-w-[44px] touch-target`
 - ✅ `ProductSort.tsx` - `min-h-[44px]`
+- ✅ `OTPInput.tsx` - `min-h-[44px] touch-target`
+- ✅ `CategoryLink.tsx` - `min-h-[44px] sm:min-h-[48px]`
 
 **Status:** ✅ **100% Compliant - WCAG touch target requirements met**
 
@@ -369,7 +354,8 @@ className="h-48 sm:h-56 md:h-64 lg:h-72"
 
 **Hero Images:**
 ```tsx
-className="h-64 sm:h-80 md:h-96 lg:h-[500px]"
+className="h-[300px] sm:h-[400px]" // Mobile
+className="h-[400px] lg:h-[500px] xl:h-[600px]" // Desktop
 ```
 
 ### Image Sizing Best Practices
@@ -450,6 +436,9 @@ className="rounded-lg" // Consistent across all inputs
 className="rounded" // or "rounded-full" (context-appropriate)
 ```
 
+**Special Cases:**
+- ✅ `AboutImage3D.tsx` - `rounded-tl-[40px]` (specific design element, acceptable)
+
 **Status:** ✅ **100% Consistent - Standardized border radius**
 
 ---
@@ -476,6 +465,7 @@ className="focus:outline-none focus:ring-2 focus:ring-[var(--beige-hover)] focus
 **Links:**
 - ✅ Proper focus indicators
 - ✅ Keyboard navigation support
+- ✅ Skip to main content link
 
 **Status:** ✅ **100% Accessible - Proper focus states and keyboard navigation**
 
@@ -637,7 +627,22 @@ style={{
 
 ---
 
-## 16. Best Practices Checklist ✅ **100% COMPLETE**
+## 16. Width Patterns ✅ **100% CONSISTENT**
+
+### Responsive Width Patterns
+
+**Full Width to Auto:**
+```tsx
+className="w-full sm:w-auto" // Mobile full, tablet+ auto
+```
+- ✅ Used in: Buttons, Toast container
+- ✅ Pattern: Mobile full width for better touch targets, desktop auto width
+
+**Status:** ✅ **100% Consistent - Standardized width patterns**
+
+---
+
+## 17. Best Practices Checklist ✅ **100% COMPLETE**
 
 ### CSS Architecture
 - ✅ Single global CSS file
@@ -660,18 +665,20 @@ style={{
 - ✅ Keyboard navigation support
 - ✅ Viewport configuration
 - ✅ Text scaling support
+- ✅ Reduced motion support
 
 ### Performance
 - ✅ Next.js Image optimization
 - ✅ Responsive image sizes
 - ✅ Efficient CSS organization
 - ✅ No unnecessary inline styles
+- ✅ Smooth scrolling optimization
 
 **Status:** ✅ **100% Complete - All best practices implemented**
 
 ---
 
-## 17. Recommendations
+## 18. Recommendations
 
 ### Current Status: ✅ **PRODUCTION READY**
 
@@ -679,26 +686,22 @@ All CSS and responsiveness patterns follow best practices and are consistent acr
 
 ### Optional Enhancements (Future)
 
-1. **CSS-in-JS Migration (if needed)**
-   - Consider styled-components or emotion for component-scoped styles
-   - Current approach (Tailwind + CSS variables) is optimal
-
-2. **Container Queries**
+1. **Container Queries**
    - Add container query support when widely available
    - Useful for component-level responsive design
 
-3. **Performance Monitoring**
+2. **Performance Monitoring**
    - Add CSS performance monitoring
    - Track unused CSS
    - Optimize critical CSS
 
-4. **Dark Mode Support**
+3. **Dark Mode Support**
    - Add dark mode color variables
    - Responsive dark mode switching
 
 ---
 
-## 18. Conclusion
+## 19. Conclusion
 
 **✅ ALL CSS AND RESPONSIVENESS BEST PRACTICES MET**
 
@@ -715,6 +718,6 @@ The codebase demonstrates:
 
 ---
 
-**Last Updated:** February 7, 2025  
+**Last Updated:** February 2025  
 **Audited By:** CSS & Responsiveness Audit System  
 **Next Review:** Quarterly or after major design changes

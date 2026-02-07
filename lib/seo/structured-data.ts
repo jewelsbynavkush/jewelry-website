@@ -2,6 +2,7 @@ import { Product } from '@/types/data';
 import { formatCategoryName, getBrandName } from '@/lib/utils/text-formatting';
 import { ECOMMERCE } from '@/lib/constants';
 import { getBaseUrl } from '@/lib/utils/env';
+import { getCDNUrl } from '@/lib/utils/cdn';
 import { sanitizeForJsonLd } from '@/lib/utils/json-ld-sanitize';
 import { getSiteSettings } from '@/lib/data/site-settings';
 
@@ -73,9 +74,10 @@ export async function generateOrganizationSchema() {
 export function generateProductSchema(product: Product) {
   // Use product image for structured data, or fallback to hero image
   // SEO: Ensures structured data always includes an image for rich results
+  // Convert to CDN URL if CDN is configured
   const imageUrl = product.image 
-    ? `${baseUrl}${product.image}`
-    : `${baseUrl}/hero-image.png`;
+    ? (product.image.startsWith('http') ? product.image : getCDNUrl(product.image))
+    : getCDNUrl('/assets/hero/hero-image.png');
 
   const productUrl = `${baseUrl}/designs/${product.slug}`;
 

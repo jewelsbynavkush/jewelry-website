@@ -14,6 +14,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { CartItem as CartItemType } from '@/lib/store/cart-store';
 import { formatPrice } from '@/lib/utils/price-formatting';
+import { getCDNUrl } from '@/lib/utils/cdn';
 import { useCartStore } from '@/lib/store/cart-store';
 import { ECOMMERCE } from '@/lib/constants';
 
@@ -71,7 +72,7 @@ export default function CartItem({ item, currency = ECOMMERCE.currency }: CartIt
       {/* Product Image */}
       <div className="relative w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0">
         <Image
-          src={item.image || '/images/placeholder.png'}
+          src={getCDNUrl(item.image || '/images/placeholder.png')}
           alt={`${item.title} - ${item.sku} - Handcrafted jewelry piece in shopping cart`}
           fill
           className="object-cover rounded"

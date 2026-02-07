@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { getCDNUrl } from '@/lib/utils/cdn';
 
 interface HeroImage3DProps {
   heroImage?: string;
@@ -12,7 +13,7 @@ interface HeroImage3DProps {
  * Simple hero image component without any effects
  */
 export default function HeroImage3D({ heroImage, heroImageAlt, isMobile = false }: HeroImage3DProps) {
-  const imageUrl = heroImage || '/hero-image.png';
+  const imageUrl = getCDNUrl(heroImage || '/assets/hero/hero-image.png');
   
   const imageAlt = heroImageAlt || 'Elegant mannequin hand displaying two gold rings - one with rectangular gemstone, one with round brilliant-cut stone';
 

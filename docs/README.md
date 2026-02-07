@@ -44,7 +44,7 @@ Complete documentation for the Jewels by NavKush jewelry website.
 
 - **[3D Animations Guide](./3D_ANIMATIONS_GUIDE.md)** - 3D effects and animations
 
-- **[Color Shades Audit](./COLOR_SHADES_AUDIT_2025.md)** - Color system and contrast
+- **[Color Consistency Audit](./COLOR_CONSISTENCY_AUDIT_2025.md)** - Color system and contrast
 
 ### **Development**
 
@@ -91,6 +91,10 @@ Complete documentation for the Jewels by NavKush jewelry website.
 - **[Models Guide](./MODELS_GUIDE.md)** - Complete MongoDB models documentation
 
 - **[Inventory Guide](./INVENTORY_GUIDE.md)** - Complete inventory management guide (flow, operations, concurrency)
+
+- **[Stock Management Guide](./STOCK_MANAGEMENT_GUIDE.md)** - How to add stock, manage inventory, and align orders ⭐ **READ THIS FOR STOCK MANAGEMENT**
+
+- **[Add Products Guide](./ADD_PRODUCTS_GUIDE.md)** - How to add new products with stock ⭐ **READ THIS TO ADD PRODUCTS**
 
 - **[Category Active Field Guide](./CATEGORY_ACTIVE_FIELD_GUIDE.md)** - Category management
 

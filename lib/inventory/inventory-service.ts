@@ -101,7 +101,7 @@ export async function reserveStockForCart(
         session.endSession();
         return {
           success: false,
-          error: 'Product not available or insufficient stock',
+          error: 'Product is no longer available',
         };
       }
 
