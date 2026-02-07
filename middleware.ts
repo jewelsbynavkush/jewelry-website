@@ -48,12 +48,16 @@ export default function middleware(request: NextRequest) {
     }
   }
   
-  // Allow Vercel Live feedback script in production (only in production)
-  // Vercel Live is a development/preview feature that requires external scripts
-  const isProduction = process.env.NODE_ENV === 'production';
-  const scriptSrc = isProduction
+  // Allow Vercel Live feedback widget in preview deployments only
+  // Vercel Live is a preview feature for feedback collection - NOT needed in production
+  // Check VERCEL_ENV to detect preview deployments (preview, development)
+  const isVercelPreview = process.env.VERCEL_ENV === 'preview' || process.env.VERCEL_ENV === 'development';
+  const scriptSrc = isVercelPreview
     ? "'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live"
     : "'self' 'unsafe-eval' 'unsafe-inline'";
+  const frameSrc = isVercelPreview
+    ? "'self' https://vercel.live"
+    : "'self'";
   
   const csp = [
     "default-src 'self'",
@@ -62,6 +66,7 @@ export default function middleware(request: NextRequest) {
     "img-src 'self' data: https: blob:",
     "font-src 'self' data: https://fonts.gstatic.com",
     `connect-src ${connectSrc.join(' ')}`,
+    `frame-src ${frameSrc}`,
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
