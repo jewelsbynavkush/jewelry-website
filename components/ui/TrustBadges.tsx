@@ -1,6 +1,8 @@
 'use client';
 
 import SmoothLink from './SmoothLink';
+import { formatPrice } from '@/lib/utils/price-formatting';
+import { ECOMMERCE } from '@/lib/constants';
 
 /**
  * Trust badges component for e-commerce credibility
@@ -11,8 +13,7 @@ export default function TrustBadges() {
     <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 py-4 sm:py-6 border-t border-[var(--border-light)]">
       <div className="flex items-center gap-2 text-[var(--text-secondary)] text-body-xs sm:text-body-sm">
         <svg
-          className="w-5 h-5"
-          style={{ color: 'var(--accent-success)' }}
+          className="w-5 h-5 text-[var(--accent-success)]"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -29,8 +30,7 @@ export default function TrustBadges() {
       </div>
       <div className="flex items-center gap-2 text-[var(--text-secondary)] text-body-xs sm:text-body-sm">
         <svg
-          className="w-5 h-5"
-          style={{ color: 'var(--accent-info)' }}
+          className="w-5 h-5 text-[var(--accent-info)]"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -43,12 +43,11 @@ export default function TrustBadges() {
             d="M5 13l4 4L19 7"
           />
         </svg>
-        <span>Free Shipping Over $100</span>
+        <span>Free Shipping Over {formatPrice(ECOMMERCE.freeShippingThreshold, { currencyCode: ECOMMERCE.currency })}</span>
       </div>
       <div className="flex items-center gap-2 text-[var(--text-secondary)] text-body-xs sm:text-body-sm">
         <svg
-          className="w-5 h-5"
-          style={{ color: 'var(--accent-info)' }}
+          className="w-5 h-5 text-[var(--accent-info)]"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -67,8 +66,7 @@ export default function TrustBadges() {
       </div>
       <div className="flex items-center gap-2 text-[var(--text-secondary)] text-body-xs sm:text-body-sm">
         <svg
-          className="w-5 h-5"
-          style={{ color: 'var(--accent-warning)' }}
+          className="w-5 h-5 text-[var(--accent-warning)]"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"

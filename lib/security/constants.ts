@@ -6,20 +6,139 @@
  */
 
 /**
+ * Time Duration Constants (in seconds)
+ * Centralized time values for consistent usage across the application
+ */
+export const TIME_DURATIONS = {
+  ONE_MINUTE: 60,
+  ONE_HOUR: 60 * 60,
+  ONE_DAY: 24 * 60 * 60,
+  THIRTY_DAYS: 30 * 24 * 60 * 60,
+} as const;
+
+/**
+ * Time Duration Constants (in milliseconds)
+ * For rate limiting and other time-based operations
+ */
+export const TIME_DURATIONS_MS = {
+  ONE_MINUTE: 60 * 1000,
+  FIVE_MINUTES: 5 * 60 * 1000,
+  TEN_MINUTES: 10 * 60 * 1000,
+  FIFTEEN_MINUTES: 15 * 60 * 1000,
+  ONE_HOUR: 60 * 60 * 1000,
+  ONE_DAY: 24 * 60 * 60 * 1000,
+} as const;
+
+/**
  * Security Configuration
  */
 export const SECURITY_CONFIG = {
-  // Rate limiting defaults
+  // Rate limiting presets for different endpoint types
   RATE_LIMIT: {
+    // Contact form - strictest limit to prevent spam
     CONTACT_FORM: {
-      windowMs: 15 * 60 * 1000, // 15 minutes
+      windowMs: TIME_DURATIONS_MS.FIFTEEN_MINUTES,
       maxRequests: 10, // 10 requests per 15 minutes
     },
+    // Authentication endpoints - moderate limit to prevent brute force
+    AUTH: {
+      windowMs: TIME_DURATIONS_MS.FIFTEEN_MINUTES,
+      maxRequests: 50, // 50 login attempts per 15 minutes
+    },
+    // Token refresh - strict limit to prevent abuse
+    REFRESH: {
+      windowMs: TIME_DURATIONS_MS.FIFTEEN_MINUTES,
+      maxRequests: 10, // 10 refreshes per 15 minutes
+    },
+    // Email verification - moderate limit
+    AUTH_VERIFY: {
+      windowMs: TIME_DURATIONS_MS.FIFTEEN_MINUTES,
+      maxRequests: 50, // 50 verification attempts per 15 minutes
+    },
+    // OTP resend - strict limit to prevent abuse (5 minutes)
+    AUTH_RESEND_OTP: {
+      windowMs: TIME_DURATIONS_MS.FIVE_MINUTES,
+      maxRequests: 10, // 10 resends per 5 minutes
+    },
+    // Logout - higher limit (logout is relatively safe operation)
+    AUTH_LOGOUT: {
+      windowMs: TIME_DURATIONS_MS.FIFTEEN_MINUTES,
+      maxRequests: 100, // 100 logout requests per 15 minutes
+    },
+    // Password reset confirmation - strict limit for security
+    AUTH_RESET: {
+      windowMs: TIME_DURATIONS_MS.FIFTEEN_MINUTES,
+      maxRequests: 10, // 10 reset confirmation attempts per 15 minutes
+    },
+    // Password reset request - strict limit (per hour)
+    AUTH_RESET_REQUEST: {
+      windowMs: TIME_DURATIONS_MS.ONE_HOUR,
+      maxRequests: 10, // 10 reset requests per hour
+    },
+    // Password change - very strict limit for security
+    PASSWORD_CHANGE: {
+      windowMs: TIME_DURATIONS_MS.FIFTEEN_MINUTES,
+      maxRequests: 5, // 5 password change attempts per 15 minutes
+    },
+    // Public browsing endpoints - higher limit for normal usage
+    PUBLIC_BROWSING: {
+      windowMs: TIME_DURATIONS_MS.FIFTEEN_MINUTES,
+      maxRequests: 200, // 200 requests per 15 minutes
+    },
+    // Cart operations - moderate limit
+    CART: {
+      windowMs: TIME_DURATIONS_MS.FIFTEEN_MINUTES,
+      maxRequests: 200, // 200 requests per 15 minutes
+    },
+    // Order operations - stricter limit for financial operations
+    ORDER: {
+      windowMs: TIME_DURATIONS_MS.FIFTEEN_MINUTES,
+      maxRequests: 20, // 20 orders per 15 minutes
+    },
+    // Order cancellation - strict limit for financial operations
+    ORDER_CANCEL: {
+      windowMs: TIME_DURATIONS_MS.FIFTEEN_MINUTES,
+      maxRequests: 10, // 10 cancellations per 15 minutes
+    },
+    // Order read operations - higher limit for user queries
+    ORDER_READ: {
+      windowMs: TIME_DURATIONS_MS.FIFTEEN_MINUTES,
+      maxRequests: 100, // 100 read requests per 15 minutes
+    },
+    // Inventory read operations - moderate limit
+    INVENTORY_READ: {
+      windowMs: TIME_DURATIONS_MS.FIFTEEN_MINUTES,
+      maxRequests: 100, // 100 read requests per 15 minutes
+    },
+    // Inventory write operations - stricter limit for admin operations
+    INVENTORY_WRITE: {
+      windowMs: TIME_DURATIONS_MS.FIFTEEN_MINUTES,
+      maxRequests: 30, // 30 write requests per 15 minutes
+    },
+    // User profile read operations - moderate limit
+    USER_PROFILE_READ: {
+      windowMs: TIME_DURATIONS_MS.FIFTEEN_MINUTES,
+      maxRequests: 200, // 200 read requests per 15 minutes
+    },
+    // User profile write operations - stricter limit
+    USER_PROFILE_WRITE: {
+      windowMs: TIME_DURATIONS_MS.FIFTEEN_MINUTES,
+      maxRequests: 50, // 50 write requests per 15 minutes
+    },
+    // Test/development endpoints - very strict limit
+    TEST: {
+      windowMs: TIME_DURATIONS_MS.ONE_MINUTE,
+      maxRequests: 10, // 10 requests per minute
+    },
+    // Default fallback - moderate limit
     DEFAULT: {
-      windowMs: 15 * 60 * 1000, // 15 minutes
+      windowMs: TIME_DURATIONS_MS.FIFTEEN_MINUTES,
       maxRequests: 100, // 100 requests per 15 minutes
     },
   },
+  
+  // OTP expiration time
+  OTP_EXPIRATION_MS: TIME_DURATIONS_MS.TEN_MINUTES, // 10 minutes
   
   // Request size limits
   MAX_REQUEST_SIZE: 10 * 1024, // 10KB

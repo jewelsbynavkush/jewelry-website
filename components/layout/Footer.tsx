@@ -1,27 +1,30 @@
 import { getSiteSettings } from '@/lib/data/site-settings';
-import { CATEGORIES, FOOTER_LEFT_LINKS, FOOTER_RIGHT_LINKS, DEFAULTS } from '@/lib/constants';
+import { getCategories, transformCategoriesForUI } from '@/lib/data/categories';
+import { FOOTER_LEFT_LINKS, FOOTER_RIGHT_LINKS, DEFAULTS } from '@/lib/constants';
 import SmoothLink from '@/components/ui/SmoothLink';
 import SocialIcon from '@/components/ui/SocialIcon';
 import { FooterSection } from './FooterClient';
 
 export default async function Footer() {
   const settings = await getSiteSettings();
+  const categories = await getCategories();
+  const categoriesForUI = transformCategoriesForUI(categories);
 
   return (
     <footer className="bg-[var(--beige)] section-padding mt-auto" role="contentinfo" aria-label="Site footer">
       <div className="section-container">
         {/* Top Section: Categories and Social Media */}
         <FooterSection delay={0.1}>
-          <div className="flex flex-col md:flex-row justify-between items-center standard-gap-small standard-mb-small border-b" style={{ borderColor: 'var(--border-white-light)' }}>
+          <div className="flex flex-col md:flex-row justify-between items-center standard-gap-small standard-mb-small border-b border-[var(--border-white-light)]">
             {/* Left: Category Links */}
             <div className="flex flex-wrap justify-center md:justify-start standard-gap-small">
-              {CATEGORIES.map((category) => (
+              {categoriesForUI.map((category) => (
                 <SmoothLink
-                  key={category.name}
+                  key={category.slug}
                   href={category.href}
                   className="text-[var(--text-on-beige)] text-category-link transition-colors hover:text-[var(--text-on-beige-hover)]"
                 >
-                  {category.name}
+                  {category.displayName}
                 </SmoothLink>
               ))}
             </div>
@@ -55,7 +58,7 @@ export default async function Footer() {
 
         {/* Middle Section: Brand Name */}
         <FooterSection delay={0.2}>
-          <div className="text-center py-6 sm:py-8 md:py-10 lg:py-12 border-b" style={{ borderColor: 'var(--border-white-light)' }}>
+          <div className="text-center py-6 sm:py-8 md:py-10 lg:py-12 border-b border-[var(--border-white-light)]">
             <h3 
               className="font-serif-brand text-[var(--text-on-beige)] relative inline-block"
               style={{

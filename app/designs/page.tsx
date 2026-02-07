@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { getProducts } from '@/lib/data/products';
-import { CATEGORIES } from '@/lib/constants';
+import { getCategories, transformCategoriesForUI } from '@/lib/data/categories';
 import ProductCard from '@/components/ui/ProductCard';
 import CategoryFilterButton from '@/components/ui/CategoryFilterButton';
 import ProductSort from '@/components/ui/ProductSort';
@@ -62,7 +62,8 @@ export default async function DesignsPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const category = params.category;
   const sort = params.sort || 'default';
-  let products = await getProducts(category);
+  const productsData = await getProducts(category);
+  let products = productsData.products;
   
   // Apply sorting
   if (sort !== 'default') {
@@ -85,10 +86,12 @@ export default async function DesignsPage({ searchParams }: PageProps) {
   }
   
   const collectionSchema = generateCollectionPageSchema(category);
+  const categories = await getCategories();
+  const categoriesForUI = transformCategoriesForUI(categories);
 
   const filterCategories = [
     { name: 'All', value: '', href: '/designs' },
-    ...CATEGORIES.map(cat => ({ 
+    ...categoriesForUI.map(cat => ({ 
       name: formatCategoryName(cat.slug), 
       value: cat.slug, 
       href: cat.href 

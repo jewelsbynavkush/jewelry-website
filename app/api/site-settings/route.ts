@@ -1,26 +1,41 @@
-import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getSiteSettings } from '@/lib/data/site-settings';
-import { getSecurityHeaders } from '@/lib/security/api-headers';
+import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
+import { SECURITY_CONFIG } from '@/lib/security/constants';
+import type { GetSiteSettingsResponse } from '@/types/api';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Apply security (CORS, CSRF, rate limiting)
+  const securityResponse = applyApiSecurity(request, {
+    rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.PUBLIC_BROWSING,
+  });
+  if (securityResponse) return securityResponse;
+
   try {
-    const settings = await getSiteSettings();
-    return NextResponse.json({ settings }, {
-      headers: {
-        ...getSecurityHeaders(),
-        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+    const settingsData = await getSiteSettings();
+    
+    // Map to API response format
+    const settings: GetSiteSettingsResponse['settings'] = {
+      siteName: settingsData.brand?.name || '',
+      siteDescription: settingsData.brand?.tagline || '',
+      contactEmail: settingsData.contact?.email || undefined,
+      contactPhone: settingsData.contact?.phone || undefined,
+      socialMedia: {
+        facebook: settingsData.social?.facebook || undefined,
+        instagram: settingsData.social?.instagram || undefined,
+        twitter: settingsData.social?.twitter || undefined,
       },
-    });
+    };
+    
+    const responseData: GetSiteSettingsResponse = { settings };
+    const response = createSecureResponse(responseData, 200, request);
+    
+    response.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+    return response;
   } catch (error) {
     logError('site-settings API', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch site settings' },
-      { 
-        status: 500,
-        headers: getSecurityHeaders(),
-      }
-    );
+    return createSecureErrorResponse('Failed to fetch site settings', 500, request);
   }
 }
 

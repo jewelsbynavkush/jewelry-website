@@ -43,7 +43,7 @@ export default function ProductCard({
   const href = product ? `/designs/${product.slug}` : placeholderHref;
   const isOutOfStock = product?.inStock === false;
   const productAriaLabel = product 
-    ? `${isOutOfStock ? 'Out of stock: ' : ''}View ${product.title}${product.price ? ` - ${formatPrice(product.price)}` : ''}`
+    ? `${isOutOfStock ? 'Out of stock: ' : ''}View ${product.title}${product.price ? ` - ${formatPrice(product.price, { currencyCode: product.currency || 'INR' })}` : ''}`
     : 'View all designs';
   
   const isCompact = variant === 'compact';
@@ -246,7 +246,9 @@ export default function ProductCard({
                   transition: `scale ${DURATION.SCALE}s ${EASING.EASE_OUT}`,
               }}
               >
-                {formatPrice(product?.price || placeholderPrice)}
+                {formatPrice(product?.price || placeholderPrice, { 
+                  currencyCode: product?.currency || 'INR' 
+                })}
               </motion.p>
             )}
           </motion.div>

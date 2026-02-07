@@ -6,6 +6,7 @@ import { ReactNode, MouseEvent, ComponentPropsWithoutRef } from 'react';
 import { motion } from 'framer-motion';
 import { isAnchorLink, getAnchorId } from '@/lib/utils/smooth-scroll';
 import { ANIMATION_PRESETS } from '@/lib/animations/constants';
+import { cn } from '@/lib/utils/cn';
 
 interface SmoothLinkProps extends Omit<LinkProps, 'href'>, Omit<ComponentPropsWithoutRef<'a'>, 'href'> {
   href: string;
@@ -55,7 +56,7 @@ export default function SmoothLink({
         href={href}
         onClick={handleClick}
         scroll={scroll}
-        className={className}
+        className={cn(className, 'cursor-pointer')}
         {...props}
       >
         {children}
@@ -73,7 +74,7 @@ export default function SmoothLink({
         href={href}
         onClick={handleClick}
         scroll={scroll}
-        className={className}
+        className={cn(className, 'cursor-pointer')}
         {...props}
       >
         {children}

@@ -5,13 +5,54 @@ import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ANIMATION_PRESETS, SCALE, ROTATE, DURATION, STAGGER } from '@/lib/animations/constants';
+import { useCartStore } from '@/lib/store/cart-store';
+import UserMenu from './UserMenu';
+
+interface Category {
+  slug: string;
+  name: string;
+  displayName: string;
+  href: string;
+}
 
 export default function TopHeader() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [headerBgColor, setHeaderBgColor] = useState('var(--beige)');
   const [textColor, setTextColor] = useState('var(--text-on-beige)');
+  const [categories, setCategories] = useState<Category[]>([]);
   const pathname = usePathname();
   const isHomePage = pathname === '/';
+  const { cart, fetchCart, isLoading } = useCartStore();
+  const cartItemCount = cart?.items.reduce((total, item) => total + item.quantity, 0) || 0;
+
+  // Fetch cart on mount to ensure cart count is displayed on initial page load
+  useEffect(() => {
+    if (!cart && !isLoading) {
+      fetchCart();
+    }
+  }, [cart, isLoading, fetchCart]);
+
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('/api/categories');
+        if (response.ok) {
+          const data = await response.json();
+          const categoriesWithHref = data.categories.map((cat: { slug: string; name: string }) => ({
+            slug: cat.slug,
+            name: cat.name,
+            displayName: cat.name.toUpperCase(),
+            href: `/designs?category=${cat.slug}`,
+          }));
+          setCategories(categoriesWithHref);
+        }
+      } catch (error) {
+        console.error('Failed to fetch categories:', error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     /**
@@ -204,25 +245,22 @@ export default function TopHeader() {
     };
   }, [pathname]);
 
-  const categories = [
-    { name: 'RINGS', slug: 'rings', href: '/designs?category=rings' },
-    { name: 'EARRINGS', slug: 'earrings', href: '/designs?category=earrings' },
-    { name: 'NECKLACES', slug: 'necklaces', href: '/designs?category=necklaces' },
-    { name: 'BRACELETS', slug: 'bracelets', href: '/designs?category=bracelets' },
-  ];
-
   return (
     <header 
-      className="relative z-50"
+      className="relative z-50 overflow-visible"
       style={{ backgroundColor: headerBgColor }}
     >
-      <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4">
+      <div className="section-container py-3 sm:py-4">
         <div className="flex items-center justify-between" style={{ color: textColor }}>
           {/* Menu Button */}
           <motion.button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="flex items-center gap-1.5 sm:gap-2 p-2 -ml-2 sm:p-0 sm:ml-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0"
-            style={{ color: textColor }}
+            className="flex items-center gap-1.5 sm:gap-2 p-2 -ml-2 sm:p-0 sm:ml-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 cursor-pointer"
+            style={{ 
+              color: headerBgColor === 'var(--cream)' 
+                ? 'var(--text-on-cream)' 
+                : (textColor || 'var(--text-on-beige)')
+            }}
             aria-label="Toggle menu"
             whileHover={ANIMATION_PRESETS.ICON_HOVER}
             whileTap={ANIMATION_PRESETS.ICON_TAP}
@@ -236,13 +274,13 @@ export default function TopHeader() {
               transition={{ duration: DURATION.MENU }}
             >
               {isMenuOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
               ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4 6h16M4 12h16M4 18h16" />
               )}
             </motion.svg>
             <motion.span 
-              className="text-nav text-xs sm:text-sm"
+              className="text-nav text-xs sm:text-sm font-semibold"
               whileHover={ANIMATION_PRESETS.LINK_HOVER}
             >
               MENU
@@ -253,10 +291,8 @@ export default function TopHeader() {
           {!isHomePage && (
             <SmoothLink href="/" className="flex-1 text-center">
               <h1 
-                className="text-base sm:text-lg md:text-xl lg:text-2xl font-playfair font-bold"
+                className="text-base sm:text-lg md:text-xl lg:text-2xl font-playfair font-bold tracking-wide"
                 style={{
-                  letterSpacing: '0.08em',
-                  fontWeight: 700,
                   color: textColor,
                 }}
               >
@@ -271,10 +307,11 @@ export default function TopHeader() {
               initial={{ scale: 1, rotate: 0 }}
               whileHover={ANIMATION_PRESETS.ICON_HOVER}
               whileTap={ANIMATION_PRESETS.ICON_TAP}
+              className="flex items-center relative"
             >
               <SmoothLink
                 href="/cart"
-                className="transition-colors p-2 -mr-2 sm:p-0 sm:mr-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center relative"
+                className="transition-colors p-2 sm:p-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center relative"
                 style={{ color: textColor }}
                 aria-label="Shopping cart"
               >
@@ -288,42 +325,25 @@ export default function TopHeader() {
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                 </motion.svg>
-                {/* Cart badge animation */}
-                <motion.span
-                  className="absolute top-0 right-0 w-2 h-2 bg-[var(--active-dark)] rounded-full"
-                  initial={{ scale: 0 }}
-                  whileHover={{ scale: 1 }}
-                  transition={{ duration: DURATION.MENU }}
-                />
+                {/* Cart item count badge - very close to icon on mobile, slightly away on desktop */}
+                {cartItemCount > 0 && (
+                  <motion.span
+                    className="absolute top-3 -right-1 sm:top-0 sm:right-0 min-w-[18px] h-[18px] sm:min-w-[20px] sm:h-[20px] px-1 sm:px-1.5 flex items-center justify-center bg-[var(--active-dark)] text-[var(--text-on-beige)] text-[0.625rem] sm:text-xs font-bold rounded-full shadow-lg z-20 pointer-events-none -translate-x-1/2 -translate-y-1/2 sm:translate-x-1/2 sm:-translate-y-1/2"
+                    style={{ 
+                      lineHeight: '1',
+                      border: `2px solid ${headerBgColor === 'var(--cream)' ? 'var(--cream)' : 'var(--beige)'}`,
+                    }}
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                    aria-label={`${cartItemCount} items in cart`}
+                  >
+                    {cartItemCount > 99 ? '99+' : cartItemCount}
+                  </motion.span>
+                )}
               </SmoothLink>
             </motion.div>
-            <motion.div
-              initial={{ scale: 1, rotate: 0 }}
-              whileHover={ANIMATION_PRESETS.ICON_HOVER}
-              whileTap={ANIMATION_PRESETS.ICON_TAP}
-            >
-              <SmoothLink
-                href="/profile"
-                className="transition-colors p-2 sm:p-0 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center relative overflow-visible"
-                style={{ color: textColor }}
-                aria-label="User profile"
-              >
-                <motion.svg 
-                  className="w-5 h-5 sm:w-6 sm:h-6" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                  initial={{ scale: 1, rotate: 0 }}
-                  whileHover={{ 
-                    scale: SCALE.ICON_HOVER,
-                    rotate: ROTATE.ICON_HOVER,
-                    transition: ANIMATION_PRESETS.ICON_HOVER.transition
-                  }}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </motion.svg>
-              </SmoothLink>
-            </motion.div>
+            <UserMenu textColor={textColor} />
           </div>
         </div>
 
@@ -377,7 +397,7 @@ export default function TopHeader() {
                       whileHover={{ x: 4 }}
                       transition={ANIMATION_PRESETS.MENU_ITEM_HOVER.transition}
                     >
-                      {category.name}
+                      {category.displayName}
                     </motion.span>
                   </SmoothLink>
                 </motion.div>

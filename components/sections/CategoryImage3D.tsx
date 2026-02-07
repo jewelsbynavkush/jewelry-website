@@ -45,9 +45,9 @@ export default function CategoryImage3D({ category, imageSource }: CategoryImage
       }}
     >
       <Link 
-        href={category.href} 
+        href={`/designs?category=${category.slug}`} 
         className="relative w-full max-w-md cursor-pointer"
-        aria-label={`View ${category.name} collection`}
+        aria-label={`View ${category.displayName || category.name || category.slug} collection`}
       >
         {imageSource ? (
           <motion.div 

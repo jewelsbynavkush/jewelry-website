@@ -17,8 +17,8 @@ export default function SocialIcon({ href, ariaLabel, children }: SocialIconProp
   return (
     <motion.a 
       href={href} 
-      target="_blank" 
-      rel="noopener noreferrer" 
+      target="_blank"
+      rel="noopener noreferrer"
       aria-label={ariaLabel}
       className="w-10 h-10 rounded-full flex items-center justify-center text-[var(--text-on-beige)] relative overflow-hidden"
       style={{ 

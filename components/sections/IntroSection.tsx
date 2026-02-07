@@ -1,9 +1,12 @@
 import { getSiteSettings } from '@/lib/data/site-settings';
+import { getCategories, transformCategoriesForUI } from '@/lib/data/categories';
 import { DEFAULTS } from '@/lib/constants';
 import IntroSectionClient from './IntroSectionClient';
 
 export default async function IntroSection() {
   const settings = await getSiteSettings();
+  const categories = await getCategories();
+  const categoriesForUI = transformCategoriesForUI(categories);
 
   return (
     <IntroSectionClient
@@ -14,6 +17,7 @@ export default async function IntroSection() {
       heroImage={settings.hero.image}
       heroImageAlt={settings.hero.alt}
       rightColumnSlogan={settings.intro.rightColumnSlogan || DEFAULTS.rightColumnSlogan}
+      categories={categoriesForUI}
     />
   );
 }

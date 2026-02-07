@@ -21,7 +21,7 @@ export default function Textarea({
   ...props 
 }: TextareaProps) {
   const textareaId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
-  const baseStyles = 'w-full px-4 py-3 border border-[var(--border-light)] rounded-lg focus:outline-none focus:border-[var(--text-on-cream)] bg-[var(--cream)] text-[var(--text-on-cream)] min-h-[120px] text-base resize-y';
+  const baseStyles = 'w-full px-4 py-3 border border-[var(--border-light)] rounded-lg focus:outline-none focus:border-[var(--text-on-cream)] bg-[var(--cream)] text-[var(--text-on-cream)] min-h-[120px] text-base resize-y disabled:opacity-50 disabled:cursor-not-allowed';
 
   return (
     <FormField id={textareaId} label={label} error={error} required={required}>

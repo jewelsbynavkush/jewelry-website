@@ -84,36 +84,41 @@
 
 ### **5. Border Colors** ✅
 
-**Standard:** `border-[#e8e5e0]`
+**Standard (Always use CSS variables):**
+- Light border: `border-[var(--border-light)]` - **Standard** (#e8e5e0)
+- White border: `border-[var(--border-white-light)]` - For beige backgrounds (rgba(255, 255, 255, 0.3))
+- Status borders: `border-[var(--success-border)]`, `border-[var(--error-border)]`
 
 **Applied to:**
 - All cards
 - All input fields
 - All dividers
 
-**Variants:**
-- Light border: `border-[#e8e5e0]` - **Standard**
-- White border: `border-white/30` - Headers/footers
+**Note:** Never use hardcoded colors. Always use CSS variables for consistency.
 
 ---
 
 ### **6. Background Colors** ✅
 
-**Standard Colors:**
-- Beige: `bg-[#CCC4BA]` - Primary background
-- Cream: `bg-[#faf8f5]` - Secondary background
-- Light Beige: `bg-[#f5f1eb]` - Placeholder backgrounds
+**Standard Colors (Always use CSS variables):**
+- Beige: `bg-[var(--beige)]` - Primary background (#CCC4BA)
+- Cream: `bg-[var(--cream)]` - Secondary background (#faf8f5)
+- Beige Hover: `bg-[var(--beige-hover)]` - Hover state (#b8afa3)
+
+**Note:** Never use hardcoded colors. Always use CSS variables for consistency.
 
 ---
 
 ### **7. Text Colors** ✅
 
-**Standard Colors:**
-- On Beige: `text-white`
-- On Cream: `text-[#2c2c2c]`
-- Secondary: `text-[#6a6a6a]`
-- Muted: `text-[#9a9a9a]`
-- Dark: `text-[#4a4a4a]`
+**Standard Colors (Always use CSS variables):**
+- On Beige: `text-[var(--text-on-beige)]` - White text
+- On Cream: `text-[var(--text-on-cream)]` - Dark text (rgb(42, 42, 42))
+- Secondary: `text-[var(--text-secondary)]` - Medium gray (rgb(106, 106, 106))
+- Muted: `text-[var(--text-muted)]` - Light gray (rgb(145, 140, 135))
+- Active: `var(--active-dark)` - Dark gray for buttons (rgb(74, 74, 74))
+
+**Note:** Never use hardcoded colors. Always use CSS variables for consistency.
 
 ---
 
@@ -121,7 +126,7 @@
 
 **Standard Card Classes:**
 ```css
-bg-[#faf8f5] rounded-lg border border-[#e8e5e0] p-6 sm:p-8 hover:shadow-lg transition-shadow
+bg-[var(--cream)] rounded-lg border border-[var(--border-light)] p-6 sm:p-8 hover:shadow-lg transition-shadow
 ```
 
 **Applied to:**
@@ -135,7 +140,7 @@ bg-[#faf8f5] rounded-lg border border-[#e8e5e0] p-6 sm:p-8 hover:shadow-lg trans
 
 **Standard Input Classes:**
 ```css
-w-full px-4 py-3 border border-[#e8e5e0] rounded-lg focus:outline-none focus:border-[#4a4a4a] bg-[#faf8f5] min-h-[44px] text-base
+w-full px-4 py-3 border border-[var(--border-light)] rounded-lg focus:outline-none focus:border-[var(--text-on-cream)] bg-[var(--cream)] text-[var(--text-on-cream)] min-h-[44px] text-base
 ```
 
 **Applied to:**
@@ -152,9 +157,9 @@ w-full px-4 py-3 border border-[#e8e5e0] rounded-lg focus:outline-none focus:bor
 px-6 sm:px-7 md:px-8 py-2.5 sm:py-3 rounded-full text-button transition-colors min-h-[44px] flex items-center justify-center text-center
 ```
 
-**Colors:**
-- Primary: `rgb(51, 45, 41)` background, `rgb(255, 255, 255)` text
-- Outline: Transparent background, `rgb(51, 45, 41)` border and text
+**Colors (Using CSS variables):**
+- Primary: `backgroundColor: 'var(--active-dark)'`, `color: 'var(--text-on-beige)'`
+- Outline: `backgroundColor: 'transparent'`, `color: 'var(--text-on-cream)'`, `border: '2px solid var(--text-on-cream)'`
 
 ---
 

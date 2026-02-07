@@ -77,6 +77,7 @@ export default function ContactForm() {
           label="Name"
           required
           error={errors.name?.message}
+          maxLength={100}
         />
 
         <Input
@@ -86,6 +87,7 @@ export default function ContactForm() {
           label="Email"
           required
           error={errors.email?.message}
+          maxLength={254}
         />
 
         <Input
@@ -93,6 +95,7 @@ export default function ContactForm() {
           type="tel"
           id="phone"
           label="Phone"
+          maxLength={10}
         />
 
         <Textarea
@@ -101,16 +104,17 @@ export default function ContactForm() {
           label="Message"
           required
           error={errors.message?.message}
+          maxLength={5000}
         />
 
         {submitStatus === 'success' && (
-          <div className="p-4 sm:p-5 rounded-lg text-body-sm sm:text-body-base border border-[var(--success-border)]" style={{ backgroundColor: 'var(--success-bg)', color: 'var(--success-text)' }} role="alert" aria-live="polite">
+          <div className="p-4 sm:p-5 rounded-lg text-body-sm sm:text-body-base border border-[var(--success-border)] bg-[var(--success-bg)] text-[var(--success-text)]" role="alert" aria-live="polite">
             Thank you! Your message has been sent successfully.
           </div>
         )}
 
         {submitStatus === 'error' && (
-          <div className="p-4 sm:p-5 rounded-lg text-body-sm sm:text-body-base border border-[var(--error-border)]" style={{ backgroundColor: 'var(--error-bg)', color: 'var(--error-text)' }} role="alert" aria-live="assertive">
+          <div className="p-4 sm:p-5 rounded-lg text-body-sm sm:text-body-base border border-[var(--error-border)] bg-[var(--error-bg)] text-[var(--error-text)]" role="alert" aria-live="assertive">
             Something went wrong. Please try again.
           </div>
         )}

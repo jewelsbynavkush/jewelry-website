@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
-import { getProduct, getRelatedProducts } from '@/lib/data/products';
-import Link from 'next/link';
+import { getProduct, getRelatedProducts, getProducts } from '@/lib/data/products';
 import { notFound } from 'next/navigation';
 import ProductCard from '@/components/ui/ProductCard';
 import ProductImage3D from '@/components/ui/ProductImage3D';
@@ -11,6 +10,7 @@ import ProductSpecifications from '@/components/ui/ProductSpecifications';
 import CareInstructions from '@/components/ui/CareInstructions';
 import ScrollReveal from '@/components/ui/ScrollReveal';
 import ProductActions from '@/components/ui/ProductActions';
+import Breadcrumbs from '@/components/ui/Breadcrumbs';
 import { generateProductMetadata } from '@/lib/seo/metadata';
 import { generateProductSchema, generateBreadcrumbSchema } from '@/lib/seo/structured-data';
 import { formatCategoryName } from '@/lib/utils/text-formatting';
@@ -21,6 +21,23 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+/**
+ * Generate static params for all products at build time
+ * SEO: Enables static generation for better performance and SEO
+ */
+export async function generateStaticParams() {
+  try {
+    const productsData = await getProducts();
+    return productsData.products.map((product) => ({
+      slug: product.slug,
+    }));
+  } catch {
+    // If products can't be fetched at build time, return empty array
+    // Pages will be generated on-demand
+    return [];
+  }
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProduct(slug);
@@ -28,6 +45,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!product) {
     return {
       title: 'Product Not Found',
+      description: 'The requested product could not be found.',
+      robots: {
+        index: false,
+        follow: false,
+      },
     };
   }
 
@@ -93,24 +115,14 @@ export default async function DesignDetailPage({ params }: PageProps) {
       <div className="section-container section-padding">
         {/* Breadcrumb */}
         <ScrollReveal>
-          <nav className="standard-mb-small text-xs sm:text-sm" aria-label="Breadcrumb">
-            <Link href="/" className="text-[var(--text-secondary)] hover:text-[var(--text-on-cream)]">Home</Link>
-            <span className="mx-2 text-[var(--text-muted)]">/</span>
-            <Link href="/designs" className="text-[var(--text-secondary)] hover:text-[var(--text-on-cream)]">Designs</Link>
-            {product.category && (
-              <>
-                <span className="mx-2 text-[var(--text-muted)]">/</span>
-                <Link 
-                  href={`/designs?category=${product.category}`}
-                  className="text-[var(--text-secondary)] hover:text-[var(--text-on-cream)]"
-                >
-                  {formatCategoryName(product.category)}
-                </Link>
-              </>
-            )}
-            <span className="mx-2 text-[var(--text-muted)]">/</span>
-            <span className="text-[var(--text-on-cream)]">{product.title}</span>
-          </nav>
+          <Breadcrumbs
+            items={[
+              { name: 'Home', href: baseUrl },
+              { name: 'Designs', href: `${baseUrl}/designs` },
+              ...(product.category ? [{ name: formatCategoryName(product.category), href: `${baseUrl}/designs?category=${product.category}` }] : []),
+              { name: product.title, href: `${baseUrl}/designs/${product.slug}` },
+            ]}
+          />
         </ScrollReveal>
 
         <div className="grid md:grid-cols-2 standard-gap section-padding-small">
@@ -156,7 +168,7 @@ export default async function DesignDetailPage({ params }: PageProps) {
 
             {product.price && (
               <p className="text-[var(--text-on-cream)] text-2xl sm:text-3xl md:text-4xl font-bold font-playfair">
-                {formatPrice(product.price)}
+                {formatPrice(product.price, { currencyCode: product.currency || 'INR' })}
               </p>
             )}
 

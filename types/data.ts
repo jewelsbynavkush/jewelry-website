@@ -11,6 +11,7 @@ export interface Product {
   image: string;
   alt: string;
   price?: number;
+  currency?: string; // Currency code (INR, USD, EUR) - defaults to INR
   category?: string;
   material?: string;
   inStock?: boolean;
@@ -60,6 +61,26 @@ export interface SiteSettings {
   intro: {
     rightColumnSlogan?: string;
   };
+  ecommerce?: {
+    currency?: string;
+    currencySymbol?: string;
+    defaultShippingDays?: number;
+    freeShippingThreshold?: number;
+    defaultShippingCost?: number;
+    returnWindowDays?: number;
+    taxRate?: number;
+    calculateTax?: boolean;
+    priceVarianceThreshold?: number;
+    guestCartExpirationDays?: number;
+    userCartExpirationDays?: number | null;
+    maxQuantityPerItem?: number;
+    maxCartItems?: number;
+  };
+  general?: {
+    businessHours?: string;
+    contactEmail?: string;
+    supportEmail?: string;
+  };
 }
 
 export interface Category {
@@ -69,6 +90,7 @@ export interface Category {
   image: string;
   alt: string;
   description: string;
+  active?: boolean; // Optional for backward compatibility, but included in API responses
 }
 
 export interface PageContent {

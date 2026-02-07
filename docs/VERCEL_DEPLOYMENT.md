@@ -153,8 +153,6 @@ ZOHO_CATALYST_PROJECT_ID=your_prod_project_id
 ZOHO_CATALYST_CLIENT_ID=your_prod_client_id
 ZOHO_CATALYST_CLIENT_SECRET=your_prod_client_secret
 
-# Zoho Mail (Production)
-ZOHO_MAIL_API_KEY=your_prod_mail_key
 ```
 
 **Note:** For current JSON-based architecture, only `NEXT_PUBLIC_ENV`, `NEXT_PUBLIC_BASE_URL`, and `NEXT_PUBLIC_SITE_NAME` are required. Zoho Catalyst variables are for future implementation.
@@ -175,6 +173,92 @@ ZOHO_MAIL_API_KEY=your_prod_mail_key
 Once deployment finishes:
 1. Click **"Visit"** to see your live site
 2. Your site URL will be: `https://your-project-name.vercel.app`
+
+---
+
+## 4.5. Configure Branch Selection (Dev/Prod Projects)
+
+### **The Problem**
+When creating a new Vercel project, you might not see a branch selector during initial setup. This is normal - you can configure it after project creation.
+
+### **Method: Configure Branch After Project Creation (Recommended)**
+
+#### **Step 1: Create Project with Default Branch**
+1. Go to [Vercel Dashboard](https://vercel.com)
+2. Click **"Add New..."** → **"Project"**
+3. Click **"Import Git Repository"**
+4. Select your `jewelry-website` repository
+5. Click **"Import"**
+6. **Don't worry about branch selection yet** - just use the default
+7. Configure project name and settings
+8. Click **"Deploy"** (this will deploy from `main` branch initially)
+
+#### **Step 2: Change Production Branch**
+After the project is created:
+
+1. Go to your Vercel project dashboard
+2. Click **"Settings"** (gear icon in top right)
+3. Click **"Environments"** in the left sidebar (NOT "Git")
+4. Scroll to the **"Production"** environment section
+5. Look for **"Branch Tracking"** or **"Production Branch"** field
+6. Enter or select your desired branch:
+   - For **dev project**: Enter `develop`
+   - For **prod project**: Enter `main` (or keep default)
+7. Click **"Save"** or the branch will auto-save
+8. Vercel will automatically redeploy from the new branch
+
+#### **Step 3: Verify Branch Change**
+1. Go to **"Deployments"** tab
+2. You should see a new deployment triggered from your selected branch
+3. Check the deployment details - it should show the correct branch name
+
+### **Complete Setup for Dev & Prod Projects**
+
+#### **Development Project Setup:**
+1. **Create Project:**
+   - Name: `jewelry-website-dev`
+   - Import from GitHub
+   - Deploy (will use `main` initially)
+
+2. **Configure Branch:**
+   - Settings → **Environments** → Production section → Branch Tracking → Enter `develop`
+   - Save
+
+3. **Result:**
+   - Pushes to `develop` branch → Auto-deploys to dev project
+   - URL: `jewelry-website-dev.vercel.app`
+
+#### **Production Project Setup:**
+1. **Create Project:**
+   - Name: `jewelry-website-prod`
+   - Import from GitHub (same repo)
+   - Deploy (will use `main` initially)
+
+2. **Configure Branch:**
+   - Settings → **Environments** → Production section → Branch Tracking → Enter `main` (or keep default)
+   - Save
+
+3. **Result:**
+   - Pushes to `main` branch → Auto-deploys to prod project
+   - URL: `jewelry-website-prod.vercel.app`
+
+### **Troubleshooting Branch Configuration**
+
+**Issue: Branch Not Showing in Dropdown**
+- Make sure the branch exists in GitHub
+- Push the branch to GitHub if it's only local: `git push -u origin develop`
+- Refresh Vercel dashboard
+- You can type the branch name directly (it doesn't need to be in a dropdown)
+
+**Issue: Branch Changed But Not Deploying**
+- Make a small change to trigger deployment
+- Check Vercel dashboard → Deployments
+- Should see new deployment from selected branch
+
+**Issue: Wrong Branch Deploying**
+- Verify branch in Settings → **Environments** → Production → Branch Tracking
+- Check if branch exists in GitHub
+- Make sure you're looking at the correct environment (Production vs Preview)
 
 ---
 
@@ -278,13 +362,14 @@ Go to **"Settings"** → **"Environment Variables"**:
 3. Ensure `NEXT_PUBLIC_*` prefix for client-side vars
 4. Redeploy after adding variables
 
-### Issue: Zoho Catalyst Not Working
+### Issue: MongoDB Atlas Not Working
 **Solution:**
-1. Verify environment variables in Vercel
-2. Check Zoho Catalyst project ID matches
-3. Verify API credentials are correct
-4. Check Zoho Catalyst console for errors
-5. See [Zoho Catalyst Setup Guide](./ZOHO_CATALYST_NOSQL_SETUP.md)
+1. Verify `MONGODB_URI` environment variable in Vercel
+2. Check connection string format (should start with `mongodb+srv://`)
+3. Verify username and password are correct
+4. Check IP whitelist in MongoDB Atlas (allow 0.0.0.0/0 for Vercel)
+5. Check MongoDB Atlas cluster is running
+6. See [MongoDB Atlas Setup Guide](./MONGODB_ATLAS_SETUP_GUIDE.md)
 
 ### Issue: Images Not Loading
 **Solution:**

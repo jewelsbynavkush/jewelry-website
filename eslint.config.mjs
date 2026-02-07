@@ -12,7 +12,16 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Test coverage files (generated, should not be linted)
+    "coverage/**",
   ]),
+  {
+    // Allow `any` types in test files (necessary for mocking)
+    files: ["**/*.test.ts", "**/tests/**/*.ts", "**/test-helpers/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

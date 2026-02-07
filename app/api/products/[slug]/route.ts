@@ -1,62 +1,64 @@
-import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getProduct } from '@/lib/data/products';
-import { getSecurityHeaders } from '@/lib/security/api-headers';
+import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
-import { sanitizeString } from '@/lib/security/sanitize';
-
-/**
- * Validate slug format (alphanumeric, hyphens, underscores only)
- */
-function isValidSlug(slug: string): boolean {
-  return /^[a-z0-9_-]+$/i.test(slug) && slug.length <= 100;
-}
+import { validateSlugParam } from '@/lib/utils/api-helpers';
+import { SECURITY_CONFIG } from '@/lib/security/constants';
+import { ECOMMERCE } from '@/lib/constants';
+import type { GetProductResponse } from '@/types/api';
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
+  // Apply security (CORS, CSRF, rate limiting)
+  const securityResponse = applyApiSecurity(request, {
+    rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.PUBLIC_BROWSING,
+  });
+  if (securityResponse) return securityResponse;
+
   try {
     const { slug } = await params;
     
     // Validate and sanitize slug parameter
-    if (!slug || !isValidSlug(slug)) {
-      return NextResponse.json(
-        { error: 'Invalid product identifier' },
-        { 
-          status: 400,
-          headers: getSecurityHeaders(),
-        }
-      );
+    const validationResult = await validateSlugParam(slug, 'product identifier', request);
+    if ('error' in validationResult) {
+      return validationResult.error;
     }
+    const sanitizedSlug = validationResult.value;
+    const productData = await getProduct(sanitizedSlug);
+
+    if (!productData) {
+      return createSecureErrorResponse('Product not found', 404, request);
+    }
+
+    // Map to API response format
+    const product: GetProductResponse['product'] = {
+      id: productData.id,
+      slug: productData.slug,
+      title: productData.title,
+      description: productData.description,
+      shortDescription: productData.description.substring(0, 150), // Generate short description
+      sku: productData.slug.toUpperCase().replace(/-/g, ''), // Generate SKU from slug
+      price: productData.price ?? 0,
+      currency: productData.currency ?? ECOMMERCE.currency,
+      category: productData.category ?? '',
+      material: productData.material ?? '',
+      images: productData.image ? [productData.image] : [],
+      primaryImage: productData.image ?? '',
+      inStock: productData.inStock ?? false,
+      featured: productData.featured ?? false,
+      mostLoved: productData.mostLoved ?? false,
+    };
+
+    const responseData: GetProductResponse = { product };
+    const response = createSecureResponse(responseData, 200, request);
     
-    const sanitizedSlug = sanitizeString(slug);
-    const product = await getProduct(sanitizedSlug);
-
-    if (!product) {
-      return NextResponse.json(
-        { error: 'Product not found' },
-        { 
-          status: 404,
-          headers: getSecurityHeaders(),
-        }
-      );
-    }
-
-    return NextResponse.json({ product }, {
-      headers: {
-        ...getSecurityHeaders(),
-        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
-      },
-    });
+    response.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+    return response;
   } catch (error) {
     logError('products/[slug] API', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch product' },
-      { 
-        status: 500,
-        headers: getSecurityHeaders(),
-      }
-    );
+    return createSecureErrorResponse('Failed to fetch product', 500, request);
   }
 }
 

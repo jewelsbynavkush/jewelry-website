@@ -1,57 +1,120 @@
-import { Metadata } from 'next';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import Card from '@/components/ui/Card';
+'use client';
+
+/**
+ * Profile Page
+ * 
+ * User profile management with:
+ * - Profile editing
+ * - Address management
+ * - Order history
+ * - Password change
+ */
+
+import { useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import PageContainer from '@/components/ui/PageContainer';
 import SectionHeading from '@/components/ui/SectionHeading';
 import ScrollReveal from '@/components/ui/ScrollReveal';
-import { generateStandardMetadata } from '@/lib/seo/metadata';
-import { getBaseUrl } from '@/lib/utils/env';
-
-export const metadata: Metadata = {
-  ...generateStandardMetadata({
-    title: 'My Profile',
-    description: 'Manage your account and profile settings.',
-    url: `${getBaseUrl()}/profile`,
-  }),
-  robots: {
-    index: false, // Profile pages should not be indexed
-    follow: false,
-  },
-};
+import Button from '@/components/ui/Button';
+import Card from '@/components/ui/Card';
+import LoadingState from '@/components/ui/LoadingState';
+import { useAuthStore } from '@/lib/store/auth-store';
+import ProfileForm from '@/components/profile/ProfileForm';
+import EmailVerification from '@/components/profile/EmailVerification';
+import AddressList from '@/components/profile/AddressList';
+import OrderHistory from '@/components/profile/OrderHistory';
 
 export default function ProfilePage() {
+  const router = useRouter();
+  const { isAuthenticated, fetchProfile, isLoading, user, logout } = useAuthStore();
+  const hasFetchedRef = useRef(false);
+
+  useEffect(() => {
+    if (!isAuthenticated && !isLoading) {
+      router.push('/auth/login?redirect=/profile');
+      return;
+    }
+
+    // Only fetch profile if authenticated and user data is missing
+    // Prevents multiple calls when isAuthenticated changes
+    if (isAuthenticated && !user && !hasFetchedRef.current) {
+      hasFetchedRef.current = true;
+      fetchProfile();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, isLoading, router, user]); // fetchProfile intentionally excluded to prevent loops
+
+  if (isLoading) {
+    return (
+      <PageContainer maxWidth="2xl">
+        <SectionHeading as="h2">MY PROFILE</SectionHeading>
+        <LoadingState label="Loading profile..." />
+      </PageContainer>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null; // Will redirect
+  }
+
   return (
-    <PageContainer maxWidth="2xl">
+    <PageContainer maxWidth="4xl">
       <ScrollReveal>
         <h1 className="sr-only">My Profile - Manage your account settings</h1>
         <SectionHeading as="h2">MY PROFILE</SectionHeading>
       </ScrollReveal>
-      <ScrollReveal delay={0.1}>
-        <Card>
-          <div className="space-y-5 sm:space-y-6">
-            <Input
-              type="text"
-              label="Name"
-              placeholder="Enter your name"
-            />
-            <Input
-              type="email"
-              label="Email"
-              placeholder="Enter your email"
-            />
-            <Input
-              type="tel"
-              label="Phone"
-              placeholder="Enter your phone"
-            />
-            <Button className="w-full">
-              SAVE CHANGES
-            </Button>
-          </div>
-        </Card>
-      </ScrollReveal>
+
+      <div className="space-y-8 mt-6 sm:mt-8">
+        {/* Profile Form */}
+        <ScrollReveal delay={0.1}>
+          <ProfileForm />
+        </ScrollReveal>
+
+        {/* Email Verification */}
+        {user?.email && (
+          <ScrollReveal delay={0.15}>
+            <EmailVerification email={user.email} emailVerified={user.emailVerified} />
+          </ScrollReveal>
+        )}
+
+        {/* Addresses */}
+        <ScrollReveal delay={0.2}>
+          <AddressList />
+        </ScrollReveal>
+
+        {/* Order History */}
+        <ScrollReveal delay={0.3}>
+          <OrderHistory />
+        </ScrollReveal>
+
+        {/* Logout Section */}
+        <ScrollReveal delay={0.4}>
+          <Card>
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-[var(--text-on-cream)] text-lg font-semibold mb-2">
+                  Account Actions
+                </h3>
+                <p className="text-[var(--text-secondary)] text-sm">
+                  Sign out of your account. You can sign back in anytime.
+                </p>
+              </div>
+              <Button
+                onClick={async () => {
+                  await logout();
+                  router.push('/');
+                  router.refresh();
+                }}
+                className="w-full sm:w-auto min-h-[44px]"
+                variant="outline"
+                aria-label="Logout"
+              >
+                LOGOUT
+              </Button>
+            </div>
+          </Card>
+        </ScrollReveal>
+      </div>
     </PageContainer>
   );
 }
-

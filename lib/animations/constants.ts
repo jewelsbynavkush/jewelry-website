@@ -112,11 +112,12 @@ export const EASING = {
 };
 
 // Shadow Values
+// Using CSS variables for consistency with the design system
 export const SHADOW = {
-  // Base shadow
-  BASE: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-  // Hover shadow (enhanced depth)
-  HOVER: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+  // Base shadow - matches --shadow-light CSS variable
+  BASE: '0 4px 6px -1px var(--shadow-light)',
+  // Hover shadow (enhanced depth) - matches --shadow-medium CSS variable
+  HOVER: '0 25px 50px -12px var(--shadow-medium)',
 };
 
 // Animation Presets (commonly used combinations)

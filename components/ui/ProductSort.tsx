@@ -13,7 +13,11 @@ interface ProductSortProps {
 }
 
 /**
- * Product sorting component for e-commerce (animations removed for iOS scroll compatibility)
+ * Product sorting component for e-commerce
+ * 
+ * Provides dropdown interface for sorting products by price, name, or date.
+ * Updates URL query parameters to maintain sort state across page refreshes.
+ * Animations removed for iOS scroll compatibility.
  */
 export default function ProductSort({ className = '' }: ProductSortProps) {
   const router = useRouter();
@@ -57,6 +61,8 @@ export default function ProductSort({ className = '' }: ProductSortProps) {
           className="appearance-none px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-2 rounded-lg font-medium text-body-sm sm:text-body-base min-h-[44px] touch-target bg-[var(--beige)] text-[var(--text-on-beige)] hover:bg-[var(--beige-hover)] transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--beige-hover)] focus:ring-offset-2 pr-8 sm:pr-10"
           aria-label="Sort products"
           style={{
+            // Dropdown arrow: white (#ffffff) to match text-on-beige on beige background
+            // Note: CSS variables cannot be used in data URLs, so hardcoded white is acceptable here
             backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
             backgroundRepeat: 'no-repeat',
             backgroundPosition: 'right 0.75rem center',

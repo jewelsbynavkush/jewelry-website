@@ -51,7 +51,7 @@ export default function TermsPage() {
                 We strive to provide accurate product descriptions and pricing. However, we reserve the right to correct any errors, inaccuracies, or omissions and to change or update information at any time without prior notice.
               </p>
               <p>
-                All prices are listed in USD unless otherwise stated. Prices are subject to change without notice, but we will honor the price at the time of your order.
+                All prices are listed in INR (Indian Rupees) unless otherwise stated. Prices are subject to change without notice, but we will honor the price at the time of your order.
               </p>
               </section>
             </ScrollReveal>

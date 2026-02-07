@@ -22,21 +22,15 @@ export default function HeroImage3D({ heroImage, heroImageAlt, isMobile = false 
 
   return (
     <div
-      className={`relative ${heightClass} w-full bg-[var(--beige)] overflow-hidden`}
-      style={{ 
-        borderRadius: '8px 8px 0 0', 
-        marginBottom: 0, 
-        paddingBottom: 0,
-      }}
+      className={`relative ${heightClass} w-full bg-[var(--beige)] overflow-hidden rounded-t-lg mb-0 pb-0`}
     >
       <Image
         src={imageUrl}
         alt={imageAlt}
         fill
-        className="object-contain"
+        className="object-contain object-bottom rounded-t-lg"
         priority
         sizes={isMobile ? "(max-width: 768px) 100vw, 50vw" : "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"}
-        style={{ objectPosition: 'center bottom', borderRadius: '8px 8px 0 0', bottom: 0 }}
       />
     </div>
   );

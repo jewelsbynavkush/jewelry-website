@@ -3,6 +3,7 @@
 import React from 'react';
 import Button from '@/components/ui/Button';
 import { logError } from '@/lib/security/error-handler';
+import logger from '@/lib/utils/logger';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -24,12 +25,13 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  async componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Log error securely without exposing sensitive information
     logError('ErrorBoundary', error);
     // Include React error info only in development for debugging
-    if (process.env.NODE_ENV === 'development') {
-      console.error('ErrorBoundary errorInfo:', errorInfo);
+    const { isDevelopment } = await import('@/lib/utils/env');
+    if (isDevelopment()) {
+      logger.debug('ErrorBoundary errorInfo', { componentStack: errorInfo.componentStack });
     }
   }
 

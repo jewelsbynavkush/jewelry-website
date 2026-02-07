@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getBaseUrl } from '@/lib/utils/env';
 
-export function middleware(request: NextRequest) {
+export default function middleware(request: NextRequest) {
   // Skip security headers for internal Next.js routes and API endpoints
   // API routes handle their own security headers
   if (
@@ -28,13 +29,32 @@ export function middleware(request: NextRequest) {
   // Content Security Policy
   // 'unsafe-eval' and 'unsafe-inline' are required for Next.js runtime
   // Future enhancement: use nonces or hashes for stricter CSP
+  // Include request origin and base URL in connect-src to allow API calls in Vercel deployments
+  const origin = request.nextUrl.origin;
+  const baseUrl = getBaseUrl();
+  
+  // Build connect-src directive with allowed origins
+  const connectSrc = ["'self'", origin];
+  if (baseUrl) {
+    try {
+      const baseUrlObj = new URL(baseUrl);
+      const baseOrigin = baseUrlObj.origin;
+      // Only add if different from request origin to avoid duplicates
+      if (baseOrigin !== origin) {
+        connectSrc.push(baseOrigin);
+      }
+    } catch {
+      // Invalid URL format, skip
+    }
+  }
+  
   const csp = [
     "default-src 'self'",
     "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: https: blob:",
     "font-src 'self' data: https://fonts.gstatic.com",
-    "connect-src 'self'",
+    `connect-src ${connectSrc.join(' ')}`,
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",

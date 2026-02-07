@@ -6,6 +6,7 @@
 import { readFile } from 'fs/promises';
 import { join } from 'path';
 import type { PageContent } from '@/types/data';
+import { logError } from '@/lib/security/error-handler';
 
 const DATA_DIR = join(process.cwd(), 'data', 'content');
 
@@ -18,7 +19,7 @@ export async function getPageContent(page: string): Promise<PageContent | null> 
     const fileContents = await readFile(filePath, 'utf8');
     return JSON.parse(fileContents) as PageContent;
   } catch (error) {
-    console.error(`Error loading content for page ${page}:`, error);
+    logError(`getPageContent(${page})`, error);
     return null;
   }
 }

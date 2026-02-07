@@ -1,51 +1,84 @@
-import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { getProducts } from '@/lib/data/products';
-import { getSecurityHeaders } from '@/lib/security/api-headers';
+import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
 import { sanitizeString } from '@/lib/security/sanitize';
+import { getPaginationParams } from '@/lib/utils/api-helpers';
+import { SECURITY_CONFIG } from '@/lib/security/constants';
+import { ECOMMERCE } from '@/lib/constants';
+import type { GetProductsResponse } from '@/types/api';
+import connectDB from '@/lib/mongodb';
+import Category from '@/models/Category';
 
-// Valid category values to prevent injection
-const VALID_CATEGORIES = ['rings', 'earrings', 'necklaces', 'bracelets'];
+/**
+ * Get valid active categories from database
+ * This ensures only active categories are accepted
+ */
+async function getValidActiveCategories(): Promise<string[]> {
+  try {
+    await connectDB();
+    const activeCategories = await Category.find({ active: true }).select('slug').lean();
+    return activeCategories.map(cat => cat.slug);
+  } catch (error) {
+    logError('Error loading active categories', error);
+    return [];
+  }
+}
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  // Apply security (CORS, CSRF, rate limiting)
+  const securityResponse = applyApiSecurity(request, {
+    rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.PUBLIC_BROWSING,
+  });
+  if (securityResponse) return securityResponse;
+
   try {
     const { searchParams } = new URL(request.url);
     
-    // Sanitize and validate category parameter
+    // Ensures "most loved" and "featured" products only come from visible categories
+    const validCategories = await getValidActiveCategories();
+    
     const categoryParam = searchParams.get('category');
-    const category = categoryParam && VALID_CATEGORIES.includes(sanitizeString(categoryParam))
+    const category = categoryParam && validCategories.includes(sanitizeString(categoryParam))
       ? sanitizeString(categoryParam)
       : undefined;
     
-    // Validate boolean parameters
     const featured = searchParams.get('featured') === 'true';
     const mostLoved = searchParams.get('mostLoved') === 'true';
+    
+    // Limits page size to 1-100 items per page for performance
+    const { limit, page } = getPaginationParams(searchParams);
 
-    let products = await getProducts(category);
+    const result = await getProducts(category, featured || undefined, mostLoved || undefined, limit, page);
+    const products = result.products.map(productData => ({
+      id: productData.id,
+      slug: productData.slug,
+      title: productData.title,
+      description: productData.description,
+      shortDescription: productData.description.substring(0, 150),
+      sku: productData.slug.toUpperCase().replace(/-/g, ''),
+      price: productData.price ?? 0,
+      currency: productData.currency ?? ECOMMERCE.currency,
+      category: productData.category ?? '',
+      material: productData.material ?? '',
+      images: productData.image ? [productData.image] : [],
+      primaryImage: productData.image ?? '',
+      inStock: productData.inStock ?? false,
+      featured: productData.featured ?? false,
+      mostLoved: productData.mostLoved ?? false,
+    }));
 
-    if (featured) {
-      products = products.filter(p => p.featured === true);
-    }
-
-    if (mostLoved) {
-      products = products.filter(p => p.mostLoved === true);
-    }
-
-    return NextResponse.json({ products }, {
-      headers: {
-        ...getSecurityHeaders(),
-        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
-      },
-    });
+    const responseData: GetProductsResponse = {
+      products,
+      pagination: result.pagination,
+    };
+    const response = createSecureResponse(responseData, 200, request);
+    
+    response.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+    return response;
   } catch (error) {
     logError('products API', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch products' },
-      { 
-        status: 500,
-        headers: getSecurityHeaders(),
-      }
-    );
+    return createSecureErrorResponse('Failed to fetch products', 500, request);
   }
 }
 

@@ -1,19 +1,17 @@
 /**
  * Application-wide constants
+ * 
+ * NOTE: Categories are now fetched from the database.
+ * Use getCategories() from @/lib/data/categories instead of hardcoded CATEGORIES.
+ * This constant is kept for backward compatibility and type definitions only.
  */
 
-export const CATEGORIES = [
-  { name: 'RINGS', slug: 'rings', href: '/designs?category=rings' },
-  { name: 'EARRINGS', slug: 'earrings', href: '/designs?category=earrings' },
-  { name: 'NECKLACES', slug: 'necklaces', href: '/designs?category=necklaces' },
-  { name: 'BRACELETS', slug: 'bracelets', href: '/designs?category=bracelets' },
-] as const;
+export const CATEGORIES = [] as const;
 
-export const CATEGORY_SLUGS = CATEGORIES.map(cat => cat.slug);
+export const CATEGORY_SLUGS = [] as const;
 
 export const NAVIGATION_LINKS = [
   { name: 'ALL PRODUCTS', href: '/designs' },
-  ...CATEGORIES,
   { name: 'ABOUT US', href: '/about' },
   { name: 'CONTACT', href: '/contact' },
 ] as const;
@@ -60,6 +58,10 @@ export const COLORS = {
 
 /**
  * Default values
+ * 
+ * NOTE: These are fallback values only. Actual values should come from site-settings DB.
+ * Use getSiteSettings() from @/lib/data/site-settings to get current values.
+ * These defaults are kept for backward compatibility and error handling.
  */
 export const DEFAULTS = {
   brandName: 'Jewels by NavKush',
@@ -71,12 +73,34 @@ export const DEFAULTS = {
 
 /**
  * E-commerce constants
+ * 
+ * NOTE: These are fallback values only. Actual values should come from site-settings DB.
+ * Use getSiteSettings() from @/lib/data/site-settings to get current ecommerce values.
+ * These defaults are kept for backward compatibility and error handling.
+ * 
+ * To get ecommerce settings:
+ * ```typescript
+ * const settings = await getSiteSettings();
+ * const ecommerce = settings.ecommerce || ECOMMERCE; // Use DB values with fallback
+ * ```
  */
 export const ECOMMERCE = {
-  currency: 'USD',
-  currencySymbol: '$',
+  currency: 'INR',
+  currencySymbol: '₹',
   defaultShippingDays: 5,
-  freeShippingThreshold: 100, // USD
+  freeShippingThreshold: 5000, // INR (approximately $60 USD)
+  defaultShippingCost: 100, // INR - Standard shipping cost when threshold not met
   returnWindowDays: 30,
+  // Tax configuration
+  taxRate: 0.18, // 18% GST (India) - Set to 0 if tax-exempt
+  calculateTax: true, // Enable/disable automatic tax calculation
+  // Price validation
+  priceVarianceThreshold: 0.1, // 10% - Maximum allowed price variance before requiring cart refresh
+  // Cart configuration
+  guestCartExpirationDays: 30, // Guest carts expire after 30 days
+  userCartExpirationDays: null, // User carts never expire (null = no expiration)
+  // Quantity limits
+  maxQuantityPerItem: 100, // Maximum quantity per cart item
+  maxCartItems: 1000, // Maximum items in a single cart
 } as const;
 

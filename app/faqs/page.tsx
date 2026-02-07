@@ -67,7 +67,7 @@ export default function FAQsPage() {
       
       <div className="standard-space-y">
         {faqs.map((faq, index) => (
-          <ScrollReveal key={index} delay={index * 0.1}>
+          <ScrollReveal key={faq.question} delay={index * 0.1}>
             <Card padding="sm">
               <h3 className="font-playfair font-bold text-[var(--text-on-cream)] text-lg sm:text-xl md:text-2xl mb-3 sm:mb-4">
                 {faq.question}

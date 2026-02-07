@@ -26,7 +26,7 @@ export default function Button({
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
   
-  const baseStyles = 'inline-block px-6 sm:px-7 md:px-8 py-2.5 sm:py-3 rounded-full text-button min-h-[44px] flex items-center justify-center text-center relative overflow-hidden';
+  const baseStyles = 'inline-block px-6 sm:px-7 md:px-8 py-2.5 sm:py-3 rounded-full text-button min-h-[44px] flex items-center justify-center text-center relative overflow-hidden cursor-pointer disabled:cursor-not-allowed';
   
   const variants = {
     primary: {

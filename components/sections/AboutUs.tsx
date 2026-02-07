@@ -7,7 +7,7 @@ import AboutImage3D from './AboutImage3D';
 export default async function AboutUs() {
   const settings = await getSiteSettings();
 
-  // Use content from settings or default
+  // Fallback to default content if CMS settings are empty to prevent blank page
   const contentArray = settings.about.content.length > 0 
     ? settings.about.content 
     : [

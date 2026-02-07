@@ -80,15 +80,15 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
       icon: '✕',
     },
     info: {
-      bg: 'var(--beige)',
-      text: 'var(--text-on-beige)',
-      border: 'var(--border-light)',
+      bg: 'var(--info-bg)',
+      text: 'var(--info-text)',
+      border: 'var(--info-border)',
       icon: 'ℹ',
     },
     warning: {
-      bg: 'var(--beige)',
-      text: 'var(--text-on-beige)',
-      border: 'var(--border-light)',
+      bg: 'var(--warning-bg)',
+      text: 'var(--warning-text)',
+      border: 'var(--warning-border)',
       icon: '⚠',
     },
   };
@@ -118,7 +118,7 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: () => void }) {
         <p className="flex-1 text-body-sm sm:text-body-base font-medium">{toast.message}</p>
         <button
           onClick={onClose}
-          className="flex-shrink-0 text-lg font-bold opacity-70 hover:opacity-100 transition-opacity min-w-[24px] min-h-[24px] flex items-center justify-center"
+          className="flex-shrink-0 text-lg font-bold opacity-70 hover:opacity-100 transition-opacity min-w-[44px] min-h-[44px] flex items-center justify-center touch-target cursor-pointer"
           aria-label="Close notification"
         >
           ×

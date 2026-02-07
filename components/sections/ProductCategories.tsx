@@ -1,6 +1,6 @@
 import { getSiteSettings } from '@/lib/data/site-settings';
 import { getCategoryImages } from '@/lib/data/products';
-import { CATEGORIES } from '@/lib/constants';
+import { getCategories, transformCategoriesForUI } from '@/lib/data/categories';
 import CategoryLink from '@/components/ui/CategoryLink';
 import ScrollReveal from '@/components/ui/ScrollReveal';
 import CategoryImage3D from './CategoryImage3D';
@@ -25,8 +25,11 @@ function CategoryImageSection({ category, imageUrl }: CategoryImageSectionProps)
 export default async function ProductCategories() {
   const settings = await getSiteSettings();
   const categoryImages = await getCategoryImages();
-  const leftCategories = [CATEGORIES[0], CATEGORIES[2]];
-  const rightCategories = [CATEGORIES[1], CATEGORIES[3]];
+  const categories = await getCategories();
+  const categoriesForUI = transformCategoriesForUI(categories);
+  
+  const leftCategories = categoriesForUI.filter((_, index) => index % 2 === 0);
+  const rightCategories = categoriesForUI.filter((_, index) => index % 2 === 1);
 
   return (
     <section id="products-section">
@@ -46,15 +49,15 @@ export default async function ProductCategories() {
         <div className="section-container">
             {/* Mobile: Single Column Stacked */}
             <div className="flex flex-col md:hidden standard-gap-small">
-              {CATEGORIES.map((category, index) => (
+              {categoriesForUI.map((category, index) => (
                 <ScrollReveal key={category.slug} delay={0.1 + index * 0.1}>
                   <div className="w-full">
                     <CategoryLink
-                      name={category.name}
+                      name={category.displayName}
                       href={category.href}
                       variant="products"
                       index={index}
-                      total={CATEGORIES.length}
+                      total={categoriesForUI.length}
                     />
                     <CategoryImageSection 
                       category={category} 
@@ -74,27 +77,29 @@ export default async function ProductCategories() {
                     <ScrollReveal key={category.slug} delay={0.2 + index * 0.1}>
                       <div className="w-full">
                         <CategoryLink
-                          name={category.name}
+                          name={category.displayName}
                           href={category.href}
                           variant="products"
                           index={index * 2}
-                          total={leftCategories.length * 2}
+                          total={categoriesForUI.length}
                         />
-                        {index === 0 && (
+                        {index === 0 && leftCategories.length > 0 && (
                           <CategoryImageSection 
-                            category={category} 
-                            imageUrl={categoryImages[category.slug]}
+                            category={leftCategories[0]} 
+                            imageUrl={categoryImages[leftCategories[0].slug]}
                           />
                         )}
                       </div>
                     </ScrollReveal>
                   ))}
-                  <ScrollReveal delay={0.4}>
-                    <CategoryImageSection 
-                      category={leftCategories[1]} 
-                      imageUrl={categoryImages[leftCategories[1].slug]}
-                    />
-                  </ScrollReveal>
+                  {leftCategories.length > 1 && (
+                    <ScrollReveal delay={0.4}>
+                      <CategoryImageSection 
+                        category={leftCategories[1]} 
+                        imageUrl={categoryImages[leftCategories[1].slug]}
+                      />
+                    </ScrollReveal>
+                  )}
                 </div>
               </ScrollReveal>
 
@@ -105,27 +110,29 @@ export default async function ProductCategories() {
                     <ScrollReveal key={category.slug} delay={0.3 + index * 0.1}>
                       <div className="w-full">
                         <CategoryLink
-                          name={category.name}
+                          name={category.displayName}
                           href={category.href}
                           variant="products"
-                          index={index * 2}
-                          total={rightCategories.length * 2}
+                          index={index * 2 + 1}
+                          total={categoriesForUI.length}
                         />
-                        {index === 0 && (
+                        {index === 0 && rightCategories.length > 0 && (
                           <CategoryImageSection 
-                            category={category} 
-                            imageUrl={categoryImages[category.slug]}
+                            category={rightCategories[0]} 
+                            imageUrl={categoryImages[rightCategories[0].slug]}
                           />
                         )}
                       </div>
                     </ScrollReveal>
                   ))}
-                  <ScrollReveal delay={0.5}>
-                    <CategoryImageSection 
-                      category={rightCategories[1]} 
-                      imageUrl={categoryImages[rightCategories[1].slug]}
-                    />
-                  </ScrollReveal>
+                  {rightCategories.length > 1 && (
+                    <ScrollReveal delay={0.5}>
+                      <CategoryImageSection 
+                        category={rightCategories[1]} 
+                        imageUrl={categoryImages[rightCategories[1].slug]}
+                      />
+                    </ScrollReveal>
+                  )}
                 </div>
               </ScrollReveal>
             </div>

@@ -10,7 +10,7 @@
 
 1. [Project Overview](#project-overview)
 2. [Environment Setup](#environment-setup)
-3. [Database Architecture (Zoho Catalyst)](#database-architecture-zoho-catalyst)
+3. [Database Architecture (MongoDB Atlas)](#database-architecture-mongodb-atlas)
 4. [E-commerce Core Features](#e-commerce-core-features)
 5. [User Management & Authentication](#user-management--authentication)
 6. [Content Management](#content-management)
@@ -41,14 +41,14 @@
 ### **Target State**
 - 🎯 Full e-commerce platform
 - 🎯 Multi-environment setup (dev/prod)
-- 🎯 Zoho Catalyst NoSQL database
+- 🎯 MongoDB Atlas NoSQL database (serverless, scales to millions)
 - 🎯 User accounts & authentication
 - 🎯 Shopping cart & checkout
 - 🎯 Inventory management
 - 🎯 Order processing
 - 🎯 Email notifications
 - 🎯 Admin dashboard
-- 🎯 Payment integration
+- 🎯 Payment integration (Razorpay)
 - 🎯 CDN for static assets
 
 ---
@@ -64,17 +64,16 @@
   - CNAME record: `dev2026` → Vercel deployment
   - Or subdomain: `dev` → Vercel preview deployment
 
-#### **Zoho Catalyst Setup**
-- **Project:** Create separate Zoho Catalyst project for dev
-- **Database:** Dev instance (separate from production)
+#### **MongoDB Atlas Setup**
+- **Cluster:** Create separate MongoDB Atlas cluster for dev (M0 Free tier)
+- **Database:** Dev database (separate from production)
 - **Environment Variables:**
   ```
   NEXT_PUBLIC_ENV=development
   NEXT_PUBLIC_BASE_URL=https://dev2026.jewelsbynavkush.com
-  ZOHO_CATALYST_PROJECT_ID=dev_project_id
-  ZOHO_CATALYST_CLIENT_ID=dev_client_id
-  ZOHO_CATALYST_CLIENT_SECRET=dev_client_secret
-  ZOHO_MAIL_API_KEY=dev_mail_key
+  MONGODB_URI=mongodb+srv://username:password@dev-cluster.mongodb.net/jewelry-website-dev?retryWrites=true&w=majority
+  JWT_SECRET=your-secure-random-secret-key-change-in-production
+  ACCESS_TOKEN_EXPIRES_IN=5m
   ```
 
 #### **Vercel Setup**
@@ -90,17 +89,16 @@
 - **DNS:** Already configured
 - **SSL:** Auto-provisioned by Vercel
 
-#### **Zoho Catalyst Setup**
-- **Project:** Production Zoho Catalyst project
-- **Database:** Production instance (separate from dev)
+#### **MongoDB Atlas Setup**
+- **Cluster:** Production MongoDB Atlas cluster (M0 Free tier to start, upgrade to M10+ when needed)
+- **Database:** Production database (separate from dev)
 - **Environment Variables:**
   ```
   NEXT_PUBLIC_ENV=production
   NEXT_PUBLIC_BASE_URL=https://jewelsbynavkush.com
-  ZOHO_CATALYST_PROJECT_ID=prod_project_id
-  ZOHO_CATALYST_CLIENT_ID=prod_client_id
-  ZOHO_CATALYST_CLIENT_SECRET=prod_client_secret
-  ZOHO_MAIL_API_KEY=prod_mail_key
+  MONGODB_URI=mongodb+srv://username:password@prod-cluster.mongodb.net/jewelry-website-prod?retryWrites=true&w=majority
+  JWT_SECRET=your-secure-random-secret-key-change-in-production
+  ACCESS_TOKEN_EXPIRES_IN=5m
   ```
 
 #### **Vercel Setup**
@@ -115,22 +113,20 @@
 # .env.development.local
 NEXT_PUBLIC_ENV=development
 NEXT_PUBLIC_BASE_URL=https://dev2026.jewelsbynavkush.com
-ZOHO_CATALYST_PROJECT_ID=dev_project_id
-ZOHO_CATALYST_CLIENT_ID=dev_client_id
-ZOHO_CATALYST_CLIENT_SECRET=dev_client_secret
-ZOHO_MAIL_API_KEY=dev_mail_key
-# STRIPE_PUBLISHABLE_KEY=dev_stripe_key (future phase)
-# STRIPE_SECRET_KEY=dev_stripe_secret (future phase)
+MONGODB_URI=mongodb+srv://username:password@dev-cluster.mongodb.net/jewelry-website-dev?retryWrites=true&w=majority
+JWT_SECRET=your-secure-random-secret-key-change-in-production
+ACCESS_TOKEN_EXPIRES_IN=5m
+# RAZORPAY_KEY_ID=dev_razorpay_key (future phase)
+# RAZORPAY_KEY_SECRET=dev_razorpay_secret (future phase)
 
 # .env.production.local
 NEXT_PUBLIC_ENV=production
 NEXT_PUBLIC_BASE_URL=https://jewelsbynavkush.com
-ZOHO_CATALYST_PROJECT_ID=prod_project_id
-ZOHO_CATALYST_CLIENT_ID=prod_client_id
-ZOHO_CATALYST_CLIENT_SECRET=prod_client_secret
-ZOHO_MAIL_API_KEY=prod_mail_key
-# STRIPE_PUBLISHABLE_KEY=prod_stripe_key (future phase)
-# STRIPE_SECRET_KEY=prod_stripe_secret (future phase)
+MONGODB_URI=mongodb+srv://username:password@prod-cluster.mongodb.net/jewelry-website-prod?retryWrites=true&w=majority
+JWT_SECRET=your-secure-random-secret-key-change-in-production
+ACCESS_TOKEN_EXPIRES_IN=5m
+# RAZORPAY_KEY_ID=prod_razorpay_key (future phase)
+# RAZORPAY_KEY_SECRET=prod_razorpay_secret (future phase)
 ```
 
 #### **Branch Strategy**
@@ -140,7 +136,7 @@ ZOHO_MAIL_API_KEY=prod_mail_key
 
 ---
 
-## 🗄️ **Database Architecture (Zoho Catalyst)**
+## 🗄️ **Database Architecture (MongoDB Atlas)**
 
 ### **1. Data Models Required**
 
@@ -370,48 +366,46 @@ CartItem {
 }
 ```
 
-### **2. Zoho Catalyst Setup**
+### **2. MongoDB Atlas Setup**
 
-#### **Project Structure**
+#### **Database Structure**
 ```
-zoho-catalyst/
-├── functions/
+mongodb-atlas/
+├── collections/
 │   ├── products/
-│   │   ├── get-products.js
-│   │   ├── get-product.js
-│   │   ├── create-product.js
-│   │   ├── update-product.js
-│   │   └── delete-product.js
+│   │   └── (product documents)
 │   ├── users/
-│   │   ├── register.js
-│   │   ├── login.js
-│   │   ├── get-user.js
-│   │   └── update-user.js
+│   │   └── (user documents)
 │   ├── cart/
-│   │   ├── get-cart.js
-│   │   ├── add-item.js
-│   │   ├── update-item.js
-│   │   └── remove-item.js
+│   │   └── (cart documents)
 │   ├── orders/
-│   │   ├── create-order.js
-│   │   ├── get-orders.js
-│   │   └── update-order.js
-│   └── inventory/
-│       ├── check-stock.js
-│       └── update-inventory.js
-├── data/
-│   └── (collections defined above)
-└── config/
-    └── catalyst-config.json
+│   │   └── (order documents)
+│   ├── categories/
+│   │   └── (category documents)
+│   └── ... (other collections)
+├── indexes/
+│   ├── products (slug, category, price, etc.)
+│   ├── users (email, etc.)
+│   └── orders (userId, status, etc.)
+└── models/
+    └── (Mongoose schemas)
 ```
 
 #### **API Endpoints Structure**
-- `/api/catalyst/products` → Product operations
-- `/api/catalyst/users` → User operations
-- `/api/catalyst/cart` → Cart operations
-- `/api/catalyst/orders` → Order operations
-- `/api/catalyst/inventory` → Inventory operations
-- `/api/catalyst/auth` → Authentication
+- `/api/products` → Product operations
+- `/api/users` → User operations
+- `/api/cart` → Cart operations
+- `/api/orders` → Order operations
+- `/api/inventory` → Inventory operations
+- `/api/auth` → Authentication
+
+#### **MongoDB Atlas Benefits**
+- ✅ **Free tier:** 512MB storage, unlimited operations
+- ✅ **Auto-scaling:** Handles traffic spikes automatically
+- ✅ **Global clusters:** Multi-region support
+- ✅ **Transactions:** ACID transactions for orders
+- ✅ **Full-text search:** Built-in or integrate Algolia
+- ✅ **Proven at scale:** Used by Fortune 500 companies
 
 ---
 
@@ -1049,6 +1043,91 @@ public/
 - Admin panel training
 - Content management training
 - Order processing training
+
+---
+
+## 📋 **Immediate Next Steps**
+
+*This section outlines immediate action items for getting started.*
+
+### **✅ Completed**
+
+- ✅ Database reconnection handling
+- ✅ Health check endpoint (`/api/health`)
+- ✅ In-memory rate limiting
+- ✅ Console error logging
+- ✅ Code cleanup
+
+### **🚀 Immediate Next Steps (Do Now)**
+
+#### **1. Install Dependencies**
+```bash
+cd jewelry-website
+npm install
+```
+
+#### **2. Set Up Environment Variables**
+
+Create `.env.local` file:
+```bash
+# Environment
+NEXT_PUBLIC_ENV=development
+NEXT_PUBLIC_BASE_URL=http://localhost:3000
+
+# MongoDB Atlas
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/jewelry-website?retryWrites=true&w=majority
+
+# JWT Authentication
+JWT_SECRET=your-secure-random-secret-key-min-32-chars
+ACCESS_TOKEN_EXPIRES_IN=7d
+
+# CORS (optional - defaults work for localhost)
+CORS_ALLOWED_ORIGINS=http://localhost:3000
+```
+
+#### **3. Test Local Build**
+```bash
+npm run build
+```
+
+#### **4. Start Development Server**
+```bash
+npm run dev
+```
+
+Visit: `http://localhost:3000`
+
+### **📋 Before Production Launch**
+
+#### **Critical (Must Have)**
+- [ ] Complete payment integration (Razorpay)
+- [ ] Integrate email/SMS service (OTP)
+- [ ] Run existing tests: `npm test`
+- [ ] Test critical user flows
+- [ ] Set up MongoDB Atlas production cluster
+- [ ] Configure production environment variables
+- [ ] Set up Vercel deployment
+- [ ] Configure domain and SSL
+
+#### **Recommended Improvements**
+- [ ] Structured logging (JSON format)
+- [ ] Performance monitoring
+- [ ] Load testing
+- [ ] Security audit
+
+### **📝 Development Workflow**
+
+1. **Pull latest changes:** `git pull origin main`
+2. **Install dependencies:** `npm install` (if package.json changed)
+3. **Start dev server:** `npm run dev`
+4. **Run tests:** `npm test` (before committing)
+5. **Check linting:** `npm run lint`
+
+### **Before Committing**
+- [ ] Run tests: `npm test`
+- [ ] Check linting: `npm run lint`
+- [ ] Test build: `npm run build`
+- [ ] Test critical flows manually
 
 ---
 
