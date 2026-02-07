@@ -31,10 +31,22 @@ export default function CategoryLink({
     ? 'flex items-center justify-between text-[var(--text-on-beige)] hover:text-[var(--text-on-beige-hover)] transition-colors w-full py-3 sm:py-3.5 md:py-4 lg:py-5 uppercase text-heading-sm min-h-[44px] sm:min-h-[48px] relative overflow-hidden'
     : 'flex items-center justify-between text-[var(--text-on-beige)] hover:text-[var(--text-on-beige-hover)] transition-colors w-full py-2.5 sm:py-3 md:py-3.5 lg:py-4 uppercase text-category-link min-h-[44px] relative overflow-hidden';
 
-  const borderClasses = [
-    index === 0 ? 'border-t border-[var(--border-light)]' : '',
-    index < total - 1 ? 'border-b border-[var(--border-light)]' : '',
-  ].filter(Boolean).join(' ');
+  // Use white border with higher opacity for beige background (products variant)
+  // 50% opacity provides better visibility on beige background
+  // Use light border for cream background (intro variant)
+  const borderColor = isProductsVariant 
+    ? 'border-[rgba(255,255,255,0.5)]' 
+    : 'border-[var(--border-light)]';
+  
+  // Products variant: Always show both top and bottom borders for all items
+  // This ensures all category links have visible borders on beige background
+  // Intro variant: Show top border for first item, bottom border for all except last
+  const borderClasses = isProductsVariant
+    ? `border-t ${borderColor} border-b ${borderColor}` // Always show both borders for products variant
+    : [
+        index === 0 ? `border-t ${borderColor}` : '',
+        index < total - 1 ? `border-b ${borderColor}` : '',
+      ].filter(Boolean).join(' ');
   
   return (
     <motion.div
