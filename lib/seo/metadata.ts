@@ -48,7 +48,9 @@ export function generateStandardMetadata({
   const imageUrl = image 
     ? (image.startsWith('http') ? image : getCDNUrl(image))
     : getCDNUrl('/assets/hero/hero-image.png');
-  const pageUrl = url || baseUrl;
+  // Canonical: absolute URL, no trailing slash (match sitemap for consistency)
+  const raw = url || baseUrl;
+  const pageUrl = raw === '' ? baseUrl : raw.replace(/\/$/, '') || baseUrl;
 
   return {
     title: fullTitle,

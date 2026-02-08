@@ -148,7 +148,7 @@ jewelry-website/
 ├── public/                 # Static Assets
 ├── docs/                   # Documentation
 ├── scripts/                # Utility Scripts
-├── middleware.ts           # Next.js Middleware (Security Headers)
+├── proxy.ts                # Next.js Proxy (security headers for page responses)
 ├── next.config.ts          # Next.js Configuration
 ├── tsconfig.json           # TypeScript Configuration
 ├── package.json            # Dependencies
@@ -800,9 +800,9 @@ ANIMATION_3D = {
 - Module resolution
 - JSX support
 
-### **10.3 Middleware (`middleware.ts`)**
+### **10.3 Proxy (`proxy.ts`)**
 
-**Purpose:** Security headers for all requests
+**Purpose:** Security headers for page responses (Next.js 16 proxy convention)
 
 **Headers Set:**
 - Content-Security-Policy (CSP)

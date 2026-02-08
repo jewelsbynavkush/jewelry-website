@@ -1,29 +1,29 @@
-import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
-import "./globals.css";
-import TopHeader from "@/components/layout/TopHeader";
-import Footer from "@/components/layout/Footer";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
-import ToastContainer from "@/components/ui/Toast";
-import { generateStandardMetadata } from "@/lib/seo/metadata";
-import { generateOrganizationSchema, generateWebsiteSchema } from "@/lib/seo/structured-data";
-import { getBaseUrl } from "@/lib/utils/env";
-import SmoothScrollProvider from "@/components/providers/SmoothScrollProvider";
-import AuthProvider from "@/components/providers/AuthProvider";
+import type { Metadata } from 'next';
+import { Inter, Playfair_Display } from 'next/font/google';
+import './globals.css';
+import TopHeader from '@/components/layout/TopHeader';
+import Footer from '@/components/layout/Footer';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import ToastContainer from '@/components/ui/Toast';
+import { generateStandardMetadata } from '@/lib/seo/metadata';
+import { generateOrganizationSchema, generateWebsiteSchema } from '@/lib/seo/structured-data';
+import { getBaseUrl } from '@/lib/utils/env';
+import SmoothScrollProvider from '@/components/providers/SmoothScrollProvider';
+import AuthProvider from '@/components/providers/AuthProvider';
 
-const inter = Inter({ 
-  subsets: ["latin"],
+const inter = Inter({
+  subsets: ['latin'],
   variable: '--font-inter',
 });
-const playfair = Playfair_Display({ 
-  subsets: ["latin"],
+const playfair = Playfair_Display({
+  subsets: ['latin'],
   variable: '--font-playfair',
   weight: ['400', '700'],
 });
 
 export const metadata: Metadata = generateStandardMetadata({
-  title: "Jewels by NavKush - Exquisite Handcrafted Jewelry",
-  description: "Discover our collection of unique, beautifully designed jewelry pieces that reflect your personal style. Handcrafted with precision and elegance.",
+  title: 'Jewels by NavKush - Exquisite Handcrafted Jewelry',
+  description: 'Discover our collection of unique, beautifully designed jewelry pieces that reflect your personal style. Handcrafted with precision and elegance.',
   url: getBaseUrl(),
 });
 

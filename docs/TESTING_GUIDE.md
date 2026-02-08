@@ -132,6 +132,17 @@ tests/
     └── inventory-management.test.ts
 ```
 
+### Mocking and test data
+
+Tests use **mocked data access** and a **local in-memory database** (MongoDB Memory Server). They do not call the real database.
+
+- **`tests/setup.ts`:** Imports mocks first (`./helpers/mocks/database-mocks`, `./helpers/mocks/address-validation-mocks`), then starts MongoDB Memory Server and connects Mongoose to it.
+- **`tests/helpers/mocks/database-mocks.ts`:** Mocks getCategories, getDefaultCountry, getSiteSettings, and related helpers so API/model tests get consistent test data.
+- **`tests/helpers/mocks/address-validation-mocks.ts`:** Mocks address validation (isValidPincode, createAddressSchema, etc.) with mocked country settings.
+- **`tests/helpers/test-setup-helpers.ts`:** setupTestCountry(), setupTestCategories(), setupTestData() for populating the in-memory DB when needed.
+
+Model operations (create, save, find) run against the in-memory DB; data access from lib (categories, site settings, country) is mocked so tests are fast and deterministic.
+
 ---
 
 ## 🧪 **Model Tests**

@@ -21,8 +21,6 @@ import type { ResendEmailOTPResponse } from '@/types/api';
  * Resend OTP to email address
  */
 export async function POST(request: NextRequest) {
-  // Apply security (CORS, CSRF, rate limiting)
-  // Stricter rate limiting for OTP resend to prevent abuse
   const securityResponse = applyApiSecurity(request, {
     rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.AUTH_RESEND_OTP,
     requireContentType: true,
@@ -32,7 +30,6 @@ export async function POST(request: NextRequest) {
   try {
     await connectDB();
 
-    // Require authentication for email OTP resend
     const authResult = await requireAuth(request);
     if ('error' in authResult) {
       return authResult.error;
@@ -40,63 +37,47 @@ export async function POST(request: NextRequest) {
 
     const { user: authUser } = authResult;
 
-    // Fetch user document with OTP-related fields for email verification
-    // Select only required fields to optimize query performance
-    // Note: Cannot use .lean() as we need to call .save() on the document
+    // Load as document (not .lean()) so we can persist OTP; select only OTP-related fields
     const userDoc = await User.findById(authUser.userId)
       .select('_id email emailVerified emailVerificationOTP emailVerificationOTPExpires');
     if (!userDoc) {
       return createSecureErrorResponse('User not found', 404, request);
     }
 
-    // Verify user has email address (required for OTP generation)
     if (!userDoc.email) {
       return createSecureErrorResponse('No email address associated with this account', 400, request);
     }
 
-    // Security: Only allow resend for unverified emails
-    // Prevents unnecessary OTP generation for already-verified accounts
+    // Only allow resend for unverified emails (avoids unnecessary OTP and enforces verification flow)
     if (userDoc.emailVerified) {
       return createSecureErrorResponse('Email is already verified', 400, request);
     }
 
-    // Generate new OTP (invalidates previous OTP)
     try {
-      // Double-check email exists before OTP generation (defensive programming)
-      // Prevents runtime errors if email was somehow cleared between checks
       if (!userDoc.email) {
         return createSecureErrorResponse('Email is required to generate OTP', 400, request);
       }
-      
-      // Generate OTP using model method if available, otherwise use manual fallback
-      // Fallback handles cases where model methods may not be available due to Next.js caching
+
+      // Prefer model method; fallback to 6-digit random when model methods unavailable (e.g. Next.js module caching)
       let otp: string;
       if (typeof userDoc.generateEmailOTP === 'function') {
         otp = userDoc.generateEmailOTP();
       } else {
-        // Manual OTP generation fallback: Generate 6-digit random number
         otp = Math.floor(100000 + Math.random() * 900000).toString();
         userDoc.emailVerificationOTP = otp;
         userDoc.emailVerificationOTPExpires = new Date(Date.now() + SECURITY_CONFIG.OTP_EXPIRATION_MS);
       }
-      
-      // Save with error handling for validation errors
+
       try {
         await userDoc.save();
       } catch (saveError: unknown) {
-        // Handle Mongoose errors with reusable utility
         const { handleMongooseSaveError } = await import('@/lib/utils/mongoose-error-handler');
         const errorResponse = handleMongooseSaveError(saveError, request, 'resend-email-otp');
-        if (errorResponse) {
-          return errorResponse;
-        }
-        
-        // Re-throw other errors
+        if (errorResponse) return errorResponse;
         throw saveError;
       }
 
-      // Send OTP email via Gmail SMTP for email verification
-      // OTP is time-limited (15 minutes) for security
+      // OTP is time-limited (15 min); send via Gmail SMTP
       const { sendEmailOTP } = await import('@/lib/email/gmail');
       const emailResult = await sendEmailOTP(userDoc.email, otp);
       
@@ -105,7 +86,7 @@ export async function POST(request: NextRequest) {
           error: emailResult.error,
           email: userDoc.email,
         });
-        // Don't fail the request - OTP is generated, user can request again
+        // Do not fail request: OTP is already stored; user can request resend
       } else {
         const logger = (await import('@/lib/utils/logger')).default;
         logger.info('Email OTP sent successfully', {
@@ -120,14 +101,12 @@ export async function POST(request: NextRequest) {
       };
       return createSecureResponse(responseData, 200, request);
     } catch (otpError: unknown) {
-      // Handle OTP generation errors with specific error messages
-      // Provides user-friendly feedback for different failure scenarios
       const errorMessage = otpError instanceof Error ? otpError.message : String(otpError);
       if (errorMessage.includes('Email is required')) {
         return createSecureErrorResponse('Email is required to generate OTP', 400, request);
       }
       logError('Failed to generate email OTP in resend-email-otp', otpError);
-      return createSecureErrorResponse(`Failed to generate email OTP: ${errorMessage || 'Unknown error'}`, 500, request);
+      return createSecureErrorResponse('Failed to generate email OTP', 500, request);
     }
   } catch (error: unknown) {
     const zodError = formatZodError(error);
@@ -135,15 +114,7 @@ export async function POST(request: NextRequest) {
       return createSecureResponse(zodError, 400, request);
     }
 
-    // Log detailed error for debugging
     logError('resend-email-otp API', error);
-    
-    // Provide more specific error messages
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    if (errorMessage) {
-      return createSecureErrorResponse(`Failed to resend email OTP: ${errorMessage}`, 500, request);
-    }
-    
     return createSecureErrorResponse('Failed to resend email OTP', 500, request);
   }
 }

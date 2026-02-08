@@ -55,7 +55,6 @@ export async function POST(request: NextRequest) {
   let session: mongoose.ClientSession | null = null;
   
   try {
-    // Apply security (CORS, CSRF) - rate limiting done after auth with user ID
     const securityResponse = applyApiSecurity(request, {
       enableRateLimit: false, // Disable IP-based rate limiting, use user-based instead
       requireContentType: true,
@@ -156,10 +155,13 @@ export async function POST(request: NextRequest) {
           return createSecureErrorResponse(`Product ${item.sku} is no longer available`, 400, request);
         }
 
-        // Prevent overselling by checking available stock before order confirmation
-        if (product.inventory.trackQuantity) {
+        // Prevent overselling: allow when we have enough reserved (from cart) or enough available
+        if (product.inventory.trackQuantity && !product.inventory.allowBackorder) {
           const availableQuantity = Math.max(0, product.inventory.quantity - product.inventory.reservedQuantity);
-          if (availableQuantity < item.quantity && !product.inventory.allowBackorder) {
+          const reservedQuantity = product.inventory.reservedQuantity ?? 0;
+          const hasEnoughReserved = reservedQuantity >= item.quantity;
+          const hasEnoughAvailable = availableQuantity >= item.quantity;
+          if (!hasEnoughReserved && !hasEnoughAvailable) {
             await session.abortTransaction();
             session.endSession();
             return createSecureErrorResponse(`Insufficient stock for ${item.sku}`, 400, request);
@@ -418,18 +420,14 @@ export async function POST(request: NextRequest) {
       throw error;
     }
 
-    // Handle Zod validation errors
     const zodError = formatZodError(error);
     if (zodError) {
       return createSecureResponse(zodError, 400, request);
     }
 
-    // Handle Mongoose errors with reusable utility
     const { handleMongooseError } = await import('@/lib/utils/mongoose-error-handler');
     const mongooseErrorResponse = handleMongooseError(error, request, 'orders POST API');
-    if (mongooseErrorResponse) {
-      return mongooseErrorResponse;
-    }
+    if (mongooseErrorResponse) return mongooseErrorResponse;
 
     logError('orders POST API', error);
     return createSecureErrorResponse('Failed to create order', 500, request);
@@ -441,14 +439,12 @@ export async function POST(request: NextRequest) {
  * Get user's orders
  */
 export async function GET(request: NextRequest) {
-  // Apply security (CORS, CSRF) - rate limiting done after auth with user ID
   const securityResponse = applyApiSecurity(request, {
     enableRateLimit: false, // Disable IP-based rate limiting, use user-based instead
   });
   if (securityResponse) return securityResponse;
 
   try {
-    // Require authentication
     const authResult = await requireAuth(request);
     if ('error' in authResult) {
       return authResult.error;
@@ -456,8 +452,6 @@ export async function GET(request: NextRequest) {
 
     const { user } = authResult;
 
-    // Industry standard: Per-user rate limiting for authenticated endpoints
-    // 200 requests per 15 minutes (industry standard for user-specific read endpoints)
     const userRateLimitResponse = checkUserRateLimit(
       request,
       user.userId,

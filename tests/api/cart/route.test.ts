@@ -108,6 +108,53 @@ describe('Cart API', () => {
       expect(data.cart.subtotal).toBe(testProduct.price * 2);
     });
 
+    it('should keep item in cart when availableQuantity is 0 (reserved for this cart)', async () => {
+      const singleStockProduct = await Product.create(
+        createTestProduct({
+          categoryId: testCategory._id,
+          sku: 'SINGLE-STOCK',
+          inventory: {
+            quantity: 1,
+            reservedQuantity: 1,
+            lowStockThreshold: 1,
+            trackQuantity: true,
+            allowBackorder: false,
+            location: 'warehouse-1',
+          },
+        })
+      );
+      await Cart.create({
+        userId: testUser._id,
+        items: [
+          {
+            productId: singleStockProduct._id,
+            sku: singleStockProduct.sku,
+            title: singleStockProduct.title,
+            image: singleStockProduct.primaryImage || '',
+            price: singleStockProduct.price,
+            quantity: 1,
+            subtotal: singleStockProduct.price,
+          },
+        ],
+        subtotal: singleStockProduct.price,
+        total: singleStockProduct.price,
+        currency: 'INR',
+      });
+
+      const request = createAuthenticatedRequest(
+        testUser._id.toString(),
+        testUser.email,
+        'customer'
+      );
+      const response = await GET(request);
+      const data = await getJsonResponse(response);
+
+      expectStatus(response, 200);
+      expect(data.cart.items.length).toBe(1);
+      expect(data.cart.items[0].productId).toBe(singleStockProduct._id.toString());
+      expect(data.cart.items[0].quantity).toBe(1);
+    });
+
     it('should get empty cart for guest user', async () => {
       const request = createGuestRequest();
 
@@ -227,6 +274,31 @@ describe('Cart API', () => {
       expectError(data);
     });
 
+    it('should reserve stock when adding item to cart', async () => {
+      const request = createAuthenticatedRequest(
+        testUser._id.toString(),
+        testUser.email,
+        'customer',
+        'POST',
+        'http://localhost:3000/api/cart',
+        {
+          productId: testProduct._id.toString(),
+          quantity: 2,
+        }
+      );
+
+      const response = await POST(request);
+      const data = await getJsonResponse(response);
+
+      expectStatus(response, 200);
+      expectSuccess(data);
+      expect(data.cart.items.length).toBe(1);
+
+      const productAfter = await Product.findById(testProduct._id).lean();
+      expect(productAfter?.inventory.reservedQuantity).toBe(2);
+      expect(productAfter?.inventory.quantity).toBe(10);
+    });
+
     it('should validate quantity limits', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),
@@ -286,6 +358,42 @@ describe('Cart API', () => {
       // Verify cart is cleared
       const cart = await Cart.findOne({ userId: testUser._id });
       expect(cart?.items.length).toBe(0);
+    });
+
+    it('should release reserved stock when clearing cart', async () => {
+      await Cart.create({
+        userId: testUser._id,
+        items: [
+          {
+            productId: testProduct._id,
+            sku: testProduct.sku,
+            title: testProduct.title,
+            image: testProduct.primaryImage || '',
+            price: testProduct.price,
+            quantity: 2,
+            subtotal: testProduct.price * 2,
+          },
+        ],
+        subtotal: testProduct.price * 2,
+        total: testProduct.price * 2,
+        currency: 'INR',
+      });
+      await Product.findByIdAndUpdate(testProduct._id, {
+        'inventory.reservedQuantity': 2,
+      });
+
+      const request = createAuthenticatedRequest(
+        testUser._id.toString(),
+        testUser.email,
+        'customer',
+        'DELETE',
+        'http://localhost:3000/api/cart'
+      );
+
+      await DELETE(request);
+
+      const productAfter = await Product.findById(testProduct._id).lean();
+      expect(productAfter?.inventory.reservedQuantity).toBe(0);
     });
 
     it('should clear cart for guest user', async () => {

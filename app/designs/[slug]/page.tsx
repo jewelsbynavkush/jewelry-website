@@ -117,10 +117,10 @@ export default async function DesignDetailPage({ params }: PageProps) {
         <ScrollReveal>
           <Breadcrumbs
             items={[
-              { name: 'Home', href: baseUrl },
-              { name: 'Designs', href: `${baseUrl}/designs` },
-              ...(product.category ? [{ name: formatCategoryName(product.category), href: `${baseUrl}/designs?category=${product.category}` }] : []),
-              { name: product.title, href: `${baseUrl}/designs/${product.slug}` },
+              { name: 'Home', href: '/' },
+              { name: 'Designs', href: '/designs' },
+              ...(product.category ? [{ name: formatCategoryName(product.category), href: `/designs?category=${product.category}` }] : []),
+              { name: product.title, href: `/designs/${product.slug}` },
             ]}
           />
         </ScrollReveal>

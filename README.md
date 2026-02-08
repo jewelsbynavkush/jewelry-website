@@ -24,7 +24,7 @@ All documentation is organized in the [`docs/`](./docs/) folder.
 - [Quick Start Guide](./docs/SETUP_QUICK_START.md) - Get started in minutes
 - [Development Guide](./docs/DEVELOPMENT_GUIDE.md) - Complete development workflow
 - [MongoDB Atlas Setup](./docs/MONGODB_ATLAS_COMPLETE_GUIDE.md) - Database setup ⭐ **READ THIS FIRST**
-- [Email Setup Guide](./docs/EMAIL_SETUP.md) - Gmail and Zoho Mail configuration
+- [Email Setup Guide](./docs/EMAIL_SETUP.md) - Gmail and Zoho Mail (including business email)
 - [Comprehensive Best Practices Audit](./docs/COMPREHENSIVE_BEST_PRACTICES_AUDIT_2025.md) - Complete best practices verification
 - [E-commerce Best Practices](./docs/E_COMMERCE_BEST_PRACTICES_FINAL.md) - Complete e-commerce guide and best practices
 - [Backend Comprehensive Audit](./docs/BACKEND_COMPREHENSIVE_AUDIT_2025_FINAL.md) - Complete backend and comprehensive audit
@@ -33,6 +33,7 @@ All documentation is organized in the [`docs/`](./docs/) folder.
 - [API Guide](./docs/API_GUIDE.md) - API documentation
 - [3D Animations Guide](./docs/3D_ANIMATIONS_GUIDE.md) - Animation system
 - [Vercel Deployment](./docs/VERCEL_DEPLOYMENT.md) - Deployment guide
+- [CDN Guide](./docs/CDN_GUIDE.md) - Static assets and images via CDN
 
 **See [docs/README.md](./docs/README.md) for complete documentation index.**
 

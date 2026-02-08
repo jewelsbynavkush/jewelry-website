@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import PageContainer from '@/components/ui/PageContainer';
+import PageSectionLayout from '@/components/ui/PageSectionLayout';
 import SectionHeading from '@/components/ui/SectionHeading';
 import ScrollReveal from '@/components/ui/ScrollReveal';
 import { generateStandardMetadata } from '@/lib/seo/metadata';
@@ -13,12 +13,11 @@ export const metadata: Metadata = generateStandardMetadata({
 
 export default function TermsPage() {
   return (
-    <PageContainer maxWidth="4xl">
-      <ScrollReveal>
-        <h1 className="sr-only">Terms of Service - Terms & Conditions</h1>
-        <SectionHeading as="h2">TERMS OF SERVICE</SectionHeading>
-      </ScrollReveal>
-      
+    <PageSectionLayout
+      title="TERMS OF SERVICE"
+      srOnlyTitle="Terms of Service - Terms & Conditions"
+      maxWidth="4xl"
+    >
       <div className="space-y-6 sm:space-y-8 md:space-y-10 text-[var(--text-secondary)] text-body-sm sm:text-body-base md:text-body-lg">
         <ScrollReveal delay={0.1}>
           <section>
@@ -117,7 +116,7 @@ export default function TermsPage() {
           </section>
         </ScrollReveal>
       </div>
-    </PageContainer>
+    </PageSectionLayout>
   );
 }
 

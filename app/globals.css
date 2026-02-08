@@ -23,11 +23,11 @@ input:disabled, textarea:disabled, select:disabled {
   --beige: #CCC4BA;        /* Warm beige - rgb(204, 196, 186) */
   --cream: #faf8f5;        /* Light cream - rgb(250, 248, 245) */
   
-  /* Text Colors - Standardized */
+  /* Text Colors - Standardized. Hierarchy on cream: primary (on-cream) > secondary (labels/body) > muted (hints) */
   --text-on-beige: rgb(255, 255, 255);      /* White text on beige */
-  --text-on-cream: rgb(42, 42, 42);         /* Dark text on cream (standard) */
-  --text-secondary: rgb(106, 106, 106);     /* Secondary text */
-  --text-muted: rgb(145, 140, 135);        /* Muted text - warm gray with beige undertones */
+  --text-on-cream: rgb(42, 42, 42);         /* Primary text on cream - headings, key values */
+  --text-secondary: rgb(106, 106, 106);     /* Secondary - labels, descriptions, metadata */
+  --text-muted: rgb(145, 140, 135);        /* Muted - hints, optional text, separators */
   
   /* Hover & Interactive Colors - Standardized */
   --beige-hover: #b8afa3;                   /* Darker beige for hover states */

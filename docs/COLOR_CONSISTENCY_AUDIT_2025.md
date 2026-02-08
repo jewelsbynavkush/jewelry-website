@@ -102,6 +102,22 @@ bg-[var(--cream)] text-[var(--text-on-cream)]
 
 **Status:** ✅ **100% Consistent - All text colors match backgrounds**
 
+### Text color hierarchy (on cream backgrounds)
+
+Use a single source of truth for semantics and contrast:
+
+| Token | Variable | Use for | Example |
+|-------|----------|---------|--------|
+| **Primary** | `--text-on-cream` | Headings, primary content, key values | Page titles, product names, order total, prices |
+| **Secondary** | `--text-secondary` | Labels, descriptions, metadata, body copy | "Order Number", SKU, dates, line item details, addresses |
+| **Muted** | `--text-muted` | Hints, optional text, separators, disclaimers | "Add X more to qualify", breadcrumb "/", helper text under inputs |
+
+**Rules:**
+- On **cream** (`bg-[var(--cream)]`): use `text-[var(--text-on-cream)]`, `text-[var(--text-secondary)]`, or `text-[var(--text-muted)]` only.
+- On **beige** (`bg-[var(--beige)]`): use `text-[var(--text-on-beige)]`; hover `text-[var(--text-on-beige-hover)]`.
+- Status: use `--success-text`, `--error-text`, `--warning-text`, `--info-text` for alerts and status labels.
+- Never use hardcoded hex/rgb in components; use CSS variables (or Tailwind classes that map to them).
+
 ---
 
 ## 3. Component Color Usage ✅ **100% VERIFIED**

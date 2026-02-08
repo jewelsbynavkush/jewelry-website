@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import PageContainer from '@/components/ui/PageContainer';
+import PageSectionLayout from '@/components/ui/PageSectionLayout';
 import SectionHeading from '@/components/ui/SectionHeading';
 import ScrollReveal from '@/components/ui/ScrollReveal';
 import { generateStandardMetadata } from '@/lib/seo/metadata';
@@ -13,12 +13,11 @@ export const metadata: Metadata = generateStandardMetadata({
 
 export default function PrivacyPage() {
   return (
-    <PageContainer maxWidth="4xl">
-      <ScrollReveal>
-        <h1 className="sr-only">Privacy Policy - Data Protection & Privacy</h1>
-        <SectionHeading as="h2">PRIVACY POLICY</SectionHeading>
-      </ScrollReveal>
-      
+    <PageSectionLayout
+      title="PRIVACY POLICY"
+      srOnlyTitle="Privacy Policy - Data Protection & Privacy"
+      maxWidth="4xl"
+    >
       <div className="space-y-6 sm:space-y-8 md:space-y-10 text-[var(--text-secondary)] text-body-sm sm:text-body-base md:text-body-lg">
         <ScrollReveal delay={0.1}>
           <section>
@@ -116,7 +115,7 @@ export default function PrivacyPage() {
           </section>
         </ScrollReveal>
       </div>
-    </PageContainer>
+    </PageSectionLayout>
   );
 }
 

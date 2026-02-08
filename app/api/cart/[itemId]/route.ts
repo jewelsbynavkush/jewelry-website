@@ -42,7 +42,6 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ itemId: string }> }
 ) {
-  // Apply security (CORS, CSRF, rate limiting)
   const securityResponse = applyApiSecurity(request, {
     rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.CART,
     requireContentType: true,
@@ -52,20 +51,17 @@ export async function PATCH(
   try {
     await connectDB();
 
-    // Get e-commerce settings once for use throughout the function
     const ecommerce = await getEcommerceSettings();
 
     const { itemId } = await params;
     const sanitizedItemId = sanitizeString(itemId);
 
-    // Validate quantity constraints before updating cart to prevent invalid states
     const body = await request.json() as UpdateCartItemRequest;
     const validatedData = updateQuantitySchema.parse(body);
 
     const user = await optionalAuth(request);
     const sessionId = getSessionId(request);
 
-    // Optimize: Only select fields needed for cart item update
     const cart = await Cart.findOne(
       user ? { userId: user.userId } : { sessionId }
     ).select('items subtotal tax shipping discount total currency');
@@ -74,7 +70,6 @@ export async function PATCH(
       return createSecureErrorResponse('Cart not found', 404, request);
     }
 
-    // Locate item in cart by productId to update or remove
     const itemIndex = cart.items.findIndex(
       (item) => item.productId.toString() === sanitizedItemId
     );
@@ -87,8 +82,6 @@ export async function PATCH(
     const oldQuantity = currentItem.quantity;
 
     if (validatedData.quantity === 0) {
-      // Quantity of 0 indicates user intent to remove item from cart
-      // E-commerce best practice: Release reserved stock when item is removed
       if (currentItem.productId) {
         const product = await Product.findById(currentItem.productId)
           .select('inventory.trackQuantity')
@@ -104,7 +97,6 @@ export async function PATCH(
       }
       cart.items.splice(itemIndex, 1);
     } else {
-      // Refresh product data to ensure cart reflects current pricing and availability
       const product = await Product.findById(sanitizedItemId)
         .select('status inventory.quantity inventory.reservedQuantity inventory.trackQuantity inventory.allowBackorder price')
         .lean();
@@ -112,20 +104,15 @@ export async function PATCH(
         return createSecureErrorResponse('Product is no longer available', 400, request);
       }
 
-      // Verify stock availability before updating quantity
-      // Prevents setting quantity higher than available stock unless backorder is allowed
       if (product.inventory.trackQuantity) {
         const availableQuantity = Math.max(0, product.inventory.quantity - product.inventory.reservedQuantity);
         if (availableQuantity < validatedData.quantity && !product.inventory.allowBackorder) {
-          return createSecureErrorResponse(`Only ${availableQuantity} items available in stock`, 400, request);
+          return createSecureErrorResponse(`Insufficient stock for ${product.sku}`, 400, request);
         }
       }
 
-      // E-commerce best practice: Update price to current product price if changed significantly
-      // Maintains price consistency while allowing minor price fluctuations
       const priceVariance = Math.abs(product.price - currentItem.price) / currentItem.price;
       if (priceVariance > (ecommerce.priceVarianceThreshold ?? ECOMMERCE.priceVarianceThreshold)) {
-        // Price changed significantly - update to current price and metadata
         cart.items[itemIndex].price = product.price;
         cart.items[itemIndex].sku = product.sku;
         cart.items[itemIndex].title = product.title;
@@ -135,9 +122,6 @@ export async function PATCH(
         }
       }
 
-      // E-commerce best practice: Adjust stock reservation when quantity changes
-      // Release old quantity and reserve new quantity atomically
-      // Retry logic is handled internally by reserveStockForCart for MongoDB lock timeouts
       if (product.inventory.trackQuantity && currentItem.productId) {
         const quantityDifference = validatedData.quantity - oldQuantity;
         
@@ -238,7 +222,6 @@ export async function DELETE(
   try {
     await connectDB();
 
-    // Get e-commerce settings once for use throughout the function
     const ecommerce = await getEcommerceSettings();
 
     const { itemId } = await params;
@@ -247,7 +230,6 @@ export async function DELETE(
     const user = await optionalAuth(request);
     const sessionId = getSessionId(request);
 
-    // Optimize: Only select fields needed for cart item deletion
     const cart = await Cart.findOne(
       user ? { userId: user.userId } : { sessionId }
     ).select('items subtotal tax shipping discount total currency');
@@ -256,7 +238,6 @@ export async function DELETE(
       return createSecureErrorResponse('Cart not found', 404, request);
     }
 
-    // Locate and remove item from cart by productId
     const itemIndex = cart.items.findIndex(
       (item) => item.productId.toString() === sanitizedItemId
     );
@@ -266,9 +247,7 @@ export async function DELETE(
     }
 
     const removedItem = cart.items[itemIndex];
-    
-    // E-commerce best practice: Release reserved stock when item is removed from cart
-    // Ensures inventory is available for other customers
+
     if (removedItem.productId) {
       const product = await Product.findById(removedItem.productId)
         .select('inventory.trackQuantity')
@@ -285,7 +264,6 @@ export async function DELETE(
 
     cart.items.splice(itemIndex, 1);
 
-    // Recalculate totals after item removal
     const freeShippingThreshold = ecommerce.freeShippingThreshold ?? ECOMMERCE.freeShippingThreshold;
     const defaultShippingCost = ecommerce.defaultShippingCost ?? ECOMMERCE.defaultShippingCost;
     cart.calculateTotals(freeShippingThreshold, defaultShippingCost);

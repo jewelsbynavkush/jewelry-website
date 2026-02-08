@@ -86,7 +86,7 @@ Complete guide to all API endpoints, including authentication, security, request
 - ✅ HTTP-only cookies
 - ✅ Secure session management
 
-**See:** `SWAGGER_API_DOCUMENTATION.md` for detailed security and API documentation
+**See:** `SWAGGER_API_DOCUMENTATION.md` for detailed security and API documentation. For adding or changing APIs, use the checklist in `BACKEND_STANDARDS.md`.
 
 ---
 

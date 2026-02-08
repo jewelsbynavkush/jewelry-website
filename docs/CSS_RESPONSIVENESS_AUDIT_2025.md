@@ -701,7 +701,31 @@ All CSS and responsiveness patterns follow best practices and are consistent acr
 
 ---
 
-## 19. Conclusion
+## 19. Quick reference
+
+**Layout**
+- Page wrapper: `<PageContainer maxWidth="4xl">` or `section-container page-padding`; use `section-container section-padding` for full-width sections.
+- Horizontal padding: `px-4 sm:px-6` (or `.section-container`).
+- Vertical padding: `py-12 sm:py-16 md:py-20 lg:py-24` (`.section-padding`) or `py-6 sm:py-8 md:py-12 lg:py-16` (`.page-padding`).
+
+**Spacing**
+- Grid gap: `.standard-gap` (`gap-4 sm:gap-6 md:gap-8 lg:gap-12`) or `.standard-gap-small` (`gap-3 sm:gap-4 md:gap-6`).
+- Vertical stack: `.standard-space-y` or `.standard-space-y-small`.
+
+**Touch & accessibility**
+- Interactive elements: `min-h-[44px]` and at least 44px width, or class `.touch-target`.
+
+**Overflow**
+- Flex/grid children that can shrink: `min-w-0 overflow-hidden` to avoid horizontal scroll on small screens.
+
+**Visibility**
+- `.visible-mobile` (block on mobile, hidden md+), `.visible-desktop` (hidden on mobile, block md+).
+
+**Source:** Utility classes live in `app/globals.css`; design tokens in [DESIGN_SYSTEM_CONSISTENCY.md](./DESIGN_SYSTEM_CONSISTENCY.md).
+
+---
+
+## 20. Conclusion
 
 **✅ ALL CSS AND RESPONSIVENESS BEST PRACTICES MET**
 

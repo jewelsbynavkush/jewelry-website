@@ -343,6 +343,88 @@ describe('Orders API', () => {
       expect(updatedProduct?.inventory.quantity).toBe(initialQuantity - 2);
     });
 
+    it('should create order when cart has reserved stock (availableQuantity 0)', async () => {
+      const reservedProduct = await Product.create(
+        createTestProduct({
+          categoryId: testCategory._id,
+          sku: 'RESERVED-1',
+          slug: 'reserved-product',
+          inventory: {
+            quantity: 1,
+            reservedQuantity: 1,
+            lowStockThreshold: 1,
+            trackQuantity: true,
+            allowBackorder: false,
+            location: 'warehouse-1',
+          },
+        })
+      );
+      await Cart.findOneAndUpdate(
+        { userId: testUser._id },
+        {
+          items: [
+            {
+              productId: reservedProduct._id,
+              sku: reservedProduct.sku,
+              title: reservedProduct.title,
+              image: reservedProduct.primaryImage || '',
+              price: reservedProduct.price,
+              quantity: 1,
+              subtotal: reservedProduct.price,
+            },
+          ],
+          subtotal: reservedProduct.price,
+          total: reservedProduct.price,
+          currency: 'INR',
+        },
+        { new: true }
+      );
+
+      const request = createAuthenticatedRequest(
+        testUser._id.toString(),
+        testUser.email,
+        'customer',
+        'POST',
+        'http://localhost:3000/api/orders',
+        {
+          shippingAddress: {
+            firstName: 'Test',
+            lastName: 'User',
+            addressLine1: '123 Test St',
+            city: 'Test City',
+            state: 'Test State',
+            zipCode: '12345',
+            country: 'India',
+            phone: '9876543210',
+            countryCode: '+91',
+          },
+          billingAddress: {
+            firstName: 'Test',
+            lastName: 'User',
+            addressLine1: '123 Test St',
+            city: 'Test City',
+            state: 'Test State',
+            zipCode: '12345',
+            country: 'India',
+            phone: '9876543210',
+            countryCode: '+91',
+          },
+          paymentMethod: 'cod',
+        }
+      );
+
+      const response = await POST(request);
+      const data = await getJsonResponse(response);
+
+      expectStatus(response, 200);
+      expectSuccess(data);
+      expect(data.order?.items?.length).toBe(1);
+
+      const productAfter = await Product.findById(reservedProduct._id).lean();
+      expect(productAfter?.inventory.quantity).toBe(0);
+      expect(productAfter?.inventory.reservedQuantity).toBe(0);
+    });
+
     it('should clear cart after order creation', async () => {
       const request = createAuthenticatedRequest(
         testUser._id.toString(),

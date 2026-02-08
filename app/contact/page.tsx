@@ -1,7 +1,6 @@
 import { Metadata } from 'next';
 import ContactForm from '@/components/sections/ContactForm';
-import PageContainer from '@/components/ui/PageContainer';
-import SectionHeading from '@/components/ui/SectionHeading';
+import PageSectionLayout from '@/components/ui/PageSectionLayout';
 import InfoCard from '@/components/ui/InfoCard';
 import ScrollReveal from '@/components/ui/ScrollReveal';
 import { generateStandardMetadata } from '@/lib/seo/metadata';
@@ -16,24 +15,22 @@ export const metadata: Metadata = generateStandardMetadata({
 
 export default async function ContactPage() {
   const settings = await getSiteSettings();
-  
-  // Use only site settings from MongoDB
-  // Show "--" if values are not set in site settings
+
   const getValueOrPlaceholder = (value: string | undefined): string => {
     return (value && value.trim()) ? value.trim() : '--';
   };
-  
+
   const contactEmail = getValueOrPlaceholder(settings.contact?.email);
   const contactPhone = getValueOrPlaceholder(settings.contact?.phone);
   const contactAddress = getValueOrPlaceholder(settings.contact?.address);
   const businessHours = getValueOrPlaceholder(settings.general?.businessHours);
 
   return (
-    <PageContainer maxWidth="3xl">
-      <ScrollReveal>
-        <h1 className="sr-only">Contact Us - Get in Touch with Jewels by NavKush</h1>
-        <SectionHeading as="h2">CONTACT US</SectionHeading>
-      </ScrollReveal>
+    <PageSectionLayout
+      title="CONTACT US"
+      srOnlyTitle="Contact Us - Get in Touch with Jewels by NavKush"
+      maxWidth="3xl"
+    >
       <ScrollReveal delay={0.1}>
         <p className="text-center text-[var(--text-secondary)] standard-mb text-body-sm sm:text-body-base md:text-body-lg">
           Have a question or want to learn more about our jewelry? We&apos;d love to hear from you.
@@ -70,7 +67,7 @@ export default async function ContactPage() {
       <ScrollReveal delay={0.3}>
         <ContactForm />
       </ScrollReveal>
-    </PageContainer>
+    </PageSectionLayout>
   );
 }
 

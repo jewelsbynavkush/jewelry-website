@@ -1,8 +1,7 @@
 import { Metadata } from 'next';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
-import PageContainer from '@/components/ui/PageContainer';
-import SectionHeading from '@/components/ui/SectionHeading';
+import PageSectionLayout from '@/components/ui/PageSectionLayout';
 import ScrollReveal from '@/components/ui/ScrollReveal';
 import { generateStandardMetadata } from '@/lib/seo/metadata';
 import { generateFAQPageSchema } from '@/lib/seo/faq-schema';
@@ -59,38 +58,37 @@ export default function FAQsPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema).replace(/</g, '\\u003c').replace(/>/g, '\\u003e') }}
       />
-      <PageContainer maxWidth="4xl">
-        <ScrollReveal>
-          <h1 className="sr-only">Frequently Asked Questions - Jewelry FAQs</h1>
-          <SectionHeading as="h2">FREQUENTLY ASKED QUESTIONS</SectionHeading>
-        </ScrollReveal>
-      
-      <div className="standard-space-y">
-        {faqs.map((faq, index) => (
-          <ScrollReveal key={faq.question} delay={index * 0.1}>
-            <Card padding="sm">
-              <h3 className="font-playfair font-bold text-[var(--text-on-cream)] text-lg sm:text-xl md:text-2xl mb-3 sm:mb-4">
-                {faq.question}
-              </h3>
-              <p className="text-[var(--text-secondary)] text-body-sm sm:text-body-base md:text-body-lg">
-                {faq.answer}
-              </p>
-            </Card>
-          </ScrollReveal>
-        ))}
-      </div>
-
-      <ScrollReveal delay={0.5}>
-        <div className="mt-6 sm:mt-8 md:mt-10 text-center">
-          <p className="text-[var(--text-secondary)] text-body-sm sm:text-body-base mb-4">
-            Still have questions? We&apos;re here to help!
-          </p>
-          <Button href="/contact">
-            Contact Us
-          </Button>
+      <PageSectionLayout
+        title="FREQUENTLY ASKED QUESTIONS"
+        srOnlyTitle="Frequently Asked Questions - Jewelry FAQs"
+        maxWidth="4xl"
+      >
+        <div className="standard-space-y">
+          {faqs.map((faq, index) => (
+            <ScrollReveal key={faq.question} delay={index * 0.1}>
+              <Card padding="sm">
+                <h3 className="font-playfair font-bold text-[var(--text-on-cream)] text-lg sm:text-xl md:text-2xl mb-3 sm:mb-4">
+                  {faq.question}
+                </h3>
+                <p className="text-[var(--text-secondary)] text-body-sm sm:text-body-base md:text-body-lg">
+                  {faq.answer}
+                </p>
+              </Card>
+            </ScrollReveal>
+          ))}
         </div>
-      </ScrollReveal>
-      </PageContainer>
+
+        <ScrollReveal delay={0.5}>
+          <div className="mt-6 sm:mt-8 md:mt-10 text-center">
+            <p className="text-[var(--text-secondary)] text-body-sm sm:text-body-base mb-4">
+              Still have questions? We&apos;re here to help!
+            </p>
+            <Button href="/contact">
+              Contact Us
+            </Button>
+          </div>
+        </ScrollReveal>
+      </PageSectionLayout>
     </>
   );
 }

@@ -65,6 +65,7 @@ export const SEO_CONFIG = {
  *    - Include keywords
  *    - Use hyphens, not underscores
  *    - Keep URLs short
+ *    - Canonical: absolute URL, no trailing slash (consistent with sitemap)
  * 
  * 7. Structured Data:
  *    - Use appropriate schema types

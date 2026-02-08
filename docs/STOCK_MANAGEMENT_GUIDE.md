@@ -486,6 +486,53 @@ inventory: {
 
 ---
 
+## Stock handling – logic and conventions
+
+Stock is tracked per product via `inventory.quantity` (on-hand) and `inventory.reservedQuantity` (reserved for carts/orders). All mutations use atomic MongoDB operations and, where needed, transactions and retries.
+
+**Definitions**
+
+- **quantity**: Physical on-hand stock.
+- **reservedQuantity**: Stock reserved (e.g. in carts or during checkout).
+- **availableQuantity**: `quantity - reservedQuantity` (available for new reservations).
+- **trackQuantity**: If true, stock checks and reservations apply; if false, product is treated as unlimited.
+- **allowBackorder**: If true, reservations can exceed available quantity.
+
+### Flow summary
+
+| Event | Action |
+|-------|--------|
+| Add to cart | `reserveStockForCart(productId, qty)` → `reservedQuantity += qty` (if trackQuantity, and available ≥ qty or allowBackorder). |
+| Update cart item (increase) | `reserveStockForCart(productId, delta)` for the extra qty. |
+| Update cart item (decrease) | `releaseReservedStock(productId, delta)` for the released qty. |
+| Remove cart item | `releaseReservedStock(productId, item.quantity)`. |
+| Clear cart (DELETE /api/cart) | For each item, `releaseReservedStock(productId, item.quantity)`. |
+| GET /api/cart (validation) | For each item: if trackQuantity and availableQuantity < item.quantity and !allowBackorder, only **reduce** line (and release excess) when availableQuantity **> 0**. Do **not** remove the line when availableQuantity === 0 (that stock may be reserved for this cart). |
+| Place order | Validate: for each line, require `reservedQuantity >= item.quantity` **or** `availableQuantity >= item.quantity` (or allowBackorder). Then `confirmOrderAndUpdateStock` → `confirmSale` per line: `quantity -= qty`, `reservedQuantity -= qty`, `salesCount += qty`. Cart is then cleared (items removed; reservations are already consumed by confirmSale). |
+| Cancel order | `cancelOrderAndRestoreStock` → `restoreStock` per line: `quantity += qty`, `salesCount -= qty`. No change to reservedQuantity (it was already reduced at confirmSale). |
+| Expired guest cart | Cleanup job: for each item, `releaseReservedStock(productId, item.quantity)` then delete cart. |
+
+### Components
+
+- **Product model** (`models/Product.ts`): reserveStock, releaseReservedStock, confirmSale, restoreStock, restock (atomic operations).
+- **Inventory service** (`lib/inventory/inventory-service.ts`): reserveStockForCart, releaseReservedStock, confirmOrderAndUpdateStock, cancelOrderAndRestoreStock, restockProduct, checkProductAvailability, getInventorySummary.
+- **API usage**: POST/PATCH/DELETE cart and GET cart validation; POST orders and POST orders cancel. See INVENTORY_GUIDE and API_GUIDE for details.
+
+### Conventions
+
+1. Reserve only what’s needed; order confirmation converts reservation to sale or reserves shortfall then confirms.
+2. Always release on remove (cart item remove, cart clear, expired-cart cleanup).
+3. When availableQuantity === 0, do not remove the line in GET cart or reject order line solely for that; reserved stock may belong to this cart/order.
+4. Idempotency keys for order creation and cancellation.
+5. Transient errors: reserveStockForCart and confirmOrderAndUpdateStock use retryWithBackoff.
+6. InventoryLog records reserved, released, sale, return, restock.
+
+### Testing
+
+See tests: `tests/models/Product.test.ts`, `tests/lib/inventory/stock-handling.test.ts`, `tests/api/cart/route.test.ts`, `tests/api/cart/[itemId].test.ts`, `tests/api/orders/route.test.ts`, `tests/api/orders/[orderId]/cancel.test.ts`, `tests/integration/checkout-flow.test.ts`, `tests/integration/order-lifecycle.test.ts`.
+
+---
+
 ## ✅ **Summary**
 
 **To add stock:**

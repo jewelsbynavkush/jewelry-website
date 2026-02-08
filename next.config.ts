@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
       { protocol: 'https' as const, hostname: 'ik.imagekit.io' },
     ],
   },
-  // Security headers are now handled in middleware.ts
+  // Security headers are applied in proxy.ts
   compress: true,
   poweredByHeader: false,
 };

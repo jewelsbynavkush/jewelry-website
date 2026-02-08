@@ -196,6 +196,22 @@ const openApiSpec = {
           },
         },
       },
+      InventoryStatus: {
+        type: 'object',
+        properties: {
+          productId: { type: 'string' },
+          sku: { type: 'string' },
+          title: { type: 'string' },
+          totalQuantity: { type: 'integer' },
+          reservedQuantity: { type: 'integer' },
+          availableQuantity: { type: 'integer' },
+          lowStockThreshold: { type: 'integer' },
+          trackQuantity: { type: 'boolean' },
+          allowBackorder: { type: 'boolean' },
+          isLowStock: { type: 'boolean' },
+          isOutOfStock: { type: 'boolean' },
+        },
+      },
     },
   },
   paths: {
@@ -1614,10 +1630,11 @@ const openApiSpec = {
               'application/json': {
                 schema: {
                   type: 'object',
+                  required: ['success', 'message', 'inventory'],
                   properties: {
                     success: { type: 'boolean' },
                     message: { type: 'string' },
-                    product: { type: 'object' },
+                    inventory: { $ref: '#/components/schemas/InventoryStatus' },
                   },
                 },
               },

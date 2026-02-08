@@ -47,7 +47,6 @@ const addToCartSchema = z.object({
  * Retrieve user's cart or guest cart
  */
 export async function GET(request: NextRequest) {
-  // Apply security (CORS, CSRF, rate limiting)
   const securityResponse = applyApiSecurity(request, {
     rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.CART,
   });
@@ -56,26 +55,19 @@ export async function GET(request: NextRequest) {
   try {
     await connectDB();
 
-    // Get e-commerce settings once for use throughout the function
     const ecommerce = await getEcommerceSettings();
-
-    // Try to authenticate (optional for guest carts)
     const user = await optionalAuth(request);
     const sessionId = getSessionId(request);
 
     let cart;
 
     if (user) {
-      // Authenticated users have persistent carts tied to their account
       cart = await Cart.findOne({ userId: user.userId }).lean();
     } else {
-      // Guest users have temporary carts tied to session for cart persistence
       cart = await Cart.findOne({ sessionId }).lean();
     }
 
     if (!cart) {
-      // Return empty cart structure for consistent API response format
-      // Ensures frontend always receives a valid cart object even when no cart exists
       return createSecureResponse(
         {
           cart: {
@@ -93,9 +85,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // E-commerce best practice: Validate cart items on retrieval
-    // Ensures cart reflects current product availability, status, and pricing
-    // Removes invalid items and updates prices if changed
+    // On retrieval: sync items with current availability, status, and pricing; drop invalid and update prices
     const validItems: Array<{
       productId: mongoose.Types.ObjectId;
       sku: string;
@@ -112,15 +102,9 @@ export async function GET(request: NextRequest) {
         .select('status inventory.quantity inventory.reservedQuantity inventory.trackQuantity inventory.allowBackorder price sku title primaryImage images')
         .lean();
 
-      // Remove items for products that no longer exist or are inactive
-      // E-commerce best practice: Keep cart synchronized with current product availability
       if (!product || product.status !== 'active') {
         cartNeedsUpdate = true;
-        // Release reserved stock for removed items to prevent inventory lockup
-        // Attempt to release stock if product exists and tracks quantity
         if (item.productId && product?.inventory?.trackQuantity) {
-          // Release reserved stock immediately if product still exists
-          // If product was deleted, stock will be released via cart expiration cleanup job
           if (product?.inventory?.trackQuantity) {
             try {
               const { releaseReservedStock } = await import('@/lib/inventory/inventory-service');
@@ -130,8 +114,6 @@ export async function GET(request: NextRequest) {
                 user?.userId
               );
             } catch (error) {
-              // Log but don't fail - stock release is best effort
-              // Stock will be released via cart expiration cleanup if product was deleted
               logError('cart GET: failed to release stock for removed item', error);
             }
           }
@@ -144,17 +126,16 @@ export async function GET(request: NextRequest) {
       let itemSubtotal = item.subtotal;
 
       // Verify stock availability before including item in validated cart
-      // Prevents displaying out-of-stock items to users
+      // availableQuantity = quantity - reservedQuantity (stock not yet reserved).
+      // When 0, the product may be fully reserved for this and other carts, so we keep the item.
+      // Only reduce when there is some available but less than cart quantity.
       if (product.inventory.trackQuantity) {
         const availableQuantity = Math.max(0, product.inventory.quantity - product.inventory.reservedQuantity);
-        // Adjust quantity if more than available (unless backorder allowed)
         if (availableQuantity < item.quantity && !product.inventory.allowBackorder) {
-          cartNeedsUpdate = true;
-          // Reduce quantity to available amount
-          itemQuantity = availableQuantity;
-          itemSubtotal = itemPrice * availableQuantity;
-          // Release excess reserved stock
           if (availableQuantity > 0) {
+            cartNeedsUpdate = true;
+            itemQuantity = availableQuantity;
+            itemSubtotal = itemPrice * availableQuantity;
             try {
               const { releaseReservedStock } = await import('@/lib/inventory/inventory-service');
               await releaseReservedStock(
@@ -165,20 +146,8 @@ export async function GET(request: NextRequest) {
             } catch (error) {
               logError('cart GET: failed to release excess stock', error);
             }
-          } else {
-            // Item is out of stock - remove it
-            try {
-              const { releaseReservedStock } = await import('@/lib/inventory/inventory-service');
-              await releaseReservedStock(
-                item.productId.toString(),
-                item.quantity,
-                user?.userId
-              );
-            } catch (error) {
-              logError('cart GET: failed to release stock for out of stock item', error);
-            }
-            continue;
           }
+          // When availableQuantity === 0, do not remove: reservation may be for this cart.
         }
       }
 
@@ -316,7 +285,7 @@ export async function POST(request: NextRequest) {
     if (product.inventory.trackQuantity) {
       const availableQuantity = Math.max(0, product.inventory.quantity - product.inventory.reservedQuantity);
       if (availableQuantity < validatedData.quantity && !product.inventory.allowBackorder) {
-        return createSecureErrorResponse(`Only ${availableQuantity} items available in stock`, 400, request);
+        return createSecureErrorResponse(`Insufficient stock for ${product.sku}`, 400, request);
       }
     }
 

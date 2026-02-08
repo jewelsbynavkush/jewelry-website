@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import Card from '@/components/ui/Card';
-import PageContainer from '@/components/ui/PageContainer';
+import PageSectionLayout from '@/components/ui/PageSectionLayout';
 import SectionHeading from '@/components/ui/SectionHeading';
 import ScrollReveal from '@/components/ui/ScrollReveal';
 import { generateStandardMetadata } from '@/lib/seo/metadata';
@@ -16,12 +16,11 @@ export const metadata: Metadata = generateStandardMetadata({
 
 export default function ShippingPage() {
   return (
-    <PageContainer maxWidth="4xl">
-      <ScrollReveal>
-        <h1 className="sr-only">Shipping & Returns - Jewelry Delivery Information</h1>
-        <SectionHeading as="h2">SHIPPING & RETURNS</SectionHeading>
-      </ScrollReveal>
-      
+    <PageSectionLayout
+      title="SHIPPING & RETURNS"
+      srOnlyTitle="Shipping & Returns - Jewelry Delivery Information"
+      maxWidth="4xl"
+    >
       <div className="space-y-8 sm:space-y-10 md:space-y-12">
         <ScrollReveal delay={0.1}>
           <section>
@@ -92,6 +91,6 @@ export default function ShippingPage() {
           </section>
         </ScrollReveal>
       </div>
-    </PageContainer>
+    </PageSectionLayout>
   );
 }

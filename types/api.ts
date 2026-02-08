@@ -548,20 +548,6 @@ export interface RefreshTokenResponse {
 }
 
 // ============================================================================
-// User Password API Types
-// ============================================================================
-
-export interface ChangePasswordRequest {
-  currentPassword: string;
-  newPassword: string;
-}
-
-export interface ChangePasswordResponse {
-  success: boolean;
-  message: string;
-}
-
-// ============================================================================
 // Contact API Types
 // ============================================================================
 

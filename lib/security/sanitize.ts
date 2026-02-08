@@ -1,10 +1,11 @@
 /**
- * Input sanitization utilities
- * Prevents XSS attacks by sanitizing user input
+ * Input sanitization utilities.
+ * Prevents XSS by stripping HTML, scripts, event handlers, and dangerous protocols from user input.
  */
 
 /**
- * Sanitizes string input by removing HTML tags, scripts, event handlers, and dangerous protocols
+ * Sanitizes string input by removing HTML tags, scripts, event handlers, and dangerous protocols.
+ *
  * @param input - String to sanitize
  * @returns Sanitized string (max 10000 characters)
  */
@@ -13,8 +14,7 @@ export function sanitizeString(input: string): string {
     return '';
   }
 
-  // Remove HTML tags, scripts, event handlers, and dangerous protocols
-  // Order matters: remove scripts before tags, event handlers before protocols
+  // Order of replacements matters: scripts and event handlers before generic tag strip
   let sanitized = input.replace(/<[^>]*>/g, '');
   sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
   sanitized = sanitized.replace(/<\/?script[^>]*>/gi, '');

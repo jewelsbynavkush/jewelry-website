@@ -13,6 +13,7 @@
 9. [SEO Implementation](#seo-implementation)
 10. [Deployment](#deployment)
 11. [Troubleshooting](#troubleshooting)
+12. [Navigation and routing](#navigation-and-routing)
 
 ---
 
@@ -972,6 +973,15 @@ npm run lint
 # Type check
 npx tsc --noEmit
 ```
+
+---
+
+## Navigation and routing
+
+- **In-app links:** Use relative paths (`/`, `/designs`, `/designs?category=earrings`, `/cart`, `/auth/login`, etc.) so they work on any host. Defined in `lib/constants.ts`, category hrefs from `transformCategoriesForUI()`, and in TopHeader, Footer, SmoothLink, ProductCard, etc.
+- **Absolute URLs:** Use `getBaseUrl()` (from `lib/utils/env.ts`) only for SEO (canonical, Open Graph, JSON-LD), sitemap, robots.txt, API base URL, CORS/CSRF origins, and social share URLs. Do not use it for in-app navigation links.
+- **Auth redirects:** Use `?redirect=/profile` or `?redirect=/checkout`; handle with `router.push(redirect)`.
+- **NEXT_PUBLIC_BASE_URL:** Set to the canonical origin for the deployment; used for metadata, sitemap, and server-side API only.
 
 ---
 

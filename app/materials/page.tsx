@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import PageContainer from '@/components/ui/PageContainer';
+import PageSectionLayout from '@/components/ui/PageSectionLayout';
 import SectionHeading from '@/components/ui/SectionHeading';
 import ScrollReveal from '@/components/ui/ScrollReveal';
 import { generateStandardMetadata } from '@/lib/seo/metadata';
@@ -13,12 +13,11 @@ export const metadata: Metadata = generateStandardMetadata({
 
 export default function MaterialsPage() {
   return (
-    <PageContainer maxWidth="4xl">
-      <ScrollReveal>
-        <h1 className="sr-only">Materials - Premium Jewelry Materials</h1>
-        <SectionHeading as="h2">MATERIALS</SectionHeading>
-      </ScrollReveal>
-      
+    <PageSectionLayout
+      title="MATERIALS"
+      srOnlyTitle="Materials - Premium Jewelry Materials"
+      maxWidth="4xl"
+    >
       <div className="space-y-6 sm:space-y-8 md:space-y-10 text-[var(--text-secondary)] text-body-sm sm:text-body-base md:text-body-lg">
         <ScrollReveal delay={0.1}>
           <section>
@@ -62,7 +61,7 @@ export default function MaterialsPage() {
           </section>
         </ScrollReveal>
       </div>
-    </PageContainer>
+    </PageSectionLayout>
   );
 }
 

@@ -43,7 +43,7 @@
 
 ### **3. Gap Spacing** ✅
 
-**Standard Grid Gap:** `gap-4 sm:gap-5 md:gap-6 lg:gap-8`
+**Standard Grid Gap (use `.standard-gap` or same values):** `gap-4 sm:gap-6 md:gap-8 lg:gap-12`
 
 **Applied to:**
 - Product grids
@@ -52,14 +52,14 @@
 
 **Responsive Breakpoints:**
 - Mobile: `gap-4` (16px)
-- Tablet: `sm:gap-5` (20px)
-- Desktop: `md:gap-6` (24px)
-- Large Desktop: `lg:gap-8` (32px)
+- Tablet: `sm:gap-6` (24px)
+- Desktop: `md:gap-8` (32px)
+- Large Desktop: `lg:gap-12` (48px)
 
 **Large Gap:** `gap-6 sm:gap-8 md:gap-10 lg:gap-12`
 - Used for: Section spacing, large layouts
 
-**Small Gap:** `gap-3 sm:gap-4 md:gap-6`
+**Small Gap (use `.standard-gap-small`):** `gap-3 sm:gap-4 md:gap-6`
 - Used for: Tight layouts, filter buttons
 
 ---
@@ -112,11 +112,14 @@
 ### **7. Text Colors** ✅
 
 **Standard Colors (Always use CSS variables):**
-- On Beige: `text-[var(--text-on-beige)]` - White text
-- On Cream: `text-[var(--text-on-cream)]` - Dark text (rgb(42, 42, 42))
-- Secondary: `text-[var(--text-secondary)]` - Medium gray (rgb(106, 106, 106))
-- Muted: `text-[var(--text-muted)]` - Light gray (rgb(145, 140, 135))
-- Active: `var(--active-dark)` - Dark gray for buttons (rgb(74, 74, 74))
+- On Beige: `text-[var(--text-on-beige)]` - White text on beige
+- On Cream: `text-[var(--text-on-cream)]` - Primary content on cream (headings, key values)
+- Secondary: `text-[var(--text-secondary)]` - Labels, descriptions, metadata
+- Muted: `text-[var(--text-muted)]` - Hints, optional text, separators
+- Status: `text-[var(--success-text)]`, `text-[var(--error-text)]`, `text-[var(--warning-text)]`, `text-[var(--info-text)]`
+- Active: `var(--active-dark)` - Dark gray for buttons
+
+**Hierarchy:** See **Text color hierarchy (on cream backgrounds)** in [COLOR_CONSISTENCY_AUDIT_2025.md](./COLOR_CONSISTENCY_AUDIT_2025.md) for when to use primary vs secondary vs muted.
 
 **Note:** Never use hardcoded colors. Always use CSS variables for consistency.
 
@@ -181,10 +184,9 @@ px-6 sm:px-7 md:px-8 py-2.5 sm:py-3 rounded-full text-button transition-colors m
 - Large: `lg:` prefix
 
 **Gaps:**
-- Mobile: `gap-4`
-- Tablet: `sm:gap-5` or `sm:gap-6`
-- Desktop: `md:gap-6` or `md:gap-8`
-- Large: `lg:gap-8` or `lg:gap-12`
+- Standard (`.standard-gap`): `gap-4 sm:gap-6 md:gap-8 lg:gap-12`
+- Small (`.standard-gap-small`): `gap-3 sm:gap-4 md:gap-6`
+- Grid utilities: `.responsive-grid-2`, `.responsive-grid-3`, `.responsive-grid-4`
 
 **Typography:**
 - Mobile: Base size
@@ -212,10 +214,10 @@ px-6 sm:px-7 md:px-8 py-2.5 sm:py-3 rounded-full text-button transition-colors m
 - ✅ Proper responsive breakpoints
 
 ### **Component Consistency:**
-- ✅ All cards use `rounded-lg`
-- ✅ All borders use `border-[#e8e5e0]`
-- ✅ All inputs use standard styling
-- ✅ All buttons use standard styling
+- ✅ All cards use `rounded-lg` and `border-[var(--border-light)]`
+- ✅ All borders use CSS variable `border-[var(--border-light)]`
+- ✅ All inputs use standard styling (`.standard-input` or equivalent)
+- ✅ All buttons use standard styling and `min-h-[44px]` / `.touch-target`
 
 ---
 

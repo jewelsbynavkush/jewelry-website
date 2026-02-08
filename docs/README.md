@@ -72,9 +72,9 @@ Complete documentation for the Jewels by NavKush jewelry website.
 
 - **[Import Patterns Guide](./IMPORT_PATTERNS_GUIDE.md)** - Import organization patterns
 
-- **[Code Quality Audit](./CODE_QUALITY_AUDIT_2025.md)** - Code quality and clean code audit
+- **[Code Quality Audit](./CODE_QUALITY_AUDIT_2025_FINAL.md)** - Code quality and clean code audit
 
-- **[Color Shades Audit](./COLOR_SHADES_AUDIT_2025.md)** - Color standards and best practices
+- **[Color Consistency Audit](./COLOR_CONSISTENCY_AUDIT_2025.md)** - Color system and contrast
 
 - **[CSS Responsiveness Audit](./CSS_RESPONSIVENESS_AUDIT_2025.md)** - Responsiveness standards and best practices
 
@@ -132,8 +132,6 @@ Complete documentation for the Jewels by NavKush jewelry website.
 
 - **[CSS Responsiveness Audit](./CSS_RESPONSIVENESS_AUDIT_2025.md)** - Responsiveness standards and best practices
 
-- **[Color Shades Audit](./COLOR_SHADES_AUDIT_2025.md)** - Color standards and best practices
-
 - **[E-Commerce Best Practices](./E_COMMERCE_BEST_PRACTICES_FINAL.md)** - E-commerce standards and best practices
 
 ---
@@ -146,15 +144,15 @@ Complete documentation for the Jewels by NavKush jewelry website.
 
 ## 🔧 **Troubleshooting & Guides**
 
-### **Image Setup**
+### **Image & CDN**
 
-- **[Image Guide](./IMAGE_GUIDE.md)** - Comprehensive image guide
+- **[Image Guide](./IMAGE_GUIDE.md)** - Image usage and optimization
+
+- **[CDN Guide](./CDN_GUIDE.md)** - CDN options, setup, and migration for static assets
 
 ### **Services**
 
-- **[Email Setup Guide](./EMAIL_SETUP.md)** - Gmail and Zoho Mail configuration
-
-- **[Zoho Mail Setup](./ZOHO_MAIL_SETUP.md)** - Detailed Zoho Mail business email setup
+- **[Email Setup Guide](./EMAIL_SETUP.md)** - Gmail and Zoho Mail (including Zoho business email)
 
 ---
 
@@ -200,6 +198,8 @@ All documentation is organized in the `docs/` directory:
 - **Testing** - Test documentation and guides
 
 - **Troubleshooting** - Common issues and solutions
+
+- **Documentation consolidation** - [DOCUMENTATION_CONSOLIDATION.md](./DOCUMENTATION_CONSOLIDATION.md) (merge history and canonical file list)
 
 ---
 

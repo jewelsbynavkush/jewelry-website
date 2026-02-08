@@ -7,7 +7,8 @@
 ## 📋 **Table of Contents**
 
 1. [Gmail Setup (Free)](#gmail-setup-free)
-2. [Environment Variables](#environment-variables)
+2. [Zoho Mail (business / custom domain)](#zoho-mail-business--custom-domain)
+3. [Environment Variables](#environment-variables)
 4. [Testing](#testing)
 5. [Troubleshooting](#troubleshooting)
 
@@ -56,6 +57,26 @@ The code automatically:
 - **Daily Limits**: Gmail allows ~500 emails/day for free accounts
 - **Security**: App passwords are safer than using your main password
 - **2FA Required**: You must enable 2-Step Verification to generate app passwords
+
+---
+
+## 📧 **Zoho Mail (business / custom domain)**
+
+Use Zoho Mail for professional addresses on your own domain (e.g. support@jewelsbynavkush.com).
+
+**Forever Free plan:** Up to 5 users, 5GB per user, webmail, mobile apps, IMAP/POP3, custom domain.
+
+**Prerequisites:** Domain name, access to DNS (registrar or hosting), Zoho account.
+
+**Steps (summary):**
+
+1. **Sign up:** [mail.zoho.com](https://mail.zoho.com) → Forever Free Plan → enter your domain.
+2. **Verify domain:** Add the TXT (or CNAME) record Zoho provides to your DNS; wait 5–30 min; click Verify in Zoho.
+3. **Configure DNS for email:** Add MX records (e.g. mx.zoho.com priority 10, mx2.zoho.com priority 20), SPF TXT (`v=spf1 include:zoho.com ~all`), and optionally DKIM/DMARC as shown in Zoho’s domain authentication.
+4. **Create mailboxes:** In Zoho Mail admin, create user accounts (e.g. support@, info@).
+5. **Use in app:** For sending via SMTP from the app, use Zoho’s SMTP settings and an app-specific password if required; or keep using Gmail for OTP/transactional and use Zoho only for receiving/support.
+
+For detailed DNS screenshots and step-by-step, see [Zoho Mail Help](https://www.zoho.com/mail/help/).
 
 ---
 
@@ -117,9 +138,7 @@ GMAIL_FROM_NAME=Jewels by NavKush
 **For Development/Testing:**
 - ✅ Use **Gmail** (free, easy setup, 500 emails/day)
 
-**For Production:**
-
-**Both services are free and work perfectly for the jewelry website!**
+**For Production:** Gmail (OTP/transactional) or Zoho (custom-domain addresses); both free. Use Zoho for support@/info@ and Gmail for app-generated emails if preferred.
 
 ---
 

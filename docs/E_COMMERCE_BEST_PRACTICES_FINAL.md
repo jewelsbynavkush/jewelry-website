@@ -119,8 +119,8 @@ This comprehensive audit confirms that all e-commerce best practices are consist
 ### **Implementation**
 
 - ✅ **Utility Function:** `formatPrice()` in `lib/utils/price-formatting.ts`
-- ✅ **Format:** `$1,299.00` (consistent everywhere)
-- ✅ **Currency:** USD (centralized in `CURRENCY` constant)
+- ✅ **Format:** `₹1,29,999.00` (en-IN locale; consistent everywhere)
+- ✅ **Currency:** INR default (centralized in `CURRENCY` / `ECOMMERCE.currency` in `lib/constants.ts`)
 - ✅ **Usage:** All components use the same utility
 
 ### **Components Using formatPrice()**
@@ -376,26 +376,11 @@ All e-commerce best practices are:
 
 ---
 
-## 🚀 **Future Enhancements (Not Required for Showcase)**
+## 🚀 **Future Enhancements (Optional)**
 
-While the current implementation is excellent for a showcase website, future e-commerce features could include:
+The following are already implemented: cart (add/update/remove, guest and user), checkout (addresses, order placement), user accounts (auth, profile, addresses, order history). Optional future features:
 
-1. **Shopping Cart Functionality** (Phase 1)
-   - Add to cart functionality
-   - Cart persistence
-   - Cart item management
-
-2. **Checkout Process** (Phase 1)
-   - Checkout page
-   - Shipping forms
-   - Payment integration
-
-3. **User Accounts** (Phase 1)
-   - User authentication
-   - Order history
-   - Saved addresses
-
-4. **Advanced Features** (Phase 2-3)
+1. **Advanced Features** (Phase 2-3)
    - Product reviews/ratings
    - Product comparison
    - Recently viewed
@@ -430,7 +415,8 @@ The e-commerce foundation is solid, consistent, and ready for future functionali
 
 ```typescript
 import { formatPrice } from '@/lib/utils/price-formatting';
-formatPrice(1299) // "$1,299.00"
+formatPrice(129999) // "₹1,29,999.00" (INR default)
+formatPrice(1299, { currencyCode: 'USD' }) // "$1,299.00"
 ```
 
 ### **Stock Status**

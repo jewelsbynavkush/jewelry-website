@@ -155,7 +155,7 @@
 **✅ Recommended: Zoho Mail (Free Tier)**
 
 - **Free Tier:** 5 users, 5GB per user
-- **Setup:** See [Zoho Mail Setup Guide](./ZOHO_MAIL_SETUP.md)
+- **Setup:** See [Email Setup Guide](./EMAIL_SETUP.md#zoho-mail-business--custom-domain)
 
 **Essential Email Addresses:**
 - `support@jewelsbynavkush.com`
@@ -803,7 +803,7 @@
 
 **Already Implemented:**
 - ✅ HTTPS (automatic with Vercel)
-- ✅ Security headers (middleware.ts)
+- ✅ Security headers (proxy.ts)
 - ✅ Input validation (Zod schemas)
 - ✅ Rate limiting
 - ✅ Input sanitization
@@ -1050,7 +1050,7 @@
 
 ### Documentation in This Project
 - [Zoho Catalyst NoSQL Setup](./ZOHO_CATALYST_NOSQL_SETUP.md)
-- [Zoho Mail Setup](./ZOHO_MAIL_SETUP.md)
+- [Email Setup (Zoho section)](./EMAIL_SETUP.md#zoho-mail-business--custom-domain)
 - [Vercel Deployment Guide](./VERCEL_DEPLOYMENT.md)
 - [E-Commerce Implementation Guide](./E_COMMERCE_IMPLEMENTATION_GUIDE.md)
 

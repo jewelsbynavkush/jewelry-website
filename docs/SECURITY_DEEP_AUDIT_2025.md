@@ -273,7 +273,7 @@ export async function validateObjectIdParam(
 - ✅ **Frame Ancestors:** 'none' (prevents clickjacking)
 
 **Files Verified:**
-- `middleware.ts` - CSP configuration ✅
+- `proxy.ts` - CSP configuration ✅
 - `lib/security/api-headers.ts` - Security headers ✅
 
 **Status:** ✅ **100% Protected**
@@ -375,7 +375,7 @@ return crypto.timingSafeEqual(
 
 **Files Verified:**
 - `lib/security/api-headers.ts` - Security headers ✅
-- `middleware.ts` - Global security headers ✅
+- `proxy.ts` - Global security headers ✅
 
 **Status:** ✅ **100% Secure**
 
@@ -709,7 +709,23 @@ All security best practices are implemented and consistent across the applicatio
 
 ---
 
-## 15. Conclusion
+## 15. Security Quick Reference (API Routes)
+
+Use this checklist when adding or changing API routes:
+
+| Practice | Action |
+|----------|--------|
+| **Security layer** | Call `applyApiSecurity(request, routeConfig)` at the start of every API handler; return early if it returns a response. |
+| **500 responses** | Never pass `error.message`, `error.stack`, or any internal detail into `createSecureErrorResponse()`. Use a fixed, generic message (e.g. "Failed to …"); log details with `logError()`. |
+| **Path/query params** | For dynamic ids/slugs, use `validateObjectIdParam()` or `validateSlugParam()` from `lib/utils/api-helpers` before DB access. |
+| **User input** | Sanitize with `sanitizeString()`, `sanitizeEmail()`, `sanitizeObject()` from `lib/security/sanitize` where appropriate; validate with Zod. |
+| **Errors** | Use `sanitizeError()` from `lib/security/error-handler` when returning error messages derived from caught errors (or use a fixed string for 500). |
+| **Auth** | Use `requireAuth()` for protected routes; enforce resource-level checks (e.g. `userId` on orders/addresses). |
+| **Rate limits** | Use presets from `SECURITY_CONFIG.RATE_LIMIT` in `lib/security/constants` (e.g. AUTH, CONTACT_FORM, CART). |
+
+---
+
+## 16. Conclusion
 
 **✅ ALL SECURITY BEST PRACTICES MET**
 

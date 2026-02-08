@@ -504,3 +504,11 @@ The codebase demonstrates:
 - ✅ **All Comments:** Follow standards
 
 **Status:** ✅ **100% COMPLIANT** - All comment standards are consistently applied.
+
+---
+
+### **Logic-only comment audit**
+
+- Removed comments that restate the next line (e.g. "Apply security", "Require authentication", "Handle Zod/Mongoose errors", "Fetch/Get X", "Validate request body").
+- Kept or shortened comments that explain why/how: security, performance, and business rules.
+- **Files updated:** `app/api/auth/resend-email-otp/route.ts`, `app/api/cart/route.ts`, `app/api/cart/[itemId]/route.ts`, `app/api/orders/route.ts`, `app/api/contact/route.ts`, `lib/security/sanitize.ts`.

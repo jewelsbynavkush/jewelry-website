@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
-import PageContainer from '@/components/ui/PageContainer';
-import SectionHeading from '@/components/ui/SectionHeading';
+import PageSectionLayout from '@/components/ui/PageSectionLayout';
 import ScrollReveal from '@/components/ui/ScrollReveal';
 import { generateStandardMetadata } from '@/lib/seo/metadata';
 import { getBaseUrl } from '@/lib/utils/env';
@@ -13,11 +12,11 @@ export const metadata: Metadata = generateStandardMetadata({
 
 export default function AboutPage() {
   return (
-    <PageContainer maxWidth="5xl">
-      <ScrollReveal>
-        <h1 className="sr-only">About Us - Jewels by NavKush</h1>
-        <SectionHeading as="h2">ABOUT US</SectionHeading>
-      </ScrollReveal>
+    <PageSectionLayout
+      title="ABOUT US"
+      srOnlyTitle="About Us - Jewels by NavKush"
+      maxWidth="5xl"
+    >
       <div className="grid md:grid-cols-2 standard-gap items-start">
         <ScrollReveal delay={0.1}>
           <div className="standard-space-y text-[var(--text-secondary)] text-body-sm sm:text-body-base md:text-body-lg">
@@ -39,7 +38,7 @@ export default function AboutPage() {
           </div>
         </ScrollReveal>
       </div>
-    </PageContainer>
+    </PageSectionLayout>
   );
 }
 
