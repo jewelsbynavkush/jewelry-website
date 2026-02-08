@@ -95,6 +95,11 @@ export async function getSiteSettings(): Promise<SiteSettingsType> {
           },
       contact: contact?.data?.contact || {},
       social: social?.data?.social || {},
+      general: (general?.data?.general &&
+                typeof general.data.general === 'object' &&
+                general.data.general !== null)
+        ? (general.data.general as { businessHours?: string; contactEmail?: string; supportEmail?: string })
+        : {},
       intro: (general?.data?.intro && 
               typeof general.data.intro === 'object' && 
               general.data.intro !== null)
@@ -133,6 +138,7 @@ export async function getSiteSettings(): Promise<SiteSettingsType> {
       },
       contact: {},
       social: {},
+      general: {},
       intro: defaultIntro,
       ecommerce: undefined,
     };

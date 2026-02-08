@@ -74,6 +74,9 @@ async function migrate() {
         intro: {
           rightColumnSlogan: 'Discover our most cherished pieces',
         },
+        general: {
+          businessHours: 'Monday – Friday: 9:00 AM – 6:00 PM\nSaturday: 10:00 AM – 4:00 PM\nSunday: Closed',
+        },
       };
 
       await SiteSettings.findOneAndUpdate(
