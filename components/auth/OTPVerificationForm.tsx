@@ -8,6 +8,7 @@
  */
 
 import { useState, FormEvent, useRef, useEffect, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/auth-store';
 import { useFormError } from '@/lib/hooks/useFormError';
 import Button from '@/components/ui/Button';
@@ -16,6 +17,7 @@ import ErrorMessage from '@/components/ui/ErrorMessage';
 import OTPInput, { OTPInputRef } from '@/components/ui/OTPInput';
 
 function OTPVerificationFormContent() {
+  const router = useRouter();
   const { verifyEmail, resendOTP, isLoading, error, clearError, user } = useAuthStore();
   const { displayError, setError, clearError: clearLocalError } = useFormError({ 
     storeError: error, 
@@ -47,18 +49,11 @@ function OTPVerificationFormContent() {
     const response = await verifyEmail(otp, user?.email);
 
     if (response.success) {
-      // Dispatch event to notify verify-email page that verification succeeded
-      // This prevents the page from redirecting back
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('otp:verification-success'));
       }
-      
-      // Wait for auth state to fully update before redirecting
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      // Always redirect to profile page after successful email verification
-      // Use window.location for reliable navigation
-      window.location.href = '/profile';
+      router.prefetch('/profile');
+      router.push('/profile');
     } else {
       setError(response.error || 'OTP verification failed');
       // Clear OTP on error

@@ -17,19 +17,14 @@ export default function VerifyEmailPage() {
   const hasJustVerifiedRef = useRef(false);
 
   useEffect(() => {
-    // Track if user just verified (within last 2 seconds)
-    // This prevents redirect loops when OTP form redirects
     if (isAuthenticated && !isLoading && user?.emailVerified) {
-      // Only redirect if we're still on verify-email page AND haven't just verified
-      if (typeof window !== 'undefined' && 
+      if (typeof window !== 'undefined' &&
           window.location.pathname === '/auth/verify-email' &&
           !hasJustVerifiedRef.current) {
-        // Use replace to avoid adding to history stack
+        router.prefetch('/profile');
         router.replace('/profile');
       }
     }
-    
-    // Reset the flag after 2 seconds
     if (hasJustVerifiedRef.current) {
       const timer = setTimeout(() => {
         hasJustVerifiedRef.current = false;

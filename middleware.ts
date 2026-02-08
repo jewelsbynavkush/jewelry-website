@@ -48,9 +48,8 @@ export default function middleware(request: NextRequest) {
     }
   }
   
-  // Allow Vercel Live feedback script (injected in prod, preview, and local dev with Turbopack)
-  const scriptSrc = "'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live";
-  const frameSrc = "'self' https://vercel.live";
+  const scriptSrc = "'self' 'unsafe-eval' 'unsafe-inline'";
+  const frameSrc = "'self'";
   
   const csp = [
     "default-src 'self'",

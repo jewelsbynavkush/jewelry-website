@@ -58,8 +58,8 @@ export default function LoginForm() {
     if (response.success) {
       const redirect = searchParams.get('redirect') || '/profile';
       const path = redirect.startsWith('/') ? redirect : '/profile';
-      window.location.href = path;
-      return;
+      router.prefetch(path);
+      router.push(path);
     } else {
       setError(response.error || 'Login failed');
     }

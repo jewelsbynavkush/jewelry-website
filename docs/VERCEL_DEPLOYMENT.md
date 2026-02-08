@@ -479,7 +479,7 @@ After deployment:
 
 **Issue:** Content Security Policy blocks Vercel Live feedback script.
 
-**Fix:** `middleware.ts` allows `https://vercel.live` in `script-src` and `frame-src` in all environments (prod, preview, local dev).
+**Note:** Vercel Live feedback is not used; CSP does not allow `vercel.live`, so the injected script is blocked and no floating icons appear.
 
 #### **2. Image 400 Errors - File Extension Mismatch**
 

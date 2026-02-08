@@ -10,7 +10,7 @@
  * - Password change
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import PageContainer from '@/components/ui/PageContainer';
 import SectionHeading from '@/components/ui/SectionHeading';
@@ -24,27 +24,34 @@ import EmailVerification from '@/components/profile/EmailVerification';
 import AddressList from '@/components/profile/AddressList';
 import OrderHistory from '@/components/profile/OrderHistory';
 
+const REHYDRATE_DELAY_MS = 200;
+
 export default function ProfilePage() {
   const router = useRouter();
   const { isAuthenticated, fetchProfile, isLoading, user, logout } = useAuthStore();
   const hasFetchedRef = useRef(false);
+  const [allowRedirectToLogin, setAllowRedirectToLogin] = useState(false);
 
   useEffect(() => {
+    const t = setTimeout(() => setAllowRedirectToLogin(true), REHYDRATE_DELAY_MS);
+    return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    if (!allowRedirectToLogin) return;
     if (!isAuthenticated && !isLoading) {
       router.push('/auth/login?redirect=/profile');
       return;
     }
 
-    // Only fetch profile if authenticated and user data is missing
-    // Prevents multiple calls when isAuthenticated changes
     if (isAuthenticated && !user && !hasFetchedRef.current) {
       hasFetchedRef.current = true;
       fetchProfile();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, isLoading, router, user]); // fetchProfile intentionally excluded to prevent loops
+  }, [allowRedirectToLogin, isAuthenticated, isLoading, router, user]);
 
-  if (isLoading) {
+  if (!allowRedirectToLogin || isLoading) {
     return (
       <PageContainer maxWidth="2xl">
         <SectionHeading as="h2">MY PROFILE</SectionHeading>
@@ -54,7 +61,7 @@ export default function ProfilePage() {
   }
 
   if (!isAuthenticated) {
-    return null; // Will redirect
+    return null;
   }
 
   return (
