@@ -109,7 +109,7 @@ export const mockSiteSettings = {
     tagline: 'A CELESTIAL TOUCH FOR TIMELESS MOMENTS',
   },
   hero: {
-    title: 'COLLECTION 2025',
+    title: 'COLLECTION 2026',
     description: 'Test hero description',
     buttonText: 'DISCOVER',
   },
@@ -197,7 +197,7 @@ vi.mock('@/lib/data/site-settings', () => ({
 // Mock site settings helpers - Must be at top level
 vi.mock('@/lib/utils/site-settings-helpers', () => ({
   getBrandName: vi.fn(() => Promise.resolve('Jewels by NavKush')),
-  getHeroTitle: vi.fn(() => Promise.resolve('COLLECTION 2025')),
+  getHeroTitle: vi.fn(() => Promise.resolve('COLLECTION 2026')),
   getHeroButtonText: vi.fn(() => Promise.resolve('DISCOVER')),
   getAboutButtonText: vi.fn(() => Promise.resolve('MORE ABOUT US')),
   getRightColumnSlogan: vi.fn(() => Promise.resolve('Discover our most cherished pieces')),

@@ -29,7 +29,7 @@ export interface IOrderAddress {
 }
 
 export interface IOrder extends Document {
-  orderNumber: string; // Unique order number (e.g., ORD-2025-001234)
+  orderNumber: string; // Unique order number (e.g., ORD-2026-001234)
   userId: mongoose.Types.ObjectId;
   status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
   items: IOrderItem[];

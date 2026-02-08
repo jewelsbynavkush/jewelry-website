@@ -123,4 +123,4 @@ GMAIL_FROM_NAME=Jewels by NavKush
 
 ---
 
-**Last Updated:** January 2025
+**Last Updated:** January 2026

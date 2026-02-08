@@ -203,4 +203,4 @@ All documentation is organized in the `docs/` directory:
 
 ---
 
-**Last Updated:** February 7, 2025
+**Last Updated:** February 8, 2026

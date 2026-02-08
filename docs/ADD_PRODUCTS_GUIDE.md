@@ -1,6 +1,6 @@
 # How to Add New Products with Stock - Complete Guide
 
-**Date:** February 7, 2025  
+**Date:** February 8, 2026  
 **Status:** ✅ **PRODUCTION READY**
 
 ---
@@ -420,7 +420,7 @@ db.products.updateOne(
 
 Slugs must be unique and URL-friendly:
 - ✅ `diamond-necklace`
-- ✅ `gold-earrings-2025`
+- ✅ `gold-earrings-2026`
 - ❌ `Diamond Necklace` (spaces)
 - ❌ `diamond-necklace!` (special chars)
 
@@ -543,4 +543,4 @@ POST /api/inventory/[productId]/restock
 
 ---
 
-**Last Updated:** February 7, 2025
+**Last Updated:** February 8, 2026

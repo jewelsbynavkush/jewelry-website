@@ -1,6 +1,6 @@
 # MongoDB Atlas Complete Guide
 
-**Date:** January 2025  
+**Date:** January 2026  
 **Purpose:** Complete guide to MongoDB Atlas setup, terminology, and best practices
 
 ---
@@ -519,4 +519,4 @@ Your MongoDB Atlas database is ready to use. You can now:
 
 ---
 
-**Last Updated:** January 2025
+**Last Updated:** January 2026

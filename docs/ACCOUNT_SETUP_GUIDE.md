@@ -1,6 +1,6 @@
 # Account Setup Guide - Business Accounts & Domain Transfer
 
-**Date:** January 2025  
+**Date:** January 2026  
 **Purpose:** Complete guide for setting up business accounts, Gmail, GitHub, domain transfer, and SSH setup
 
 ---
@@ -257,4 +257,4 @@ ssh -T git@github.com-business
 
 ---
 
-**Last Updated:** January 2025
+**Last Updated:** January 2026  

@@ -22,7 +22,7 @@ This guide documents the typography system matching the CELESTIQUE design.
 - ✅ **Letter Spacing:** 0.1em
 - ✅ **Style:** Uppercase, elegant
 
-### **3. Hero Collection Title** (COLLECTION 2025)
+### **3. Hero Collection Title** (COLLECTION 2026)
 - ✅ **Size:** Larger (clamp: 1.5rem - 3rem)
 - ✅ **Font:** Bold sans-serif
 - ✅ **Letter Spacing:** 0.15em
@@ -91,7 +91,7 @@ Used for:
 - **Color:** #9a9a9a (light grey)
 - **Style:** Uppercase, serif font
 
-### **Hero Collection Title** (COLLECTION 2025)
+### **Hero Collection Title** (COLLECTION 2026)
 - **Size:** Responsive (clamp: 1.5rem - 3rem)
 - **Weight:** 700 (bold)
 - **Letter Spacing:** 0.15em

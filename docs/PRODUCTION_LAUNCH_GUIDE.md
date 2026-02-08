@@ -1200,5 +1200,5 @@ Follow this guide step-by-step, and you'll have everything needed to launch your
 
 ---
 
-**Last Updated:** January 2025
+**Last Updated:** January 2026
 **Status:** Complete Production Launch Guide

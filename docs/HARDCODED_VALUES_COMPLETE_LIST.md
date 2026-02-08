@@ -20,7 +20,7 @@ This document provides a complete inventory of all hardcoded values found throug
 | Value | Current | Location | Status | Notes |
 |-------|---------|----------|--------|-------|
 | Brand Name | `'Jewels by NavKush'` | Line 67 | ✅ Fallback | Used as fallback when DB unavailable |
-| Hero Title | `'COLLECTION 2025'` | Line 68 | ✅ Fallback | Used as fallback when DB unavailable |
+| Hero Title | `'COLLECTION 2026'` | Line 68 | ✅ Fallback | Used as fallback when DB unavailable |
 | Hero Button Text | `'DISCOVER'` | Line 69 | ✅ Fallback | Used as fallback when DB unavailable |
 | About Button Text | `'MORE ABOUT US'` | Line 70 | ✅ Fallback | Used as fallback when DB unavailable |
 | Right Column Slogan | `'Discover our most cherished pieces'` | Line 71 | ✅ Fallback | Used as fallback when DB unavailable |

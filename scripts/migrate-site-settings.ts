@@ -98,7 +98,7 @@ async function migrate() {
     try {
       const heroData = {
         hero: {
-          title: 'COLLECTION 2025',
+          title: 'COLLECTION 2026',
           description: 'Discover our collection of unique, beautifully designed jewelry pieces that reflect your personal style. Handcrafted with precision and elegance.',
           buttonText: 'DISCOVER',
           image: '/assets/hero/hero-image.png',

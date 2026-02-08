@@ -86,7 +86,7 @@ const heading = formatCategoryName('rings').toUpperCase(); // Returns: "RINGS"
 - ✅ `OUR PRODUCTS`
 - ✅ `OUR DESIGNS`
 - ✅ `OUR MOST LOVED CREATIONS`
-- ✅ `COLLECTION 2025`
+- ✅ `COLLECTION 2026`
 - ✅ `CONTACT US`
 
 **Rules:**

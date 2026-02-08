@@ -65,7 +65,7 @@ export const COLORS = {
  */
 export const DEFAULTS = {
   brandName: 'Jewels by NavKush',
-  heroTitle: 'COLLECTION 2025',
+  heroTitle: 'COLLECTION 2026',
   heroButtonText: 'DISCOVER',
   aboutButtonText: 'MORE ABOUT US',
   rightColumnSlogan: 'Discover our most cherished pieces',

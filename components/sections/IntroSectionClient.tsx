@@ -96,7 +96,7 @@ export default function IntroSectionClient({
 
         {/* Tablet & Desktop: 3-Column Grid */}
         <div className="hidden md:grid md:grid-cols-3 standard-gap items-end">
-          {/* Left Column: Collection 2025, Message, Discover Button */}
+          {/* Left Column: Collection 2026, Message, Discover Button */}
           <ScrollReveal>
             <div className="space-y-4 lg:space-y-6 pb-12 md:pb-16 lg:pb-20">
               <h2 className="text-[var(--text-on-beige)] font-hero-title uppercase text-3xl lg:text-4xl xl:text-5xl">

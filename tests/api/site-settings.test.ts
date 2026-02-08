@@ -52,7 +52,7 @@ describe('GET /api/site-settings', () => {
         ]);
         return {
           brand: general?.data?.brand as { name: string; tagline?: string } || { name: 'Jewels by NavKush' },
-          hero: { title: 'COLLECTION 2025', description: '', buttonText: 'DISCOVER', image: '', alt: '' },
+          hero: { title: 'COLLECTION 2026', description: '', buttonText: 'DISCOVER', image: '', alt: '' },
           about: { title: 'ABOUT US', content: [], image: '', alt: '', buttonText: 'MORE ABOUT US' },
           mostLoved: { title: 'OUR MOST LOVED CREATIONS' },
           products: { title: 'OUR PRODUCTS' },
@@ -78,7 +78,7 @@ describe('GET /api/site-settings', () => {
       // Override mock to return defaults
       vi.mocked(siteSettingsModule.getSiteSettings).mockResolvedValueOnce({
         brand: { name: 'Jewels by NavKush', tagline: 'A CELESTIAL TOUCH FOR TIMELESS MOMENTS' },
-        hero: { title: 'COLLECTION 2025', description: '', buttonText: 'DISCOVER', image: '', alt: '' },
+        hero: { title: 'COLLECTION 2026', description: '', buttonText: 'DISCOVER', image: '', alt: '' },
         about: { title: 'ABOUT US', content: [], image: '', alt: '', buttonText: 'MORE ABOUT US' },
         mostLoved: { title: 'OUR MOST LOVED CREATIONS' },
         products: { title: 'OUR PRODUCTS' },

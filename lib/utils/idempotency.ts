@@ -11,7 +11,7 @@ import crypto from 'crypto';
  * Generate a unique idempotency key
  * 
  * Format: {prefix}-{timestamp}-{random}
- * Example: "payment-20250101120000-abc123def456"
+ * Example: "payment-20260101120000-abc123def456"
  * 
  * @param prefix - Prefix for the key (e.g., 'payment', 'webhook', 'order')
  * @returns Unique idempotency key

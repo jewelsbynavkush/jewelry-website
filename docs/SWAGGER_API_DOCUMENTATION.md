@@ -312,5 +312,5 @@ SWAGGER_IP_WHITELIST=192.168.1.100,10.0.0.50
 
 ---
 
-**Last Updated:** January 2025  
+**Last Updated:** January 2026  
 **Access:** `/api/docs` (Swagger UI page and OpenAPI JSON)

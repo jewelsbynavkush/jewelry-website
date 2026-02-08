@@ -52,8 +52,8 @@ All logs follow a consistent format:
 
 Example:
 ```
-[INFO] 2025-01-15T10:30:45.123Z - OTP SMS sent successfully
-[ERROR] 2025-01-15T10:30:45.123Z - Failed to send email
+[INFO] 2026-01-15T10:30:45.123Z - OTP SMS sent successfully
+[ERROR] 2026-01-15T10:30:45.123Z - Failed to send email
 ```
 
 ## Files Updated
