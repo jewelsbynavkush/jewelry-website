@@ -56,10 +56,10 @@ export default function LoginForm() {
     const response = await login(email.trim(), password);
 
     if (response.success) {
-      // Redirect to original destination or profile
       const redirect = searchParams.get('redirect') || '/profile';
-      router.push(redirect);
-      router.refresh();
+      const path = redirect.startsWith('/') ? redirect : '/profile';
+      window.location.href = path;
+      return;
     } else {
       setError(response.error || 'Login failed');
     }

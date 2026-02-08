@@ -479,7 +479,7 @@ After deployment:
 
 **Issue:** Content Security Policy blocks Vercel Live feedback script.
 
-**Fix:** `middleware.ts` allows `https://vercel.live` in `script-src` for production only.
+**Fix:** `middleware.ts` allows `https://vercel.live` in `script-src` and `frame-src` in all environments (prod, preview, local dev).
 
 #### **2. Image 400 Errors - File Extension Mismatch**
 

@@ -48,16 +48,9 @@ export default function middleware(request: NextRequest) {
     }
   }
   
-  // Allow Vercel Live feedback widget in preview deployments only
-  // Vercel Live is a preview feature for feedback collection - NOT needed in production
-  // Check VERCEL_ENV to detect preview deployments (preview, development)
-  const isVercelPreview = process.env.VERCEL_ENV === 'preview' || process.env.VERCEL_ENV === 'development';
-  const scriptSrc = isVercelPreview
-    ? "'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live"
-    : "'self' 'unsafe-eval' 'unsafe-inline'";
-  const frameSrc = isVercelPreview
-    ? "'self' https://vercel.live"
-    : "'self'";
+  // Allow Vercel Live feedback script (injected in prod, preview, and local dev with Turbopack)
+  const scriptSrc = "'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live";
+  const frameSrc = "'self' https://vercel.live";
   
   const csp = [
     "default-src 'self'",

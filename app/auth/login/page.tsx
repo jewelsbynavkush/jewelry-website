@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import PageContainer from '@/components/ui/PageContainer';
 import SectionHeading from '@/components/ui/SectionHeading';
 import ScrollReveal from '@/components/ui/ScrollReveal';
@@ -12,18 +12,16 @@ import { useAuthStore } from '@/lib/store/auth-store';
 import LoadingState from '@/components/ui/LoadingState';
 
 function LoginPageContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { isAuthenticated, isLoading } = useAuthStore();
 
   useEffect(() => {
-    // Redirect to profile if already authenticated
     if (isAuthenticated && !isLoading) {
       const redirect = searchParams.get('redirect') || '/profile';
-      router.push(redirect);
-      router.refresh();
+      const path = redirect.startsWith('/') ? redirect : '/profile';
+      window.location.replace(path);
     }
-  }, [isAuthenticated, isLoading, router, searchParams]);
+  }, [isAuthenticated, isLoading, searchParams]);
 
   // Show loading state while checking authentication
   if (isLoading) {
