@@ -20,7 +20,7 @@ import {
 import { createTestProduct } from '../../helpers/test-utils';
 import mongoose from 'mongoose';
 
-describe('Stock handling', () => {
+describe.sequential('Stock handling', () => {
   let testCategory: mongoose.Types.ObjectId;
 
   beforeEach(async () => {

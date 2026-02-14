@@ -18,6 +18,12 @@ export default defineConfig({
         '.next/',
         'coverage/',
       ],
+      thresholds: {
+        lines: 70,
+        functions: 65,
+        branches: 59,
+        statements: 70,
+      },
     },
     testTimeout: 30000,
     hookTimeout: 60000, // Increased for replica set initialization

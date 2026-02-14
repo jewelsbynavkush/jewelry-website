@@ -53,5 +53,28 @@ describe('GET /api/categories', () => {
       expectStatus(response, 200);
       expect(data.categories).toEqual([]);
     });
+
+    it('should set no-store cache when no-cache=true', async () => {
+      const request = createGuestRequest('GET', 'http://localhost:3000/api/categories?no-cache=true');
+      const response = await GET(request);
+      expectStatus(response, 200);
+      expect(response.headers.get('Cache-Control')).toContain('no-store');
+    });
+
+    it('should set public cache when no-cache is not set', async () => {
+      const request = createGuestRequest('GET', 'http://localhost:3000/api/categories');
+      const response = await GET(request);
+      expectStatus(response, 200);
+      expect(response.headers.get('Cache-Control')).toContain('public');
+    });
+  });
+
+  it('should return 500 when getCategories throws', async () => {
+    vi.mocked(categoriesModule.getCategories).mockRejectedValueOnce(new Error('DB error'));
+    const request = createGuestRequest('GET', 'http://localhost:3000/api/categories');
+    const response = await GET(request);
+    const data = await getJsonResponse(response);
+    expect(response.status).toBe(500);
+    expect(data.error).toBeDefined();
   });
 });

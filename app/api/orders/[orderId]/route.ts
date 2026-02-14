@@ -15,7 +15,7 @@ import { logError } from '@/lib/security/error-handler';
 import { sanitizeString } from '@/lib/security/sanitize';
 import { formatZodError } from '@/lib/utils/zod-error';
 import { SECURITY_CONFIG } from '@/lib/security/constants';
-import type { GetOrderResponse } from '@/types/api';
+import type { GetOrderResponse, UpdateOrderStatusRequest, UpdateOrderStatusResponse } from '@/types/api';
 import { z } from 'zod';
 
 /**
@@ -178,7 +178,7 @@ export async function PATCH(
     }
     const sanitizedOrderId = validationResult.value;
 
-    const body = await request.json();
+    const body = (await request.json()) as UpdateOrderStatusRequest;
     const validatedData = updateOrderSchema.parse(body);
 
     // Fetch order for admin status update
@@ -250,22 +250,19 @@ export async function PATCH(
 
     await order.save();
 
-    return createSecureResponse(
-      {
-        success: true,
-        message: 'Order updated successfully',
-        order: {
-          id: order._id.toString(),
-          orderNumber: order.orderNumber,
-          status: order.status,
-          paymentStatus: order.paymentStatus,
-          trackingNumber: order.trackingNumber,
-          carrier: order.carrier,
-        },
-      },
-      200,
-      request
-    );
+    const payload: UpdateOrderStatusResponse = {
+      success: true,
+      message: 'Order updated successfully',
+      order: {
+        id: order._id.toString(),
+        orderNumber: order.orderNumber,
+        status: order.status,
+        paymentStatus: order.paymentStatus,
+        trackingNumber: order.trackingNumber,
+        carrier: order.carrier,
+      } as UpdateOrderStatusResponse['order'],
+    };
+    return createSecureResponse(payload, 200, request);
   } catch (error) {
     const zodError = formatZodError(error);
     if (zodError) {

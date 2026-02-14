@@ -15,6 +15,7 @@ import { logError } from '@/lib/security/error-handler';
 import { sanitizeString, sanitizeEmail } from '@/lib/security/sanitize';
 import { formatZodError } from '@/lib/utils/zod-error';
 import { SECURITY_CONFIG } from '@/lib/security/constants';
+import type { GetProfileResponse, UpdateProfileRequest, UpdateProfileResponse } from '@/types/api';
 import { z } from 'zod';
 
 /**
@@ -98,30 +99,25 @@ export async function GET(request: NextRequest) {
       return createSecureErrorResponse('User not found', 404, request);
     }
 
-    const userData = {
-      id: userDoc._id.toString(),
-      mobile: userDoc.mobile,
-      countryCode: userDoc.countryCode,
-      email: userDoc.email,
-      emailVerified: userDoc.emailVerified,
-      firstName: userDoc.firstName,
-      lastName: userDoc.lastName,
-      displayName: userDoc.displayName,
-      role: userDoc.role,
-      preferences: userDoc.preferences,
-      totalOrders: userDoc.totalOrders,
-      totalSpent: userDoc.totalSpent,
-      loyaltyPoints: userDoc.loyaltyPoints,
-      createdAt: userDoc.createdAt,
-    };
-    
-    const response = createSecureResponse(
-      {
-        user: userData,
+    const payload: GetProfileResponse = {
+      user: {
+        id: userDoc._id.toString(),
+        email: userDoc.email ?? '',
+        firstName: userDoc.firstName ?? '',
+        lastName: userDoc.lastName ?? '',
+        role: userDoc.role,
+        emailVerified: userDoc.emailVerified ?? false,
+        mobile: userDoc.mobile,
+        countryCode: userDoc.countryCode,
+        displayName: userDoc.displayName,
+        preferences: userDoc.preferences,
+        totalOrders: userDoc.totalOrders,
+        totalSpent: userDoc.totalSpent,
+        loyaltyPoints: userDoc.loyaltyPoints,
+        createdAt: userDoc.createdAt?.toISOString(),
       },
-      200,
-      request
-    );
+    };
+    const response = createSecureResponse(payload, 200, request);
     
     response.headers.set('Cache-Control', 'private, no-cache, no-store, must-revalidate');
     return response;
@@ -162,8 +158,7 @@ export async function PATCH(request: NextRequest) {
 
     await connectDB();
 
-    // Validate request body to ensure type safety and business rule compliance
-    const body = await request.json();
+    const body = (await request.json()) as UpdateProfileRequest;
     const validatedData = updateProfileSchema.parse(body);
 
     // Optimize: Only select fields needed for update
@@ -306,26 +301,22 @@ export async function PATCH(request: NextRequest) {
       throw saveError;
     }
 
-    const userData = {
-      id: userDoc._id.toString(),
-      mobile: userDoc.mobile,
-      countryCode: userDoc.countryCode,
-      email: userDoc.email,
-      emailVerified: userDoc.emailVerified,
-      firstName: userDoc.firstName,
-      lastName: userDoc.lastName,
-      displayName: userDoc.displayName,
-    };
-    
-    return createSecureResponse(
-      {
-        success: true,
-        message: 'Profile updated successfully',
-        user: userData,
+    const payload: UpdateProfileResponse = {
+      success: true,
+      message: 'Profile updated successfully',
+      user: {
+        id: userDoc._id.toString(),
+        email: userDoc.email ?? '',
+        firstName: userDoc.firstName ?? '',
+        lastName: userDoc.lastName ?? '',
+        role: userDoc.role,
+        emailVerified: userDoc.emailVerified ?? false,
+        mobile: userDoc.mobile,
+        countryCode: userDoc.countryCode,
+        displayName: userDoc.displayName,
       },
-      200,
-      request
-    );
+    };
+    return createSecureResponse(payload, 200, request);
   } catch (error) {
     const zodError = formatZodError(error);
     if (zodError) {

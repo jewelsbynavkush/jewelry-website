@@ -30,9 +30,9 @@
 ### **Key Features:**
 - ✅ Modern, responsive design
 - ✅ SEO optimized
-- ✅ Content managed via Sanity.io CMS
-- ✅ Contact forms via Firebase Firestore
-- ✅ Serverless architecture
+- ✅ Data from MongoDB (products, orders, site settings)
+- ✅ Contact form and API routes
+- ✅ Serverless-ready (Vercel)
 - ✅ Fast performance
 
 ---
@@ -40,21 +40,18 @@
 ## 🚀 Tech Stack
 
 ### **Frontend:**
-- **Next.js 14+** (App Router) - React framework
+- **Next.js 16+** (App Router) - React framework
 - **TypeScript** - Type safety
 - **Tailwind CSS** - Styling
 
 ### **Backend/Services:**
-- **Sanity.io** - Headless CMS (content management)
-- **Firebase Firestore** - NoSQL database (forms, data)
+- **MongoDB Atlas** - Database (products, orders, users, site settings)
 - **Vercel** - Hosting & deployment
 
 ### **Libraries:**
-- **Firebase SDK** - Database integration
-- **Sanity Client** - CMS integration
+- **Mongoose** - MongoDB ODM
 - **React Hook Form** - Form handling
 - **Zod** - Schema validation
-- **next-seo** - SEO optimization
 
 ---
 
@@ -87,18 +84,11 @@ npx create-next-app@latest jewelry-website \
 ```bash
 cd jewelry-website
 
-# Install core dependencies
-npm install firebase @sanity/client @sanity/image-url next-seo zod react-hook-form @hookform/resolvers
+# Install dependencies (see package.json)
+npm install
 ```
 
-**Dependencies Explained:**
-- `firebase` - Firebase SDK for Firestore
-- `@sanity/client` - Sanity.io CMS client
-- `@sanity/image-url` - Image URL builder for Sanity
-- `next-seo` - SEO meta tags
-- `zod` - Schema validation
-- `react-hook-form` - Form handling
-- `@hookform/resolvers` - Zod resolver for forms
+**Key dependencies:** Next.js, React, Mongoose, Zod, React Hook Form, Tailwind CSS. See `package.json` and [Project Structure](./PROJECT_STRUCTURE.md).
 
 ### **Step 3: Project Structure**
 
@@ -132,17 +122,12 @@ jewelry-website/
 │       ├── FeaturedDesigns.tsx
 │       └── ContactForm.tsx
 ├── lib/                     # Utilities
-│   ├── firebase/           # Firebase configuration
-│   │   └── config.ts
-│   ├── cms/                # Sanity.io configuration
-│   │   └── client.ts
-│   ├── utils/              # Helper functions
-│   │   └── helpers.ts
-│   └── validations/        # Zod schemas
-│       └── schemas.ts
+│   ├── mongodb/             # MongoDB connection
+│   ├── utils/               # Helper functions
+│   ├── security/            # API security, auth
+│   └── validations/         # Zod schemas
+├── models/                  # Mongoose models
 ├── types/                   # TypeScript types
-│   ├── cms.ts              # CMS types
-│   └── firebase.ts         # Firebase types
 ├── public/                  # Static assets
 │   ├── images/             # Images
 │   └── icons/               # Icons
@@ -160,95 +145,23 @@ jewelry-website/
 
 ### **Step 4: Environment Variables**
 
-Create `.env.local` file:
+Create `.env.local` from `.env.example` and set required variables. Minimum for local dev:
 
-```bash
-# Firebase Configuration
-NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+- `NEXT_PUBLIC_ENV`, `NEXT_PUBLIC_BASE_URL`, `NEXT_PUBLIC_SITE_NAME`
+- `MONGODB_URI` (see [MongoDB Atlas Complete Guide](./MONGODB_ATLAS_COMPLETE_GUIDE.md))
+- `JWT_SECRET` (min 32 characters)
 
-# Sanity.io Configuration
-NEXT_PUBLIC_SANITY_PROJECT_ID=your_project_id
-NEXT_PUBLIC_SANITY_DATASET=production
-NEXT_PUBLIC_SANITY_API_VERSION=2024-01-01
-SANITY_API_TOKEN=your_api_token
-```
+See [Environment Variables Complete](./ENVIRONMENT_VARIABLES_COMPLETE.md) for the full list.
 
-**How to get these values:**
-1. **Firebase:** Go to Firebase Console → Project Settings → General → Your apps
-2. **Sanity:** Go to Sanity.io → Project Settings → API → Tokens
+### **Step 5: Database**
 
-### **Step 5: Firebase Setup**
-
-1. Go to [Firebase Console](https://console.firebase.google.com/)
-2. Create new project
-3. Enable Firestore Database
-4. Get configuration values
-5. Add to `.env.local`
-
-### **Step 6: Sanity.io Setup**
-
-1. Go to [Sanity.io](https://www.sanity.io/)
-2. Create account and new project
-3. Install Sanity CLI: `npm install -g @sanity/cli`
-4. Initialize: `sanity init`
-5. Get project ID and API token
-6. Add to `.env.local`
+The project uses **MongoDB** (MongoDB Atlas recommended). See [MongoDB Atlas Complete Guide](./MONGODB_ATLAS_COMPLETE_GUIDE.md). After first run, seed site settings: `npm run migrate:site-settings`.
 
 ---
 
 ## 🏗️ Development Steps
 
-### **Step 7: Create Firebase Configuration**
-
-**File:** `lib/firebase/config.ts`
-
-```typescript
-import { initializeApp, getApps } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
-
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-};
-
-// Initialize Firebase
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-export const db = getFirestore(app);
-```
-
-### **Step 8: Create Sanity.io Configuration**
-
-**File:** `lib/cms/client.ts`
-
-```typescript
-import { createClient } from '@sanity/client';
-import imageUrlBuilder from '@sanity/image-url';
-import { SanityImageSource } from '@sanity/image-url/lib/types/types';
-
-export const client = createClient({
-  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID!,
-  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
-  apiVersion: process.env.NEXT_PUBLIC_SANITY_API_VERSION || '2024-01-01',
-  useCdn: true,
-});
-
-const builder = imageUrlBuilder(client);
-
-export function urlFor(source: SanityImageSource) {
-  return builder.image(source);
-}
-```
-
-### **Step 9: Create Type Definitions**
+### **Step 6: Create Type Definitions**
 
 **File:** `types/cms.ts`
 
@@ -924,20 +837,16 @@ If you've updated images or files but the website still shows old content, it's 
 
 ### **Common Issues:**
 
-1. **Firebase not initializing:**
-   - Check environment variables
-   - Ensure Firestore is enabled in Firebase Console
+1. **MongoDB connection issues:**
+   - Check `MONGODB_URI` in `.env.local`
+   - Ensure Atlas IP allowlist includes your IP (or 0.0.0.0/0 for dev)
 
-2. **Sanity images not loading:**
-   - Check project ID and dataset
-   - Verify API token has read permissions
-
-3. **Build errors:**
+2. **Build errors:**
    - Run `npm run build` to see errors
    - Check TypeScript types
    - Verify all imports are correct
 
-4. **Environment variables not working:**
+3. **Environment variables not working:**
    - Restart dev server after adding env vars
    - Use `NEXT_PUBLIC_` prefix for client-side vars
 
@@ -945,13 +854,12 @@ If you've updated images or files but the website still shows old content, it's 
 
 ## 📚 Next Steps
 
-1. ✅ Set up Firebase project
-2. ✅ Set up Sanity.io project
-3. ✅ Add environment variables
-4. ✅ Create content in Sanity.io
-5. ✅ Test contact form
-6. ✅ Deploy to Vercel
-7. ✅ Set up custom domain (optional)
+1. ✅ Set up MongoDB Atlas (see [MongoDB Atlas Complete Guide](./MONGODB_ATLAS_COMPLETE_GUIDE.md))
+2. ✅ Add environment variables ([Environment Variables Complete](./ENVIRONMENT_VARIABLES_COMPLETE.md))
+3. ✅ Run `npm run migrate:site-settings`
+4. ✅ Test contact form and API
+5. ✅ Deploy to Vercel ([Vercel Deployment](./VERCEL_DEPLOYMENT.md))
+6. ✅ Set up custom domain (optional)
 
 ---
 

@@ -4,8 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import PageContainer from '@/components/ui/PageContainer';
-import SectionHeading from '@/components/ui/SectionHeading';
+import PageSectionLayout from '@/components/ui/PageSectionLayout';
 import ScrollReveal from '@/components/ui/ScrollReveal';
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
@@ -60,11 +59,7 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <PageContainer maxWidth="md">
-      <ScrollReveal>
-        <h1 className="sr-only">Reset your password</h1>
-        <SectionHeading as="h2">RESET PASSWORD</SectionHeading>
-      </ScrollReveal>
+    <PageSectionLayout title="RESET PASSWORD" srOnlyTitle="Reset your password" maxWidth="md">
       <ScrollReveal delay={0.1}>
         <Card>
           <div className="space-y-6">
@@ -126,6 +121,6 @@ export default function ResetPasswordPage() {
           </div>
         </Card>
       </ScrollReveal>
-    </PageContainer>
+    </PageSectionLayout>
   );
 }

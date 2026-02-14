@@ -1,83 +1,52 @@
 # Quick Start Guide
 
-## 🚀 Get Started in 5 Minutes
+Get the project running locally in a few minutes.
 
-### Step 1: Install Dependencies
+## Prerequisites
+
+- Node.js 18+
+- npm or yarn
+- MongoDB Atlas account (free tier) or local MongoDB
+
+## Steps
+
+### 1. Install dependencies
+
 ```bash
 npm install
 ```
 
-### Step 2: Set Up Firebase
-1. Go to [Firebase Console](https://console.firebase.google.com/)
-2. Create project → Enable Firestore
-3. Get config from Project Settings → General → Your apps
+### 2. Set up environment variables
 
-### Step 3: Set Up Sanity.io
-1. Go to [Sanity.io](https://www.sanity.io/)
-2. Create project
-3. Get Project ID from settings
+```bash
+cp .env.example .env.local
+```
 
-### Step 4: Create `.env.local`
-1. Copy the example file:
-   ```bash
-   cp .env.example .env.local
-   ```
-2. Open `.env.local` and fill in your actual values:
-   - Firebase config values (see [Firebase Setup Guide](FIREBASE_SETUP.md))
-   - Sanity.io project ID (see [Sanity Complete Guide](./SANITY_COMPLETE_GUIDE.md)) - Note: Legacy, no longer used
+Edit `.env.local` with your values. Minimum for local dev:
 
-### Step 5: Run Development Server
+- `NEXT_PUBLIC_ENV=development`
+- `NEXT_PUBLIC_BASE_URL=http://localhost:3000`
+- `NEXT_PUBLIC_SITE_NAME=Jewels by NavKush`
+- `MONGODB_URI` – your MongoDB connection string
+- `JWT_SECRET` – at least 32 characters
+
+See [Environment Variables Complete](./ENVIRONMENT_VARIABLES_COMPLETE.md) for the full list.
+
+### 3. Database setup
+
+- **MongoDB Atlas:** [MongoDB Atlas Complete Guide](./MONGODB_ATLAS_COMPLETE_GUIDE.md) – create a cluster and get your URI.
+- After first run, seed site settings: `npm run migrate:site-settings`
+
+### 4. Run the dev server
+
 ```bash
 npm run dev
 ```
 
-Visit: http://localhost:3000
+Open [http://localhost:3000](http://localhost:3000).
 
-## ✅ What's Included
+## Next steps
 
-- ✅ Home page with hero section
-- ✅ Designs/Products page (connects to Sanity.io)
-- ✅ Contact page with form (saves to Firebase)
-- ✅ About page
-- ✅ SEO optimized (sitemap, robots.txt, meta tags)
-- ✅ Responsive design
-- ✅ Modern UI components
-
-## 📝 Next Steps
-
-1. **Add content in Sanity.io:**
-   - Create `jewelryDesign` content type
-   - Add your jewelry designs
-
-2. **Test contact form:**
-   - Fill out contact form
-   - Check Firebase Firestore for submissions
-
-3. **Customize:**
-   - Update branding in Header/Footer
-   - Modify colors in Tailwind classes
-   - Add your content
-
-4. **Deploy:**
-   - Push to GitHub
-   - Connect to Vercel
-   - Add environment variables
-   - Deploy!
-
-## 🎯 Key Files
-
-- `app/` - Pages and routes
-- `components/` - React components
-- `lib/firebase/` - Firebase config
-- `lib/cms/` - Sanity.io config
-- `.env.local` - Your environment variables (create this!)
-
-## 📚 Full Documentation
-
-All documentation is available in the `docs/` folder:
-
-- **[Development Guide](DEVELOPMENT_GUIDE.md)** - Complete development documentation
-- **[Firebase Setup](FIREBASE_SETUP.md)** - Detailed Firebase configuration
-- **[Sanity Complete Guide](./SANITY_COMPLETE_GUIDE.md)** - Complete Sanity.io CMS guide (legacy - no longer used)
-- **[Vercel Deployment](VERCEL_DEPLOYMENT.md)** - Deployment guide
-
+- [Environment Setup Guide](./ENVIRONMENT_SETUP_GUIDE.md) – full dev/prod setup
+- [Development Guide](./DEVELOPMENT_GUIDE.md) – workflow and scripts
+- [API Guide](./API_GUIDE.md) – API usage and reference

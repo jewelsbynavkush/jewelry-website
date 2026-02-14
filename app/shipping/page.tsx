@@ -1,4 +1,4 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 import Card from '@/components/ui/Card';
 import PageSectionLayout from '@/components/ui/PageSectionLayout';
 import SectionHeading from '@/components/ui/SectionHeading';

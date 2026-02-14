@@ -87,6 +87,12 @@ export interface User {
   lastName: string;
   role: 'customer' | 'admin' | 'staff';
   emailVerified: boolean;
+  displayName?: string;
+  preferences?: Record<string, unknown>;
+  totalOrders?: number;
+  totalSpent?: number;
+  loyaltyPoints?: number;
+  createdAt?: string;
 }
 
 export interface UserAddress extends Address {
@@ -253,7 +259,10 @@ export interface GetOrderResponse {
 }
 
 export interface UpdateOrderStatusRequest {
-  status: string;
+  status?: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded';
+  paymentStatus?: 'pending' | 'paid' | 'failed' | 'refunded' | 'partially_refunded';
+  trackingNumber?: string;
+  carrier?: string;
   notes?: string;
 }
 
@@ -283,6 +292,8 @@ export interface UpdateProfileRequest {
   lastName?: string;
   email?: string;
   displayName?: string;
+  mobile?: string;
+  countryCode?: string;
 }
 
 export interface UpdateProfileResponse {

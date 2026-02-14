@@ -2,7 +2,7 @@ import IntroSection from '@/components/sections/IntroSection';
 import ProductCategories from '@/components/sections/ProductCategories';
 import MostLovedCreations from '@/components/sections/MostLovedCreations';
 import AboutUs from '@/components/sections/AboutUs';
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 import { getSiteSettings } from '@/lib/data/site-settings';
 import { generateStandardMetadata } from '@/lib/seo/metadata';
 import { getBaseUrl } from '@/lib/utils/env';

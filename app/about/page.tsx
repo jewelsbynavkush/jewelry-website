@@ -1,4 +1,4 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 import PageSectionLayout from '@/components/ui/PageSectionLayout';
 import ScrollReveal from '@/components/ui/ScrollReveal';
 import { generateStandardMetadata } from '@/lib/seo/metadata';

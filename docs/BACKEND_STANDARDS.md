@@ -41,12 +41,14 @@ Checklist for new or updated API routes and backend code. See also: [BACKEND_COM
 - **Location:** `tests/api/<route-path>.test.ts` (e.g. `tests/api/cart/route.test.ts`, `tests/api/orders/[orderId]/cancel.test.ts`).
 - **Cover:** Success, validation errors, auth/authorization, edge cases (e.g. empty cart, insufficient stock).
 - **Run:** `npm run test -- --run` (optionally `--coverage` to include coverage report).
+- **Thresholds:** Vitest coverage thresholds (see `vitest.config.ts`): lines 70%, functions 65%, branches 60%, statements 70%. Tests that use MongoMemoryServer require network/all permissions to bind.
 
 ## 7. Swagger
 
 - **Spec:** Add or update the route in `app/api/docs/route.ts` under `paths` and, if needed, `components.schemas`.
 - **Match API:** Path, method, request body schema, and response schema must match the implementation (e.g. response field names like `inventory` not `product`).
 - **Exclusions:** Dev-only routes (e.g. `/api/test-db`) are intentionally omitted from the public spec.
+- **Coverage:** All public API routes (cart, orders, auth, users, products, categories, content, site-settings, contact, health, inventory) are documented in the OpenAPI spec. GET `/api/docs` returns the spec and is not itself listed in the spec.
 
 ## 8. Idempotency
 

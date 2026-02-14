@@ -429,20 +429,16 @@ ProductSchema.statics.releaseReservedStock = async function(
   session?: mongoose.ClientSession
 ): Promise<IProduct | null> {
   return await this.findOneAndUpdate(
-    { 
+    {
       _id: productId,
-      // Ensure we have enough reserved quantity to release
-      $expr: {
-        $gte: ['$inventory.reservedQuantity', quantity]
-      }
+      'inventory.reservedQuantity': { $gte: quantity },
     },
     {
-      // Atomically decrement reserved quantity
-      $inc: { 'inventory.reservedQuantity': -quantity }
+      $inc: { 'inventory.reservedQuantity': -quantity },
     },
     {
       new: true,
-      session, // Use transaction if provided
+      session,
     }
   );
 };

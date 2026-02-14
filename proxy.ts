@@ -23,22 +23,22 @@ export function proxy(request: NextRequest) {
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
 
   const origin = request.nextUrl.origin;
-  const baseUrl = getBaseUrl();
-
   const connectSrc = ["'self'", origin];
-  if (baseUrl) {
-    try {
+  try {
+    const baseUrl = getBaseUrl();
+    if (baseUrl) {
       const baseUrlObj = new URL(baseUrl);
       const baseOrigin = baseUrlObj.origin;
       if (baseOrigin !== origin) {
         connectSrc.push(baseOrigin);
       }
-    } catch {
-      // Invalid URL format, skip
     }
+  } catch {
+    // NEXT_PUBLIC_BASE_URL not set or invalid; CSP uses origin only
   }
 
-  const scriptSrc = "'self' 'unsafe-eval' 'unsafe-inline'";
+  // unsafe-inline required for Next.js hydration; avoid unsafe-eval in production
+  const scriptSrc = "'self' 'unsafe-inline'";
   const frameSrc = "'self'";
 
   const csp = [
@@ -64,3 +64,4 @@ export function proxy(request: NextRequest) {
 export const config = {
   matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };
+

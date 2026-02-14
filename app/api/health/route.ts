@@ -11,6 +11,7 @@ import mongoose from 'mongoose';
 import { applyApiSecurity, createSecureResponse } from '@/lib/security/api-security';
 import { TIME_DURATIONS_MS } from '@/lib/security/constants';
 import { getPackageVersion } from '@/lib/utils/env';
+import { recordDbTiming } from '@/lib/observability/metrics';
 import type { HealthResponse } from '@/types/api';
 
 /**
@@ -48,8 +49,8 @@ export async function GET(request: NextRequest) {
     await connectDB();
     const dbResponseTime = Date.now() - dbStartTime;
 
-    // Verify database connection state (1 = connected, 0 = disconnected)
-    // Ensures health check accurately reflects actual database connectivity
+    recordDbTiming('health_check', dbResponseTime);
+
     if (mongoose.connection.readyState === 1) {
       healthStatus.services.database = {
         status: 'connected',

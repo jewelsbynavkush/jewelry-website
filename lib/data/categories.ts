@@ -19,6 +19,7 @@ export async function getCategories(): Promise<CategoryType[]> {
     await connectDB();
     
     const categories = await Category.find({ active: true })
+      .select('slug name displayName image alt description active order')
       .sort({ order: 1 })
       .lean();
     
@@ -48,10 +49,12 @@ export async function getCategory(slug: string): Promise<CategoryType | null> {
   try {
     await connectDB();
     
-    const category = await Category.findOne({ 
+    const category = await Category.findOne({
       slug: slug.toLowerCase(),
-      active: true 
-    }).lean();
+      active: true,
+    })
+      .select('slug name displayName image alt description')
+      .lean();
     
     if (!category) {
       return null;

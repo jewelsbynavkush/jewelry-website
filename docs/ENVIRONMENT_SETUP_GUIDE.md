@@ -9,7 +9,7 @@
 1. [Overview - Free Services](#overview---free-services)
 2. [Prerequisites](#prerequisites)
 3. [Step 1: GitHub Repository Setup](#step-1-github-repository-setup)
-4. [Step 2: Zoho Catalyst Projects Setup](#step-2-zoho-catalyst-projects-setup)
+4. [Step 2: MongoDB Atlas Setup](#step-2-mongodb-atlas-setup)
 5. [Step 3: Vercel Projects Setup](#step-3-vercel-projects-setup)
 6. [Step 4: Domain Configuration](#step-4-domain-configuration)
 7. [Step 5: Environment Variables](#step-5-environment-variables)
@@ -229,7 +229,7 @@ After the project is created and first deployment completes:
 
 **Important:** The branch setting is in **Settings → Environments**, not Settings → Git!
 
-**Alternative:** See [Vercel Branch Setup Guide](./VERCEL_BRANCH_SETUP.md) for detailed instructions.
+**Alternative:** Configure branches in Vercel dashboard (Project Settings → Git).
 
 ### **3.3 Create Production Project**
 
@@ -286,7 +286,7 @@ After the project is created and first deployment completes:
 
 **Important:** The branch setting is in **Settings → Environments**, not Settings → Git!
 
-**Alternative:** See [Vercel Branch Setup Guide](./VERCEL_BRANCH_SETUP.md) for detailed instructions.
+**Alternative:** Configure branches in Vercel dashboard (Project Settings → Git).
 
 **✅ Step 3 Complete:** You now have two Vercel projects (dev & prod) connected to GitHub.
 
@@ -798,7 +798,7 @@ After completing this setup:
 
 ## 📚 **Related Documentation**
 
-- [Vercel Branch Setup Guide](./VERCEL_BRANCH_SETUP.md) - **How to select/change branches in Vercel**
+- Vercel dashboard: Project Settings → Git for branch configuration
 - [Project Roadmap](./PROJECT_ROADMAP.md) - Complete development plan
 - [MongoDB Atlas Setup](./DATABASE_RECOMMENDATION.md) - Database setup details
 - [Vercel Deployment](./VERCEL_DEPLOYMENT.md) - Deployment guide

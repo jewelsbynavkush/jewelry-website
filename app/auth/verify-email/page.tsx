@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import PageContainer from '@/components/ui/PageContainer';
-import SectionHeading from '@/components/ui/SectionHeading';
+import PageSectionLayout from '@/components/ui/PageSectionLayout';
 import ScrollReveal from '@/components/ui/ScrollReveal';
 import OTPVerificationForm from '@/components/auth/OTPVerificationForm';
 import { useAuthStore } from '@/lib/store/auth-store';
@@ -47,7 +47,6 @@ export default function VerifyEmailPage() {
     };
   }, []);
 
-  // Show loading state while checking authentication
   if (isLoading) {
     return (
       <PageContainer maxWidth="md">
@@ -56,20 +55,15 @@ export default function VerifyEmailPage() {
     );
   }
 
-  // Don't render form if authenticated and already verified (will redirect)
   if (isAuthenticated && user?.emailVerified) {
     return null;
   }
 
   return (
-    <PageContainer maxWidth="md">
-      <ScrollReveal>
-        <h1 className="sr-only">Verify email address with OTP</h1>
-        <SectionHeading as="h2">VERIFY EMAIL</SectionHeading>
-      </ScrollReveal>
+    <PageSectionLayout title="VERIFY EMAIL" srOnlyTitle="Verify email address with OTP" maxWidth="md">
       <ScrollReveal delay={0.1}>
         <OTPVerificationForm />
       </ScrollReveal>
-    </PageContainer>
+    </PageSectionLayout>
   );
 }

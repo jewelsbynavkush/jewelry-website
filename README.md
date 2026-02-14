@@ -34,6 +34,7 @@ All documentation is organized in the [`docs/`](./docs/) folder.
 - [3D Animations Guide](./docs/3D_ANIMATIONS_GUIDE.md) - Animation system
 - [Vercel Deployment](./docs/VERCEL_DEPLOYMENT.md) - Deployment guide
 - [CDN Guide](./docs/CDN_GUIDE.md) - Static assets and images via CDN
+- [Production Checklist](./docs/PRODUCTION_CHECKLIST.md) - Pre-launch technical checklist
 
 **See [docs/README.md](./docs/README.md) for complete documentation index.**
 
@@ -42,7 +43,7 @@ All documentation is organized in the [`docs/`](./docs/) folder.
 - **Framework:** Next.js 16+ (App Router)
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS
-- **Data:** JSON-based (local files)
+- **Data:** MongoDB + server-side data (site settings, products, orders, etc.)
 - **Hosting:** Vercel
 
 ## 📝 Project Structure
@@ -59,12 +60,7 @@ jewelry-website/
 
 ## 🔗 Important Links
 
-- **Documentation:** See `docs/` folder
-- **Documentation Index:** [docs/README.md](./docs/README.md)
-
----
-
-For complete documentation, see the [`docs/`](./docs/) folder.
+- **Documentation index:** [docs/README.md](./docs/README.md)
 
 ---
 

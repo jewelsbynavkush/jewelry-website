@@ -7,14 +7,18 @@
  * - Service status reporting
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { GET } from '@/app/api/health/route';
 import { createGuestRequest, getJsonResponse, expectStatus } from '../helpers/api-helpers';
 import connectDB from '@/lib/mongodb';
 import mongoose from 'mongoose';
 
+vi.mock('@/lib/mongodb', () => ({ default: vi.fn() }));
+
 describe('Health Check API', () => {
   beforeEach(async () => {
+    const actual = await vi.importActual<typeof import('@/lib/mongodb')>('@/lib/mongodb');
+    vi.mocked(connectDB).mockImplementation(actual.default);
     await connectDB();
   });
 
@@ -119,5 +123,16 @@ describe('Health Check API', () => {
     // Health check should not be cached
     const cacheControl = response.headers.get('cache-control');
     expect(cacheControl).toBeDefined();
+  });
+
+  it('should return 503 and unhealthy when database connection fails', async () => {
+    vi.mocked(connectDB).mockRejectedValueOnce(new Error('Connection refused'));
+    const request = createGuestRequest('GET', 'http://localhost:3000/api/health');
+    const response = await GET(request);
+    const data = await getJsonResponse(response);
+    expect(response.status).toBe(503);
+    expect(data.status).toBe('unhealthy');
+    expect(data.services.database.status).toBe('error');
+    expect(data.services.database.error).toBe('Database connection failed');
   });
 });

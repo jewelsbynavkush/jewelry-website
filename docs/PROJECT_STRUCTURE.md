@@ -1037,7 +1037,7 @@ interface InputProps {
 
 - **[Vercel Deployment Guide](./VERCEL_DEPLOYMENT.md)** - Complete deployment guide
 - **[SEO Audit](./SEO_AUDIT_2025.md)** - Complete SEO best practices & verification
-- **[Security Audit](./SECURITY_AUDIT_2025.md)** - Complete security best practices & audit
+- **[Security Audit](./SECURITY_DEEP_AUDIT_2025.md)** - Complete security best practices & audit
 - **[Backend Comprehensive Audit](./BACKEND_COMPREHENSIVE_AUDIT_2025_FINAL.md)** - Complete backend and comprehensive audit
 - **[Design System](./DESIGN_SYSTEM_CONSISTENCY.md)** - Design standards
 - **[3D Animations Guide](./3D_ANIMATIONS_GUIDE.md)** - Animation system

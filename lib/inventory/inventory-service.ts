@@ -148,59 +148,75 @@ export async function reserveStockForCart(
 
 /**
  * Release reserved stock (when item removed from cart or cart expires)
- * 
- * @param productId - Product ID
- * @param quantity - Quantity to release
- * @param userId - User ID (optional)
+ * Uses retry with backoff for transient lock conflicts (e.g. MongoDB Memory Server 5ms lock timeout).
  */
 export async function releaseReservedStock(
   productId: string,
   quantity: number,
   userId?: string
 ): Promise<{ success: boolean; error?: string }> {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  await connectDB();
 
-  try {
-    await connectDB();
+  return await retryWithBackoff(async () => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
-    // Use Product static method for atomic stock release
-    // Ensures reserved quantity is correctly restored when cart item removed
-    const product = await Product.releaseReservedStock(productId, quantity, session);
+    try {
+      const product = await Product.releaseReservedStock(productId, quantity, session);
 
-    if (!product) {
-      await session.abortTransaction();
-      return { success: false, error: 'Product not found' };
+      if (!product) {
+        await session.abortTransaction();
+        session.endSession();
+        return { success: false, error: 'Product not found' };
+      }
+
+      const prevAvailable = product.inventory.quantity - product.inventory.reservedQuantity - quantity;
+      const newAvailable = product.inventory.quantity - product.inventory.reservedQuantity;
+
+      try {
+        await InventoryLog.create([{
+          productId: product._id,
+          productSku: product.sku,
+          productTitle: product.title,
+          type: 'released',
+          quantity: -quantity,
+          previousQuantity: Math.max(0, prevAvailable),
+          newQuantity: Math.max(0, newAvailable),
+          performedBy: {
+            userId: userId ? new mongoose.Types.ObjectId(userId) : undefined,
+            type: userId ? 'customer' : 'system',
+          },
+        }], { session });
+      } catch (auditErr) {
+        logError('releaseReservedStock audit log', auditErr);
+      }
+
+      await session.commitTransaction();
+      session.endSession();
+      return { success: true };
+    } catch (error) {
+      if (session.inTransaction()) {
+        try {
+          await session.abortTransaction();
+        } catch {
+          // ignore
+        }
+      }
+      try {
+        session.endSession();
+      } catch {
+        // ignore
+      }
+      if (isTransientError(error)) {
+        throw error;
+      }
+      logError('releaseReservedStock', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to release stock',
+      };
     }
-
-    // Create audit log entry for stock release
-    // Records when reserved stock is returned to available inventory
-    await InventoryLog.create([{
-      productId: product._id,
-      productSku: product.sku,
-      productTitle: product.title,
-      type: 'released',
-      quantity: -quantity,
-      previousQuantity: product.inventory.quantity - product.inventory.reservedQuantity - quantity,
-      newQuantity: product.inventory.quantity - product.inventory.reservedQuantity,
-      performedBy: {
-        userId: userId ? new mongoose.Types.ObjectId(userId) : undefined,
-        type: userId ? 'customer' : 'system',
-      },
-    }], { session });
-
-    await session.commitTransaction();
-    return { success: true };
-  } catch (error) {
-    await session.abortTransaction();
-    logError('releaseStockFromCart', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Failed to release stock',
-    };
-  } finally {
-    session.endSession();
-  }
+  });
 }
 
 /**

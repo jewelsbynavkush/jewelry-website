@@ -11,7 +11,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { POST } from '@/app/api/contact/route';
+import { POST, GET, PUT, PATCH, DELETE } from '@/app/api/contact/route';
 import { createGuestRequest, getJsonResponse, expectStatus, expectSuccess, expectError } from '../helpers/api-helpers';
 import connectDB from '@/lib/mongodb';
 
@@ -111,6 +111,92 @@ describe('POST /api/contact', () => {
       if (response.status === 200) {
         expect(data).toBeDefined();
       }
+    });
+  });
+
+  describe('Unsupported methods', () => {
+    it('GET should return 405', async () => {
+      const request = createGuestRequest('GET', 'http://localhost:3000/api/contact');
+      const response = await GET(request);
+      const data = await getJsonResponse(response);
+      expectStatus(response, 405);
+      expectError(data);
+      expect(response.headers.get('Allow')).toBe('POST');
+    });
+
+    it('PUT should return 405', async () => {
+      const request = createGuestRequest('PUT', 'http://localhost:3000/api/contact');
+      const response = await PUT(request);
+      expectStatus(response, 405);
+    });
+
+    it('PATCH should return 405', async () => {
+      const request = createGuestRequest('PATCH', 'http://localhost:3000/api/contact');
+      const response = await PATCH(request);
+      expectStatus(response, 405);
+    });
+
+    it('DELETE should return 405', async () => {
+      const request = createGuestRequest('DELETE', 'http://localhost:3000/api/contact');
+      const response = await DELETE(request);
+      expectStatus(response, 405);
+    });
+  });
+
+  describe('Request body and length validation', () => {
+    it('should reject invalid JSON', async () => {
+      const request = new Request('http://localhost:3000/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Origin: 'http://localhost:3000',
+          Referer: 'http://localhost:3000/contact',
+        },
+        body: 'not valid json {',
+      });
+      const response = await POST(request);
+      const data = await getJsonResponse(response);
+      expectStatus(response, 400);
+      expect(data.error ?? data.message).toBeDefined();
+    });
+
+    it('should reject name too long', async () => {
+      const request = createGuestRequest('POST', 'http://localhost:3000/api/contact', {
+        name: 'a'.repeat(101),
+        email: 'test@example.com',
+        subject: 'Test',
+        message: 'Test message',
+      });
+      const response = await POST(request);
+      const data = await getJsonResponse(response);
+      expectStatus(response, 400);
+      expectError(data);
+    });
+
+    it('should reject email too long', async () => {
+      const request = createGuestRequest('POST', 'http://localhost:3000/api/contact', {
+        name: 'Test',
+        email: 'a'.repeat(250) + '@x.com',
+        subject: 'Test',
+        message: 'Test message',
+      });
+      const response = await POST(request);
+      const data = await getJsonResponse(response);
+      expectStatus(response, 400);
+      expectError(data);
+    });
+
+    it('should reject message too long', async () => {
+      const request = createGuestRequest('POST', 'http://localhost:3000/api/contact', {
+        name: 'Test',
+        email: 'test@example.com',
+        subject: 'Test',
+        message: 'a'.repeat(5001),
+      });
+      const response = await POST(request);
+      const data = await getJsonResponse(response);
+      expectStatus(response, 400);
+      expectError(data);
     });
   });
 });

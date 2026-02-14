@@ -1,11 +1,9 @@
 /**
  * Centralized Logger Utility
- * 
- * Provides consistent logging across the entire application.
- * Supports different log levels and formats data consistently.
+ * In production outputs a single JSON line per log for log aggregation (e.g. Datadog, CloudWatch).
  */
 
-import { isDevelopment, isTest } from './env';
+import { isDevelopment, isProduction, isTest } from './env';
 
 type LogLevel = 'info' | 'error' | 'warn' | 'debug';
 
@@ -18,6 +16,20 @@ interface Logger {
   error: (message: string, error?: unknown, data?: LogData) => void;
   warn: (message: string, data?: LogData | unknown) => void;
   debug: (message: string, data?: LogData | unknown) => void;
+}
+
+function toStructuredPayload(level: LogLevel, message: string, data?: LogData | unknown): Record<string, unknown> {
+  const payload: Record<string, unknown> = {
+    level,
+    timestamp: new Date().toISOString(),
+    message,
+  };
+  if (data != null && typeof data === 'object' && !Array.isArray(data)) {
+    Object.assign(payload, data as Record<string, unknown>);
+  } else if (data !== undefined) {
+    payload.data = data;
+  }
+  return payload;
 }
 
 /**
@@ -65,9 +77,6 @@ function shouldLog(level: LogLevel): boolean {
   return true;
 }
 
-/**
- * Create log prefix
- */
 function createPrefix(level: LogLevel, context?: string): string {
   const timestamp = new Date().toISOString();
   const levelUpper = level.toUpperCase();
@@ -75,16 +84,15 @@ function createPrefix(level: LogLevel, context?: string): string {
   return `[${levelUpper}]${contextPart} ${timestamp}`;
 }
 
-/**
- * Centralized logger instance
- */
 const logger: Logger = {
   info: (message: string, data?: LogData | unknown) => {
     if (!shouldLog('info')) return;
-    
+    if (isProduction()) {
+      console.log(JSON.stringify(toStructuredPayload('info', message, data)));
+      return;
+    }
     const prefix = createPrefix('info');
     const formattedData = formatLogData(data);
-    
     if (formattedData) {
       console.log(`${prefix} - ${message}`, formattedData);
     } else {
@@ -94,13 +102,17 @@ const logger: Logger = {
 
   error: (message: string, error?: unknown, data?: LogData) => {
     if (!shouldLog('error')) return;
-    
+    const errorFields = error ? formatError(error) : {};
+    if (isProduction()) {
+      console.error(
+        JSON.stringify(toStructuredPayload('error', message, { ...errorFields, ...(data ?? {}) }))
+      );
+      return;
+    }
     const prefix = createPrefix('error');
     const errorData = error ? formatError(error) : null;
     const additionalData = data ? formatLogData(data) : null;
-    
     const allData = [errorData, additionalData].filter(Boolean).join('\n');
-    
     if (allData) {
       console.error(`${prefix} - ${message}`, allData);
     } else {
@@ -110,10 +122,12 @@ const logger: Logger = {
 
   warn: (message: string, data?: LogData | unknown) => {
     if (!shouldLog('warn')) return;
-    
+    if (isProduction()) {
+      console.log(JSON.stringify(toStructuredPayload('warn', message, data)));
+      return;
+    }
     const prefix = createPrefix('warn');
     const formattedData = formatLogData(data);
-    
     if (formattedData) {
       console.warn(`${prefix} - ${message}`, formattedData);
     } else {
@@ -123,10 +137,12 @@ const logger: Logger = {
 
   debug: (message: string, data?: LogData | unknown) => {
     if (!shouldLog('debug')) return;
-    
+    if (isProduction()) {
+      console.log(JSON.stringify(toStructuredPayload('debug', message, data)));
+      return;
+    }
     const prefix = createPrefix('debug');
     const formattedData = formatLogData(data);
-    
     if (formattedData) {
       console.log(`${prefix} - ${message}`, formattedData);
     } else {
@@ -136,3 +152,21 @@ const logger: Logger = {
 };
 
 export default logger;
+
+export function logApiResponse(params: {
+  method: string;
+  path: string;
+  status: number;
+  correlationId: string;
+}): void {
+  if (isTest()) return;
+  const payload = toStructuredPayload('info', 'api', {
+    ...params,
+    type: 'api_response',
+  });
+  if (isProduction()) {
+    console.log(JSON.stringify(payload));
+  } else {
+    logger.info(`API ${params.method} ${params.path} ${params.status} [${params.correlationId}]`);
+  }
+}

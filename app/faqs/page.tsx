@@ -1,4 +1,4 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import PageSectionLayout from '@/components/ui/PageSectionLayout';
@@ -7,14 +7,15 @@ import { generateStandardMetadata } from '@/lib/seo/metadata';
 import { generateFAQPageSchema } from '@/lib/seo/faq-schema';
 import { getBaseUrl } from '@/lib/utils/env';
 
+const baseUrl = getBaseUrl();
+
 export const metadata: Metadata = generateStandardMetadata({
   title: 'FAQs - Frequently Asked Questions',
   description: 'Find answers to common questions about our jewelry, ordering process, shipping, care instructions, and more. Get the information you need to make the perfect jewelry purchase.',
-  url: `${getBaseUrl()}/faqs`,
+  url: `${baseUrl}/faqs`,
 });
 
 export default function FAQsPage() {
-  const baseUrl = getBaseUrl();
   const faqs = [
     {
       question: 'What materials do you use in your jewelry?',

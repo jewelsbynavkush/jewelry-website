@@ -1,206 +1,100 @@
 # Documentation Index
 
-Complete documentation for the Jewels by NavKush jewelry website.
+All documentation for the Jewels by NavKush jewelry website lives in this `docs/` folder. The project root keeps only `README.md`.
 
 ---
 
-## 🚀 **Quick Start**
+## Quick start and setup
 
-- **[Quick Start Guide](./SETUP_QUICK_START.md)** - Get up and running in minutes
-
-- **[Development Guide](./DEVELOPMENT_GUIDE.md)** - Complete development workflow
-
-- **[Project Roadmap](./PROJECT_ROADMAP.md)** - Comprehensive development plan
-
----
-
-## 📚 **Setup & Configuration**
-
-### **Initial Setup**
-
-- **[Quick Start Guide](./SETUP_QUICK_START.md)** - Initial project setup
-
-- **[Environment Setup Guide](./ENVIRONMENT_SETUP_GUIDE.md)** - Step-by-step dev/prod environment setup
-
-- **[MongoDB Atlas Complete Guide](./MONGODB_ATLAS_COMPLETE_GUIDE.md)** - Complete MongoDB Atlas setup ⭐ **READ THIS FIRST**
-
-- **[Account Setup Guide](./ACCOUNT_SETUP_GUIDE.md)** - Business accounts, Gmail, GitHub, domain transfer, SSH setup
-
-### **Deployment**
-
-- **[Vercel Deployment Guide](./VERCEL_DEPLOYMENT.md)** - Complete deployment guide
-
-- **[GitHub Complete Guide](./GITHUB_COMPLETE_GUIDE.md)** - GitHub setup and hosting
+| Doc | Description |
+|-----|-------------|
+| [Quick Start Guide](./SETUP_QUICK_START.md) | Get running locally in minutes |
+| [Environment Setup Guide](./ENVIRONMENT_SETUP_GUIDE.md) | Full dev/prod environment setup |
+| [Environment Variables Complete](./ENVIRONMENT_VARIABLES_COMPLETE.md) | All env vars and usage |
+| [MongoDB Atlas Complete Guide](./MONGODB_ATLAS_COMPLETE_GUIDE.md) | Database setup (recommended first) |
+| [Account Setup Guide](./ACCOUNT_SETUP_GUIDE.md) | Business accounts, Gmail, GitHub, domain |
 
 ---
 
-## 🎨 **Design & Development**
+## Deployment and production
 
-### **Design System**
-
-- **[Design System Consistency](./DESIGN_SYSTEM_CONSISTENCY.md)** - Design standards
-
-- **[Typography Guide](./TYPOGRAPHY_GUIDE.md)** - Font system
-
-- **[3D Animations Guide](./3D_ANIMATIONS_GUIDE.md)** - 3D effects and animations
-
-- **[Color Consistency Audit](./COLOR_CONSISTENCY_AUDIT_2025.md)** - Color system and contrast
-
-### **Development**
-
-- **[Development Guide](./DEVELOPMENT_GUIDE.md)** - Complete development workflow
-
-- **[Project Structure](./PROJECT_STRUCTURE.md)** - Complete technical documentation
+| Doc | Description |
+|-----|-------------|
+| [Production Readiness Rating](./PRODUCTION_READINESS_RATING.md) | Production-grade assessment (all aspects) |
+| [Production Checklist](./PRODUCTION_CHECKLIST.md) | Technical pre-launch checklist |
+| [Production Launch Guide](./PRODUCTION_LAUNCH_GUIDE.md) | Full business launch guide |
+| [Vercel Deployment](./VERCEL_DEPLOYMENT.md) | Deploy to Vercel |
+| [GitHub Complete Guide](./GITHUB_COMPLETE_GUIDE.md) | GitHub and hosting |
 
 ---
 
-## 🔍 **Technical Documentation**
+## Development and design
 
-### **Framework & Architecture**
-
-- **[Project Structure](./PROJECT_STRUCTURE.md)** - Complete technical documentation
-
-- **[Next.js Static vs Dynamic](./NEXTJS_STATIC_VS_DYNAMIC.md)** - Rendering strategies
-
-### **Standards & Best Practices**
-
-- **[Comprehensive Best Practices Audit](./COMPREHENSIVE_BEST_PRACTICES_AUDIT_2025.md)** - Complete best practices verification (consolidates all audits)
-
-- **[Comment Standards](./COMMENT_STANDARDS.md)** - Code commenting standards (includes complete audit history)
-
-- **[Text Casing Standards](./TEXT_CASING_STANDARDS.md)** - Text formatting standards
-
-- **[Import Patterns Guide](./IMPORT_PATTERNS_GUIDE.md)** - Import organization patterns
-
-- **[Code Quality Audit](./CODE_QUALITY_AUDIT_2025_FINAL.md)** - Code quality and clean code audit
-
-- **[Color Consistency Audit](./COLOR_CONSISTENCY_AUDIT_2025.md)** - Color system and contrast
-
-- **[CSS Responsiveness Audit](./CSS_RESPONSIVENESS_AUDIT_2025.md)** - Responsiveness standards and best practices
-
-- **[Security Audit](./SECURITY_DEEP_AUDIT_2025.md)** - Security standards and best practices
-
-- **[SEO Audit](./SEO_AUDIT_2025.md)** - SEO standards and best practices
-
-- **[E-Commerce Best Practices](./E_COMMERCE_BEST_PRACTICES_FINAL.md)** - E-commerce standards and best practices
+| Doc | Description |
+|-----|-------------|
+| [Development Guide](./DEVELOPMENT_GUIDE.md) | Development workflow and commands |
+| [Project Structure](./PROJECT_STRUCTURE.md) | Codebase layout and architecture |
+| [Project Roadmap](./PROJECT_ROADMAP.md) | Roadmap and plans |
+| [Design System Consistency](./DESIGN_SYSTEM_CONSISTENCY.md) | Design standards |
+| [Typography Guide](./TYPOGRAPHY_GUIDE.md) | Font system |
+| [3D Animations Guide](./3D_ANIMATIONS_GUIDE.md) | 3D effects and animations |
+| [Color Consistency Audit](./COLOR_CONSISTENCY_AUDIT_2025.md) | Color and contrast |
+| [Next.js Static vs Dynamic](./NEXTJS_STATIC_VS_DYNAMIC.md) | Rendering strategies |
 
 ---
 
-## 📊 **Models & Database**
+## Backend, API, and data
 
-- **[Models Guide](./MODELS_GUIDE.md)** - Complete MongoDB models documentation
-
-- **[Inventory Guide](./INVENTORY_GUIDE.md)** - Complete inventory management guide (flow, operations, concurrency)
-
-- **[Stock Management Guide](./STOCK_MANAGEMENT_GUIDE.md)** - How to add stock, manage inventory, and align orders ⭐ **READ THIS FOR STOCK MANAGEMENT**
-
-- **[Add Products Guide](./ADD_PRODUCTS_GUIDE.md)** - How to add new products with stock ⭐ **READ THIS TO ADD PRODUCTS**
-
-- **[Category Active Field Guide](./CATEGORY_ACTIVE_FIELD_GUIDE.md)** - Category management
-
-- **[MongoDB Atlas Complete Guide](./MONGODB_ATLAS_COMPLETE_GUIDE.md)** - MongoDB setup
-
----
-
-## 🔌 **APIs**
-
-- **[API Guide](./API_GUIDE.md)** - Complete API documentation (includes quick reference)
-
-- **[Swagger Documentation](./SWAGGER_API_DOCUMENTATION.md)** - Interactive API docs (includes security configuration)
+| Doc | Description |
+|-----|-------------|
+| [Backend Standards](./BACKEND_STANDARDS.md) | API and backend checklist |
+| [API Guide](./API_GUIDE.md) | API usage and reference |
+| [Swagger Documentation](./SWAGGER_API_DOCUMENTATION.md) | OpenAPI / Swagger UI |
+| [Models Guide](./MODELS_GUIDE.md) | MongoDB models |
+| [Inventory Guide](./INVENTORY_GUIDE.md) | Inventory flow and operations |
+| [Stock Management Guide](./STOCK_MANAGEMENT_GUIDE.md) | Stock and orders |
+| [Add Products Guide](./ADD_PRODUCTS_GUIDE.md) | Adding products |
+| [Category Active Field Guide](./CATEGORY_ACTIVE_FIELD_GUIDE.md) | Category management |
 
 ---
 
-## 🛒 **E-Commerce**
+## Standards and audits
 
-- **[E-Commerce Best Practices](./E_COMMERCE_BEST_PRACTICES_FINAL.md)** - Complete e-commerce guide and best practices
-
----
-
-## ✅ **Quality & Audits**
-
-- **[Backend Comprehensive Audit](./BACKEND_COMPREHENSIVE_AUDIT_2025_FINAL.md)** - Complete backend standards audit
-
-- **[Comprehensive Best Practices Audit](./COMPREHENSIVE_BEST_PRACTICES_AUDIT_2025.md)** - Complete best practices verification (consolidates all audits)
-
-- **[Code Quality Audit](./CODE_QUALITY_AUDIT_2025.md)** - Code quality and clean code audit
-
-- **[Security Audit](./SECURITY_DEEP_AUDIT_2025.md)** - Security standards and best practices
-
-- **[Comment Standards](./COMMENT_STANDARDS.md)** - Comment standards (includes audit history)
-
-- **[SEO Audit](./SEO_AUDIT_2025.md)** - SEO standards and best practices
-
-- **[CSS Responsiveness Audit](./CSS_RESPONSIVENESS_AUDIT_2025.md)** - Responsiveness standards and best practices
-
-- **[E-Commerce Best Practices](./E_COMMERCE_BEST_PRACTICES_FINAL.md)** - E-commerce standards and best practices
+| Doc | Description |
+|-----|-------------|
+| [Comprehensive Best Practices Audit](./COMPREHENSIVE_BEST_PRACTICES_AUDIT_2025.md) | Best practices verification |
+| [Backend Comprehensive Audit](./BACKEND_COMPREHENSIVE_AUDIT_2025_FINAL.md) | Backend audit |
+| [Code Quality Audit](./CODE_QUALITY_AUDIT_2025_FINAL.md) | Code quality |
+| [Security Audit](./SECURITY_DEEP_AUDIT_2025.md) | Security |
+| [SEO Audit](./SEO_AUDIT_2025.md) | SEO |
+| [CSS Responsiveness Audit](./CSS_RESPONSIVENESS_AUDIT_2025.md) | Responsiveness |
+| [Comment Standards](./COMMENT_STANDARDS.md) | Commenting |
+| [Text Casing Standards](./TEXT_CASING_STANDARDS.md) | Text formatting |
+| [Import Patterns Guide](./IMPORT_PATTERNS_GUIDE.md) | Imports |
+| [E-Commerce Best Practices](./E_COMMERCE_BEST_PRACTICES_FINAL.md) | E-commerce standards |
 
 ---
 
-## 🧪 **Testing**
+## Other guides
 
-- **[Testing Guide](./TESTING_GUIDE.md)** - Complete testing documentation (includes architecture, implementation, and coverage)
-
----
-
-## 🔧 **Troubleshooting & Guides**
-
-### **Image & CDN**
-
-- **[Image Guide](./IMAGE_GUIDE.md)** - Image usage and optimization
-
-- **[CDN Guide](./CDN_GUIDE.md)** - CDN options, setup, and migration for static assets
-
-### **Services**
-
-- **[Email Setup Guide](./EMAIL_SETUP.md)** - Gmail and Zoho Mail (including Zoho business email)
+| Doc | Description |
+|-----|-------------|
+| [Alerting and Metrics](./ALERTING_AND_METRICS.md) | APM, metrics (latency, error rate, DB), and alerting |
+| [Testing Guide](./TESTING_GUIDE.md) | Testing and coverage |
+| [Image Guide](./IMAGE_GUIDE.md) | Images and optimization |
+| [CDN Guide](./CDN_GUIDE.md) | CDN and static assets |
+| [Email Setup](./EMAIL_SETUP.md) | Gmail and Zoho Mail |
+| [Encryption Guide](./ENCRYPTION_GUIDE.md) | Encryption and masking |
+| [Logging Implementation](./LOGGING_IMPLEMENTATION.md) | Logging |
+| [Site Settings Migration](./SITE_SETTINGS_MIGRATION.md) | Site settings migration |
+| [Country Settings Migration](./COUNTRY_SETTINGS_MIGRATION.md) | Country settings migration |
 
 ---
 
-## 📋 **Production & Launch**
+## Documentation history
 
-- **[Production Launch Guide](./PRODUCTION_LAUNCH_GUIDE.md)** - Complete production launch checklist (includes setup)
-
----
-
-## 🎯 **Quick Reference**
-
-### **Most Important Docs:**
-
-1. **[Quick Start Guide](./SETUP_QUICK_START.md)** - Get started
-2. **[MongoDB Atlas Complete Guide](./MONGODB_ATLAS_COMPLETE_GUIDE.md)** - Database setup
-3. **[Project Structure](./PROJECT_STRUCTURE.md)** - Technical documentation
-4. **[Vercel Deployment Guide](./VERCEL_DEPLOYMENT.md)** - Deployment guide
-5. **[Development Guide](./DEVELOPMENT_GUIDE.md)** - Development workflow
-6. **[Comprehensive Best Practices Audit](./COMPREHENSIVE_BEST_PRACTICES_AUDIT_2025.md)** - Complete best practices verification
-7. **[Models Guide](./MODELS_GUIDE.md)** - Database models
-8. **[API Guide](./API_GUIDE.md)** - API documentation
-9. **[E-Commerce Best Practices](./E_COMMERCE_BEST_PRACTICES_FINAL.md)** - E-commerce features and best practices
-10. **[Backend Comprehensive Audit](./BACKEND_COMPREHENSIVE_AUDIT_2025_FINAL.md)** - Complete backend and comprehensive audit
+Merge history and canonical audit filenames: [DOCUMENTATION_CONSOLIDATION.md](./DOCUMENTATION_CONSOLIDATION.md).
 
 ---
 
-## 📝 **Documentation Structure**
-
-All documentation is organized in the `docs/` directory:
-
-- **Setup Guides** - Initial setup and configuration
-
-- **Development Guides** - Development workflow and best practices
-
-- **Technical Documentation** - Framework, architecture, and standards
-
-- **Models & APIs** - Database models and API documentation
-
-- **E-Commerce** - E-commerce features and best practices
-
-- **Audit Reports** - Quality and compliance audits
-
-- **Testing** - Test documentation and guides
-
-- **Troubleshooting** - Common issues and solutions
-
-- **Documentation consolidation** - [DOCUMENTATION_CONSOLIDATION.md](./DOCUMENTATION_CONSOLIDATION.md) (merge history and canonical file list)
-
----
-
-**Last Updated:** February 8, 2026
+**Last updated:** February 2026

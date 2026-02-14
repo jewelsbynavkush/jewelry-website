@@ -113,10 +113,10 @@
 
 ### 3.1 Primary Database
 
-**✅ Recommended: Zoho Catalyst NoSQL**
+**✅ Recommended: MongoDB Atlas**
 
-- **Free Tier:** 2GB storage, 17,000 operations/month
-- **Setup:** See [Zoho Catalyst NoSQL Setup Guide](./ZOHO_CATALYST_NOSQL_SETUP.md)
+- **Free Tier:** 512MB storage (M0), unlimited operations
+- **Setup:** See [MongoDB Atlas Complete Guide](./MONGODB_ATLAS_COMPLETE_GUIDE.md)
 
 **What to Store:**
 - Products catalog
@@ -136,7 +136,7 @@
 
 **Options:**
 1. **GitHub** - Code backup (automatic)
-2. **Zoho Catalyst** - Export data regularly
+2. **MongoDB Atlas** - Use Atlas backups or export data regularly
 3. **Manual Exports** - Download JSON backups monthly
 4. **Automated Scripts** - Set up cron jobs for backups
 
@@ -258,7 +258,7 @@
 - Use Zustand or React Context for cart state
 - Persist cart in localStorage
 - Sync with database (optional)
-- See [E-Commerce Guide](./E_COMMERCE_GUIDE.md)
+- See [E-Commerce Best Practices](./E_COMMERCE_BEST_PRACTICES_FINAL.md)
 
 **Features Needed:**
 - Add to cart
@@ -861,9 +861,9 @@
 
 **✅ Required: Regular Backups**
 
-**Zoho Catalyst:**
-- Export data monthly
-- Download JSON backups
+**MongoDB Atlas:**
+- Use Atlas automated backups or export data monthly
+- Download JSON backups if self-managing
 - Store in secure location
 
 **Automation:**
@@ -981,7 +981,7 @@
 |---------|------|-------------------|
 | **Hosting (Vercel)** | $0 | ✅ Yes |
 | **Domain** | $10-15/year | ❌ No |
-| **Database (Zoho Catalyst)** | $0 | ✅ Yes |
+| **Database (MongoDB Atlas)** | $0 | ✅ Yes |
 | **Email (Zoho Mail)** | $0 | ✅ Yes |
 | **GitHub** | $0 | ✅ Yes |
 | **Analytics (GA4)** | $0 | ✅ Yes |
@@ -1019,7 +1019,7 @@
 ### Week 1: Foundation
 1. ✅ Domain purchase
 2. ✅ Deploy to Vercel
-3. ✅ Set up Zoho Catalyst database
+3. ✅ Set up MongoDB Atlas database
 4. ✅ Configure Zoho Mail
 5. ✅ Add all products
 
@@ -1049,10 +1049,10 @@
 ## 📚 Additional Resources
 
 ### Documentation in This Project
-- [Zoho Catalyst NoSQL Setup](./ZOHO_CATALYST_NOSQL_SETUP.md)
+- [MongoDB Atlas Complete Guide](./MONGODB_ATLAS_COMPLETE_GUIDE.md)
 - [Email Setup (Zoho section)](./EMAIL_SETUP.md#zoho-mail-business--custom-domain)
 - [Vercel Deployment Guide](./VERCEL_DEPLOYMENT.md)
-- [E-Commerce Implementation Guide](./E_COMMERCE_IMPLEMENTATION_GUIDE.md)
+- [E-Commerce Best Practices](./E_COMMERCE_BEST_PRACTICES_FINAL.md)
 
 ### External Resources
 - [Stripe Documentation](https://stripe.com/docs)

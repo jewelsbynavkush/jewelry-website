@@ -1,4 +1,4 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 import { generateStandardMetadata } from '@/lib/seo/metadata';
 import { getBaseUrl } from '@/lib/utils/env';
 

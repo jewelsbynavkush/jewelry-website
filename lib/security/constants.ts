@@ -171,7 +171,7 @@ export const SECURITY_HEADERS = {
   
   CSP: {
     DEFAULT_SRC: "'self'",
-    SCRIPT_SRC: "'self' 'unsafe-eval' 'unsafe-inline'",
+    SCRIPT_SRC: "'self' 'unsafe-inline'",
     STYLE_SRC: "'self' 'unsafe-inline' https://fonts.googleapis.com",
     IMG_SRC: "'self' data: https: blob:",
     FONT_SRC: "'self' data: https://fonts.gstatic.com",

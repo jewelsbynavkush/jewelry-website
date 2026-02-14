@@ -99,6 +99,14 @@ const openApiSpec = {
           },
         },
       },
+      Forbidden: {
+        description: 'Forbidden (e.g. admin required)',
+        content: {
+          'application/json': {
+            schema: { $ref: '#/components/schemas/Error' },
+          },
+        },
+      },
       TooManyRequests: {
         description: 'Too many requests',
         content: {
@@ -576,13 +584,20 @@ const openApiSpec = {
             'application/json': {
               schema: {
                 type: 'object',
-                required: ['status'],
                 properties: {
                   status: {
                     type: 'string',
                     enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'],
+                    description: 'Order status',
                   },
-                  notes: { type: 'string', description: 'Optional notes about the status change' },
+                  paymentStatus: {
+                    type: 'string',
+                    enum: ['pending', 'paid', 'failed', 'refunded', 'partially_refunded'],
+                    description: 'Payment status',
+                  },
+                  trackingNumber: { type: 'string', maxLength: 100, description: 'Tracking number' },
+                  carrier: { type: 'string', maxLength: 100, description: 'Carrier name' },
+                  notes: { type: 'string', maxLength: 1000, description: 'Notes about the status change' },
                 },
               },
             },

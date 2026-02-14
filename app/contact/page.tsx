@@ -1,4 +1,4 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 import ContactForm from '@/components/sections/ContactForm';
 import PageSectionLayout from '@/components/ui/PageSectionLayout';
 import InfoCard from '@/components/ui/InfoCard';

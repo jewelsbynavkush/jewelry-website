@@ -18,6 +18,8 @@ import { getCorrelationId } from './error-handler';
 import { SECURITY_CONFIG } from './constants';
 import { isTest, isProduction } from '@/lib/utils/env';
 import { enforceHttps } from './encryption';
+import { logApiResponse } from '@/lib/utils/logger';
+import { recordApiRequest, getRequestDurationMs } from '@/lib/observability/metrics';
 
 export interface ApiSecurityConfig {
   /** Enable CORS (default: true) */
@@ -287,6 +289,15 @@ export function createSecureResponse(
   config: ApiSecurityConfig = {}
 ): NextResponse {
   const headers = getApiSecurityHeaders(request, config);
+  const path = request.nextUrl?.pathname ?? (request.url ? new URL(request.url).pathname : '');
+  const durationMs = getRequestDurationMs(request);
+  logApiResponse({
+    method: request.method,
+    path,
+    status,
+    correlationId: getCorrelationId(request),
+  });
+  recordApiRequest({ method: request.method, path, status, durationMs });
   return NextResponse.json(data, { status, headers });
 }
 
@@ -306,6 +317,15 @@ export function createSecureErrorResponse(
   config: ApiSecurityConfig = {}
 ): NextResponse {
   const headers = getApiSecurityHeaders(request, config);
+  const path = request.nextUrl?.pathname ?? (request.url ? new URL(request.url).pathname : '');
+  const durationMs = getRequestDurationMs(request);
+  logApiResponse({
+    method: request.method,
+    path,
+    status,
+    correlationId: getCorrelationId(request),
+  });
+  recordApiRequest({ method: request.method, path, status, durationMs });
   return NextResponse.json({ error }, { status, headers });
 }
 

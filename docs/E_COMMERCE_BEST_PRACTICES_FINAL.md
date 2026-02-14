@@ -387,7 +387,7 @@ The following are already implemented: cart (add/update/remove, guest and user),
    - Personalized recommendations
    - Wishlist functionality
 
-**Note:** These features are documented in `docs/E_COMMERCE_GUIDE.md`.
+**Note:** These features are documented in this guide and in [API Guide](./API_GUIDE.md).
 
 ---
 
@@ -442,8 +442,8 @@ const status = getStockStatus(product.inStock);
 ## 📚 **Related Documentation**
 
 For detailed implementation guides and best practices, see:
-- [E-Commerce Guide](./E_COMMERCE_GUIDE.md) - Complete e-commerce guide
-- [Overall Best Practices](./OVERALL_BEST_PRACTICES_FINAL_2025.md) - Complete best practices verification
+- [E-Commerce Best Practices](./E_COMMERCE_BEST_PRACTICES_FINAL.md) - This guide
+- [Comprehensive Best Practices Audit](./COMPREHENSIVE_BEST_PRACTICES_AUDIT_2025.md) - Best practices verification
 
 ---
 

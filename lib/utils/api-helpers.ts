@@ -78,12 +78,10 @@ export function getPaginationParams(searchParams: URLSearchParams): {
   limit: number;
   page: number;
 } {
-  const limit = Math.min(
-    Math.max(parseInt(searchParams.get('limit') || '20', 10), 1),
-    100
-  );
-  const page = Math.max(parseInt(searchParams.get('page') || '1', 10), 1);
-  
+  const rawLimit = parseInt(searchParams.get('limit') || '20', 10);
+  const rawPage = parseInt(searchParams.get('page') || '1', 10);
+  const limit = Math.min(Math.max(Number.isNaN(rawLimit) ? 20 : rawLimit, 1), 100);
+  const page = Math.max(Number.isNaN(rawPage) ? 1 : rawPage, 1);
   return { limit, page };
 }
 

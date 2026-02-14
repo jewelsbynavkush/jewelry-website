@@ -48,7 +48,7 @@ Before deploying, ensure you have:
 
 - ✅ Code pushed to GitHub repository
 - ✅ All environment variables ready (see [Environment Setup Guide](./ENVIRONMENT_SETUP_GUIDE.md))
-- ✅ Zoho Catalyst project set up (see [Zoho Catalyst Setup](./ZOHO_CATALYST_NOSQL_SETUP.md)) - Optional for now
+- ✅ MongoDB Atlas cluster set up (see [MongoDB Atlas Complete Guide](./MONGODB_ATLAS_COMPLETE_GUIDE.md))
 - ✅ Vercel account (free)
 - ✅ Build passes locally (`npm run build`)
 
@@ -148,17 +148,16 @@ NEXT_PUBLIC_ENV=production
 NEXT_PUBLIC_BASE_URL=https://your-vercel-url.vercel.app
 NEXT_PUBLIC_SITE_NAME=Jewels by NavKush
 
-# Zoho Catalyst (Production)
-ZOHO_CATALYST_PROJECT_ID=your_prod_project_id
-ZOHO_CATALYST_CLIENT_ID=your_prod_client_id
-ZOHO_CATALYST_CLIENT_SECRET=your_prod_client_secret
+# Database
+MONGODB_URI=your_mongodb_atlas_connection_string
+JWT_SECRET=your_jwt_secret_min_32_chars
 
 ```
 
-**Note:** For current JSON-based architecture, only `NEXT_PUBLIC_ENV`, `NEXT_PUBLIC_BASE_URL`, and `NEXT_PUBLIC_SITE_NAME` are required. Zoho Catalyst variables are for future implementation.
+See [Environment Variables Complete](./ENVIRONMENT_VARIABLES_COMPLETE.md) for the full list.
 
 3. For each variable:
-   - **Name:** Variable name (e.g., `NEXT_PUBLIC_FIREBASE_API_KEY`)
+   - **Name:** Variable name (e.g., `MONGODB_URI`)
    - **Value:** Your actual value
    - **Environment:** Select all (Production, Preview, Development)
 
@@ -369,7 +368,7 @@ Go to **"Settings"** → **"Environment Variables"**:
 3. Verify username and password are correct
 4. Check IP whitelist in MongoDB Atlas (allow 0.0.0.0/0 for Vercel)
 5. Check MongoDB Atlas cluster is running
-6. See [MongoDB Atlas Setup Guide](./MONGODB_ATLAS_SETUP_GUIDE.md)
+6. See [MongoDB Atlas Complete Guide](./MONGODB_ATLAS_COMPLETE_GUIDE.md)
 
 ### Issue: Images Not Loading
 **Solution:**
@@ -554,9 +553,8 @@ After deployment:
 ## 📚 **Related Documentation**
 
 - [Environment Setup Guide](./ENVIRONMENT_SETUP_GUIDE.md) - Dev/prod environment setup
-- [Vercel Branch Setup](./VERCEL_BRANCH_SETUP.md) - Configure different branches
 - [GitHub Complete Guide](./GITHUB_COMPLETE_GUIDE.md) - Complete GitHub setup
-- [Zoho Catalyst Setup](./ZOHO_CATALYST_NOSQL_SETUP.md) - Database setup
+- [MongoDB Atlas Complete Guide](./MONGODB_ATLAS_COMPLETE_GUIDE.md) - Database setup
 - [Production Launch Guide](./PRODUCTION_LAUNCH_GUIDE.md) - Complete business launch guide
 
 ---

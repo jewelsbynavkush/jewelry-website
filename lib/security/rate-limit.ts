@@ -1,8 +1,7 @@
 /**
- * In-memory rate limiter for API routes
- * 
- * Note: Resets on server restart. For production with multiple instances,
- * consider implementing distributed rate limiting with Redis or similar.
+ * In-memory rate limiter for API routes.
+ * Single-instance only; resets on restart. For multi-instance production,
+ * use lib/security/rate-limit-store.ts with a Redis-backed store (see docs/PRODUCTION_CHECKLIST.md).
  */
 
 import { SECURITY_CONFIG } from './constants';
