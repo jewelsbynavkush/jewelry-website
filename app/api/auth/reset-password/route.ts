@@ -7,7 +7,7 @@
 
 import { NextRequest } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import User from '@/models/User';
+import { User } from '@/models';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
 import { sanitizeEmail } from '@/lib/security/sanitize';
@@ -36,7 +36,7 @@ const resetPasswordRequestSchema = z.object({
  */
 export async function POST(request: NextRequest) {
   // Apply security (CORS, CSRF, rate limiting)
-  const securityResponse = applyApiSecurity(request, {
+  const securityResponse = await applyApiSecurity(request, {
     rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.AUTH_RESET_REQUEST,
     requireContentType: true,
   });

@@ -136,9 +136,10 @@ tests/
 
 Tests use **mocked data access** and a **local in-memory database** (MongoDB Memory Server). They do not call the real database.
 
-- **`tests/setup.ts`:** Imports mocks first (`./helpers/mocks/database-mocks`, `./helpers/mocks/address-validation-mocks`), then starts MongoDB Memory Server and connects Mongoose to it.
+- **`tests/setup.ts`:** Imports mocks first (`database-mocks`, `address-validation-mocks`, `external-services-mocks`), then starts MongoDB Memory Server and connects Mongoose to it.
 - **`tests/helpers/mocks/database-mocks.ts`:** Mocks getCategories, getDefaultCountry, getSiteSettings, and related helpers so API/model tests get consistent test data.
 - **`tests/helpers/mocks/address-validation-mocks.ts`:** Mocks address validation (isValidPincode, createAddressSchema, etc.) with mocked country settings.
+- **`tests/helpers/mocks/external-services-mocks.ts`:** Mocks all outbound external services (e.g. email/Gmail). **Always mock external services in tests** – never call real SMTP, payment gateways, or third-party APIs.
 - **`tests/helpers/test-setup-helpers.ts`:** setupTestCountry(), setupTestCategories(), setupTestData() for populating the in-memory DB when needed.
 
 Model operations (create, save, find) run against the in-memory DB; data access from lib (categories, site settings, country) is mocked so tests are fast and deterministic.
@@ -289,6 +290,11 @@ describe('POST /api/cart', () => {
 - Input validation
 - SQL injection prevention
 - XSS prevention
+
+### **6. Mock external services:**
+- Never call real external services in tests (email/SMTP, payment APIs, SMS, etc.).
+- Global mocks for email live in `tests/helpers/mocks/external-services-mocks.ts`.
+- When adding new outbound services, add a mock in that file (or a new mock file) and import it in `tests/setup.ts`.
 
 ---
 

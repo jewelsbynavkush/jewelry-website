@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { generateAccessToken } from './jwt';
-import RefreshToken from '@/models/RefreshToken';
+import { RefreshToken } from '@/models';
 import { isProduction } from '@/lib/utils/env';
 import { TIME_DURATIONS } from '@/lib/security/constants';
 

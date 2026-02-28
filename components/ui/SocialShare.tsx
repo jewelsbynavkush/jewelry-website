@@ -2,6 +2,7 @@
 
 import SocialButton from './SocialButton';
 import { cn } from '@/lib/utils/cn';
+import { getBaseUrl } from '@/lib/utils/env';
 
 interface SocialShareProps {
   url: string;
@@ -22,14 +23,15 @@ export default function SocialShare({
   image,
   className = '',
 }: SocialShareProps) {
-  const getBaseUrl = () => {
-    if (typeof window !== 'undefined') {
-      return window.location.origin;
+  const getBaseUrlForShare = () => {
+    if (typeof window !== 'undefined') return window.location.origin;
+    try {
+      return getBaseUrl();
+    } catch {
+      return 'https://jewelsbynavkush.com';
     }
-    return process.env.NEXT_PUBLIC_BASE_URL || 'https://jewelsbynavkush.com';
   };
-  
-  const baseUrl = getBaseUrl();
+  const baseUrl = getBaseUrlForShare();
   const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
   const shareText = encodeURIComponent(`${title}${description ? ` - ${description}` : ''}`);
   const shareUrl = encodeURIComponent(fullUrl);

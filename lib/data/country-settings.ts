@@ -4,7 +4,7 @@
  */
 
 import connectDB from '@/lib/mongodb';
-import CountrySettings from '@/models/CountrySettings';
+import { CountrySettings } from '@/models';
 import { logError } from '@/lib/security/error-handler';
 
 export interface CountrySettingsType {

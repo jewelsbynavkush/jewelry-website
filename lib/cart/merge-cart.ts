@@ -5,8 +5,7 @@
  * Industry standard: Preserve guest cart items when user logs in/registers
  */
 
-import Cart from '@/models/Cart';
-import Product from '@/models/Product';
+import { Cart, Product } from '@/models';
 import { ECOMMERCE } from '@/lib/constants';
 import { getEcommerceSettings } from '@/lib/utils/site-settings-helpers';
 import mongoose from 'mongoose';

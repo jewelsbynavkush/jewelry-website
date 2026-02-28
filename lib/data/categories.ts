@@ -4,7 +4,7 @@
  */
 
 import connectDB from '@/lib/mongodb';
-import Category from '@/models/Category';
+import { Category } from '@/models';
 import type { Category as CategoryType } from '@/types/data';
 import { logError } from '@/lib/security/error-handler';
 

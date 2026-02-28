@@ -9,7 +9,7 @@
 
 import { NextRequest } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import Product from '@/models/Product';
+import { Product } from '@/models';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
 import { SECURITY_CONFIG } from '@/lib/security/constants';
@@ -25,7 +25,7 @@ export async function GET(
   { params }: { params: Promise<{ productId: string }> }
 ) {
   // Apply security (CORS, CSRF, rate limiting)
-  const securityResponse = applyApiSecurity(request, {
+  const securityResponse = await applyApiSecurity(request, {
     rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.INVENTORY_READ,
   });
   if (securityResponse) return securityResponse;

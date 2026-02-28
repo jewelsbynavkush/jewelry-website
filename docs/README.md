@@ -62,6 +62,7 @@ All documentation for the Jewels by NavKush jewelry website lives in this `docs/
 
 | Doc | Description |
 |-----|-------------|
+| [Audit vs User Rules](./AUDIT_USER_RULES.md) | Conformance to project user rules (imports, env, backend, frontend, data) |
 | [Comprehensive Best Practices Audit](./COMPREHENSIVE_BEST_PRACTICES_AUDIT_2025.md) | Best practices verification |
 | [Backend Comprehensive Audit](./BACKEND_COMPREHENSIVE_AUDIT_2025_FINAL.md) | Backend audit |
 | [Code Quality Audit](./CODE_QUALITY_AUDIT_2025_FINAL.md) | Code quality |

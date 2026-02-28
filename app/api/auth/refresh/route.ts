@@ -11,8 +11,7 @@
 
 import { NextRequest } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import User from '@/models/User';
-import RefreshToken from '@/models/RefreshToken';
+import { User, RefreshToken } from '@/models';
 import { getRefreshTokenFromCookie } from '@/lib/auth/session';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
@@ -34,7 +33,7 @@ import type { RefreshTokenResponse } from '@/types/api';
  */
 export async function POST(request: NextRequest) {
   // Apply security (CORS, CSRF, rate limiting)
-  const securityResponse = applyApiSecurity(request, {
+  const securityResponse = await applyApiSecurity(request, {
     rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.REFRESH,
   });
   if (securityResponse) return securityResponse;

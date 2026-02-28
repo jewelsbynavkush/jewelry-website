@@ -8,16 +8,15 @@
  * Field-level encryption provides additional protection for extremely sensitive data.
  */
 
-/**
- * Check if running in production environment (client-side)
- * 
- * @returns True if environment is production, false otherwise
- */
+import { isProduction as isProductionEnv } from '@/lib/utils/env';
+
 function isProduction(): boolean {
   if (typeof window === 'undefined') return false;
-  // NODE_ENV is not available in browser, so we check NEXT_PUBLIC_ENV
-  return (process.env.NEXT_PUBLIC_ENV === 'production' || 
-          (typeof process !== 'undefined' && process.env?.NODE_ENV === 'production'));
+  try {
+    return isProductionEnv();
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -67,10 +66,8 @@ export async function encryptClientData(data: string): Promise<string> {
 
     return btoa(String.fromCharCode(...combined));
   } catch (error) {
-    if (typeof window !== 'undefined' && window.console) {
-      if (process.env.NEXT_PUBLIC_ENV !== 'production') {
-        console.error('Client encryption failed:', error);
-      }
+    if (typeof window !== 'undefined' && window.console && !isProduction()) {
+      console.error('Client encryption failed:', error);
     }
     throw new Error('Encryption failed. Please ensure you are using HTTPS.');
   }
@@ -95,12 +92,10 @@ export function isHttpsConnection(): boolean {
 export function warnIfNotHttps(): void {
   if (typeof window === 'undefined') return;
   
-  if (!isHttpsConnection() && isProduction()) {
-    if (process.env.NEXT_PUBLIC_ENV !== 'production') {
-      console.warn(
-        'Security Warning: This application requires HTTPS for secure operation. ' +
-        'Please access this site via HTTPS.'
-      );
-    }
+  if (!isHttpsConnection() && !isProduction()) {
+    console.warn(
+      'Security Warning: This application requires HTTPS for secure operation. ' +
+      'Please access this site via HTTPS.'
+    );
   }
 }

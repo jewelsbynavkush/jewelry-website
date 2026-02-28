@@ -11,6 +11,8 @@
  * This provides additional protection for sensitive fields visible in browser dev tools.
  */
 
+import { getObfuscationKey } from '@/lib/utils/env';
+
 /**
  * Fields that should be encrypted in API requests
  */
@@ -51,13 +53,13 @@ function obfuscateSensitiveValue(value: string): string {
   // This makes the value unreadable in network tab but reversible on server
   // Security: Requires environment variable - no fallback for security
   // Note: This is obfuscation, not encryption. HTTPS/TLS provides real encryption.
-  // Note: NEXT_PUBLIC_OBFUSCATION_KEY is exposed to client, use OBFUSCATION_KEY on server
-  const key = typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_OBFUSCATION_KEY
-    ? process.env.NEXT_PUBLIC_OBFUSCATION_KEY
-    : null;
-  
+  let key: string | null = null;
+  try {
+    key = getObfuscationKey();
+  } catch {
+    key = null;
+  }
   if (!key) {
-    // In browser/client context, throw error if key is not set
     throw new Error('NEXT_PUBLIC_OBFUSCATION_KEY environment variable is not set. Client-side obfuscation requires this variable.');
   }
   

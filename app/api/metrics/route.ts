@@ -12,7 +12,7 @@ import { requireAdmin } from '@/lib/auth/middleware';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
-  const securityResponse = applyApiSecurity(request, { enableRateLimit: true });
+  const securityResponse = await applyApiSecurity(request, { enableRateLimit: true });
   if (securityResponse) return securityResponse;
 
   const authResult = await requireAdmin(request);

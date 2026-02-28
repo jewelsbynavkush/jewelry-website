@@ -8,7 +8,7 @@
 
 import { NextRequest } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import Order from '@/models/Order';
+import { Order } from '@/models';
 import { requireAuth, requireAdmin } from '@/lib/auth/middleware';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
@@ -50,7 +50,7 @@ export async function GET(
   { params }: { params: Promise<{ orderId: string }> }
 ) {
   // Apply security (CORS, CSRF, rate limiting)
-  const securityResponse = applyApiSecurity(request, {
+  const securityResponse = await applyApiSecurity(request, {
     rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.ORDER_READ,
   });
   if (securityResponse) return securityResponse;
@@ -153,7 +153,7 @@ export async function PATCH(
 ) {
   // Apply security (CORS, CSRF, rate limiting)
   // Industry standard: 50 write operations per 15 minutes for order updates
-  const securityResponse = applyApiSecurity(request, {
+  const securityResponse = await applyApiSecurity(request, {
     rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.AUTH,
     requireContentType: true,
   });

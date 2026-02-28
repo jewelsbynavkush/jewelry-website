@@ -13,6 +13,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { apiPost, apiGet, ApiResponse } from '@/lib/api/client';
+import { useWishlistStore } from '@/lib/store/wishlist-store';
 
 export interface User {
   id: string;
@@ -137,7 +138,9 @@ export const useAuthStore = create<AuthState>()(
           // Continue with logout even if API call fails
           // Error is non-critical, user is logged out locally regardless
         }
-        
+
+        useWishlistStore.getState().reset();
+
         // Clear auth state (industry standard: immediate local logout)
         set({
           user: null,

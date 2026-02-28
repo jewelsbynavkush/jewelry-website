@@ -13,7 +13,7 @@
 
 import { NextRequest } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import User, { IUserModel } from '@/models/User';
+import { User, IUserModel } from '@/models';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
 import { sanitizeEmail } from '@/lib/security/sanitize';
@@ -48,7 +48,7 @@ const loginSchema = z.object({
 export async function POST(request: NextRequest) {
   // Apply security (CORS, CSRF, rate limiting)
   const { SECURITY_CONFIG } = await import('@/lib/security/constants');
-  const securityResponse = applyApiSecurity(request, {
+  const securityResponse = await applyApiSecurity(request, {
     rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.AUTH,
     requireContentType: true,
   });

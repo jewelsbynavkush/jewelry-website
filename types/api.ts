@@ -574,6 +574,20 @@ export interface ContactResponse {
   message: string;
 }
 
+export interface GetWishlistResponse {
+  productIds: string[];
+}
+
+export interface AddToWishlistRequest {
+  productId: string;
+}
+
+export interface WishlistResponse {
+  success: boolean;
+  productIds: string[];
+  message?: string;
+}
+
 // ============================================================================
 // Error Response Types
 // ============================================================================

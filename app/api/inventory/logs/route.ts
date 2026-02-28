@@ -7,7 +7,7 @@
 
 import { NextRequest } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import InventoryLog from '@/models/InventoryLog';
+import { InventoryLog } from '@/models';
 import { requireAdmin } from '@/lib/auth/middleware';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
@@ -22,7 +22,7 @@ import type { GetInventoryLogsResponse } from '@/types/api';
  */
 export async function GET(request: NextRequest) {
   // Apply security middleware (CORS, CSRF, rate limiting) before processing request
-  const securityResponse = applyApiSecurity(request, {
+  const securityResponse = await applyApiSecurity(request, {
     rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.INVENTORY_READ,
   });
   if (securityResponse) return securityResponse;

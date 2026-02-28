@@ -23,9 +23,11 @@
  */
 
 // Import mocks FIRST (before any other imports)
-// This ensures all database functions are mocked
+// Database and address validation mocks
 import './helpers/mocks/database-mocks';
 import './helpers/mocks/address-validation-mocks';
+// External services (email, etc.) – never call real SMTP or APIs in tests
+import './helpers/mocks/external-services-mocks';
 
 import { beforeAll, afterAll, beforeEach } from 'vitest';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';

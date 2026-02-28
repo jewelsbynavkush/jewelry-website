@@ -8,7 +8,7 @@
 
 import { NextRequest } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import User from '@/models/User';
+import { User } from '@/models';
 import { requireAuth } from '@/lib/auth/middleware';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
@@ -37,7 +37,7 @@ export async function PATCH(
   { params }: { params: Promise<{ addressId: string }> }
 ) {
   // Apply security (CORS, CSRF) - rate limiting done after auth with user ID
-  const securityResponse = applyApiSecurity(request, {
+  const securityResponse = await applyApiSecurity(request, {
     enableRateLimit: false, // Disable IP-based rate limiting, use user-based instead
     requireContentType: true,
   });
@@ -53,7 +53,7 @@ export async function PATCH(
 
     // Industry standard: Per-user rate limiting for authenticated endpoints
     const { checkUserRateLimit } = await import('@/lib/security/api-security');
-    const userRateLimitResponse = checkUserRateLimit(
+    const userRateLimitResponse = await checkUserRateLimit(
       request,
       user.userId,
       SECURITY_CONFIG.RATE_LIMIT.USER_PROFILE_WRITE
@@ -181,7 +181,7 @@ export async function DELETE(
   { params }: { params: Promise<{ addressId: string }> }
 ) {
   // Apply security (CORS, CSRF) - rate limiting done after auth with user ID
-  const securityResponse = applyApiSecurity(request, {
+  const securityResponse = await applyApiSecurity(request, {
     enableRateLimit: false, // Disable IP-based rate limiting, use user-based instead
   });
   if (securityResponse) return securityResponse;
@@ -196,7 +196,7 @@ export async function DELETE(
 
     // Industry standard: Per-user rate limiting for authenticated endpoints
     const { checkUserRateLimit } = await import('@/lib/security/api-security');
-    const userRateLimitResponse = checkUserRateLimit(
+    const userRateLimitResponse = await checkUserRateLimit(
       request,
       user.userId,
       SECURITY_CONFIG.RATE_LIMIT.USER_PROFILE_WRITE

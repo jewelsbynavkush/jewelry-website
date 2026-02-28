@@ -13,10 +13,7 @@
 
 import { NextRequest } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import Order from '@/models/Order';
-import Cart from '@/models/Cart';
-import User from '@/models/User';
-import Product from '@/models/Product';
+import { Order, Cart, User, Product } from '@/models';
 import { requireAuth } from '@/lib/auth/middleware';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse, checkUserRateLimit } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
@@ -55,7 +52,7 @@ export async function POST(request: NextRequest) {
   let session: mongoose.ClientSession | null = null;
   
   try {
-    const securityResponse = applyApiSecurity(request, {
+    const securityResponse = await applyApiSecurity(request, {
       enableRateLimit: false, // Disable IP-based rate limiting, use user-based instead
       requireContentType: true,
     });
@@ -73,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     // Industry standard: Per-user rate limiting for authenticated endpoints
     const { checkUserRateLimit } = await import('@/lib/security/api-security');
-    const userRateLimitResponse = checkUserRateLimit(
+    const userRateLimitResponse = await checkUserRateLimit(
       request,
       user.userId,
       SECURITY_CONFIG.RATE_LIMIT.ORDER
@@ -439,7 +436,7 @@ export async function POST(request: NextRequest) {
  * Get user's orders
  */
 export async function GET(request: NextRequest) {
-  const securityResponse = applyApiSecurity(request, {
+  const securityResponse = await applyApiSecurity(request, {
     enableRateLimit: false, // Disable IP-based rate limiting, use user-based instead
   });
   if (securityResponse) return securityResponse;
@@ -452,7 +449,7 @@ export async function GET(request: NextRequest) {
 
     const { user } = authResult;
 
-    const userRateLimitResponse = checkUserRateLimit(
+    const userRateLimitResponse = await checkUserRateLimit(
       request,
       user.userId,
       SECURITY_CONFIG.RATE_LIMIT.PUBLIC_BROWSING

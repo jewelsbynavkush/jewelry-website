@@ -8,7 +8,7 @@ import { SECURITY_CONFIG } from '@/lib/security/constants';
 import { ECOMMERCE } from '@/lib/constants';
 import type { GetProductsResponse } from '@/types/api';
 import connectDB from '@/lib/mongodb';
-import Category from '@/models/Category';
+import { Category } from '@/models';
 
 /**
  * Get valid active categories from database
@@ -27,7 +27,7 @@ async function getValidActiveCategories(): Promise<string[]> {
 
 export async function GET(request: NextRequest) {
   // Apply security (CORS, CSRF, rate limiting)
-  const securityResponse = applyApiSecurity(request, {
+  const securityResponse = await applyApiSecurity(request, {
     rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.PUBLIC_BROWSING,
   });
   if (securityResponse) return securityResponse;

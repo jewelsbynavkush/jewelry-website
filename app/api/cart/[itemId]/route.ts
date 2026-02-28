@@ -8,8 +8,7 @@
 
 import { NextRequest } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import Cart from '@/models/Cart';
-import Product from '@/models/Product';
+import { Cart, Product } from '@/models';
 import { optionalAuth } from '@/lib/auth/middleware';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
@@ -42,7 +41,7 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ itemId: string }> }
 ) {
-  const securityResponse = applyApiSecurity(request, {
+  const securityResponse = await applyApiSecurity(request, {
     rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.CART,
     requireContentType: true,
   });
@@ -214,7 +213,7 @@ export async function DELETE(
 ) {
   // Apply security (CORS, CSRF, rate limiting)
   // Higher limit for cart operations - 200 requests per 15 minutes
-  const securityResponse = applyApiSecurity(request, {
+  const securityResponse = await applyApiSecurity(request, {
     rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.CART,
   });
   if (securityResponse) return securityResponse;

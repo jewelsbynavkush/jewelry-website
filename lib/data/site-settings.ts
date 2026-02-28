@@ -4,7 +4,7 @@
  */
 
 import connectDB from '@/lib/mongodb';
-import SiteSettings from '@/models/SiteSettings';
+import { SiteSettings } from '@/models';
 import type { SiteSettings as SiteSettingsType } from '@/types/data';
 import { logError } from '@/lib/security/error-handler';
 

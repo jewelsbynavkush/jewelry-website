@@ -11,8 +11,7 @@
 
 import { NextRequest } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import Cart from '@/models/Cart';
-import Product from '@/models/Product';
+import { Cart, Product } from '@/models';
 import { optionalAuth } from '@/lib/auth/middleware';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
@@ -47,7 +46,7 @@ const addToCartSchema = z.object({
  * Retrieve user's cart or guest cart
  */
 export async function GET(request: NextRequest) {
-  const securityResponse = applyApiSecurity(request, {
+  const securityResponse = await applyApiSecurity(request, {
     rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.CART,
   });
   if (securityResponse) return securityResponse;
@@ -243,7 +242,7 @@ export async function POST(request: NextRequest) {
   // Apply security (CORS, CSRF, rate limiting)
   // Higher limit for cart operations - 200 requests per 15 minutes
   // Cart operations are frequent during shopping, so we allow more requests
-  const securityResponse = applyApiSecurity(request, {
+  const securityResponse = await applyApiSecurity(request, {
     rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.CART,
     requireContentType: true,
   });
@@ -468,7 +467,7 @@ export async function POST(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   // Apply security (CORS, CSRF, rate limiting)
   // Higher limit for cart operations - 200 requests per 15 minutes
-  const securityResponse = applyApiSecurity(request, {
+  const securityResponse = await applyApiSecurity(request, {
     rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.CART,
   });
   if (securityResponse) return securityResponse;

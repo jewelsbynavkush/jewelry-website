@@ -12,7 +12,7 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   // Apply security (CORS, CSRF, rate limiting)
-  const securityResponse = applyApiSecurity(request, {
+  const securityResponse = await applyApiSecurity(request, {
     rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.PUBLIC_BROWSING,
   });
   if (securityResponse) return securityResponse;

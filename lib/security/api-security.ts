@@ -119,12 +119,12 @@ function validateRequestSize(request: NextRequest, maxSize: number): boolean {
  * 
  * @param request - Next.js request object
  * @param config - Security configuration (optional)
- * @returns Security response or null if request should proceed
+ * @returns Security response or undefined if request should proceed
  */
-export function applyApiSecurity(
+export async function applyApiSecurity(
   request: NextRequest,
   config: ApiSecurityConfig = {}
-): NextResponse | null {
+): Promise<NextResponse | undefined> {
   const securityConfig = { ...defaultConfig, ...config };
 
   // Enforce HTTPS in production - TLS encryption prevents man-in-the-middle attacks
@@ -213,9 +213,8 @@ export function applyApiSecurity(
     }
   }
 
-  // Enforce rate limits to prevent abuse and DoS attacks (disabled in test for faster test execution)
   if (securityConfig.enableRateLimit && !isTest()) {
-    const rateLimit = checkRateLimit(request, securityConfig.rateLimitConfig);
+    const rateLimit = await checkRateLimit(request, securityConfig.rateLimitConfig);
     if (!rateLimit.allowed) {
       return NextResponse.json(
         { error: 'Too many requests. Please try again later.' },
@@ -234,15 +233,11 @@ export function applyApiSecurity(
     }
   }
 
-  return null;
+  return undefined;
 }
 
 /**
- * Get security headers for API response
- * 
- * @param request - Next.js request object
- * @param config - Security configuration (optional)
- * @returns Security headers object
+ * Get security headers for API response (sync; rate limit headers are set only in applyApiSecurity when enforcing).
  */
 export function getApiSecurityHeaders(
   request: NextRequest,
@@ -251,23 +246,16 @@ export function getApiSecurityHeaders(
   const securityConfig = { ...defaultConfig, ...config };
   const headers: Record<string, string> = { ...getSecurityHeaders() };
 
-  // Add correlation ID for request tracking
   const correlationId = getCorrelationId(request);
   headers['X-Correlation-ID'] = correlationId;
 
-  // Add CORS headers to allow cross-origin requests from configured domains
   if (securityConfig.enableCors) {
     const corsHeaders = getCorsHeaders(request, getCorsConfig());
     Object.assign(headers, corsHeaders);
   }
 
-  // Add rate limit headers to inform clients of current rate limit status
-  // Helps clients implement proper rate limiting on their end
-  if (securityConfig.enableRateLimit) {
-    const rateLimit = checkRateLimit(request, securityConfig.rateLimitConfig);
-    headers['X-RateLimit-Limit'] = (securityConfig.rateLimitConfig?.maxRequests || 100).toString();
-    headers['X-RateLimit-Remaining'] = rateLimit.remaining.toString();
-    headers['X-RateLimit-Reset'] = Math.ceil(rateLimit.resetTime / 1000).toString();
+  if (securityConfig.enableRateLimit && securityConfig.rateLimitConfig) {
+    headers['X-RateLimit-Limit'] = securityConfig.rateLimitConfig.maxRequests.toString();
   }
 
   return headers;
@@ -338,12 +326,12 @@ export function createSecureErrorResponse(
  * @param config - Rate limit configuration
  * @returns Rate limit response or null if allowed
  */
-export function checkUserRateLimit(
+export async function checkUserRateLimit(
   request: NextRequest,
   userId: string,
   config: RateLimitConfig
-): NextResponse | null {
-  const rateLimit = checkRateLimit(request, config, userId);
+): Promise<NextResponse | null> {
+  const rateLimit = await checkRateLimit(request, config, userId);
   if (!rateLimit.allowed) {
     return NextResponse.json(
       { error: 'Too many requests. Please try again later.' },

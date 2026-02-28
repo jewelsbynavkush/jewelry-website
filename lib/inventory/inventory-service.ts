@@ -6,8 +6,7 @@
  */
 
 import connectDB from '@/lib/mongodb';
-import Product from '@/models/Product';
-import InventoryLog from '@/models/InventoryLog';
+import { Product, InventoryLog } from '@/models';
 import mongoose from 'mongoose';
 import { logError } from '@/lib/security/error-handler';
 import { isTest } from '@/lib/utils/env';

@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken, extractTokenFromHeader, JWTPayload } from './jwt';
 import { getAccessTokenFromCookie } from './session';
 import connectDB from '@/lib/mongodb';
-import User from '@/models/User';
+import { User } from '@/models';
 import { createSecureErrorResponse } from '@/lib/security/api-security';
 
 export interface AuthenticatedRequest extends NextRequest {

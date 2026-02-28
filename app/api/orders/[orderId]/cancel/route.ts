@@ -7,7 +7,7 @@
 
 import { NextRequest } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import Order from '@/models/Order';
+import { Order } from '@/models';
 import { requireAuth } from '@/lib/auth/middleware';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
@@ -45,7 +45,7 @@ export async function POST(
 ) {
   try {
     // Apply security (CORS, CSRF, rate limiting)
-    const securityResponse = applyApiSecurity(request, {
+    const securityResponse = await applyApiSecurity(request, {
       rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.ORDER_CANCEL,
       requireContentType: true,
     });

@@ -21,7 +21,7 @@ import type { LogoutResponse } from '@/types/api';
 export async function POST(request: NextRequest) {
   // Apply security (CORS, CSRF, basic rate limiting)
   // Initial rate limit is IP-based for unauthenticated requests
-  const securityResponse = applyApiSecurity(request, {
+  const securityResponse = await applyApiSecurity(request, {
     rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.AUTH_LOGOUT,
   });
   if (securityResponse) return securityResponse;
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     // Apply user-based rate limiting for authenticated users
     // Provides better rate limiting per user while maintaining IP-based limit for guests
     if (userId) {
-      const userRateLimitResponse = checkUserRateLimit(
+      const userRateLimitResponse = await checkUserRateLimit(
         request,
         userId,
         SECURITY_CONFIG.RATE_LIMIT.AUTH_LOGOUT

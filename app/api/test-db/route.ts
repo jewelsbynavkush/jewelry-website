@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Apply security (CORS, CSRF, rate limiting)
-  const securityResponse = applyApiSecurity(request, {
+  const securityResponse = await applyApiSecurity(request, {
     rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.TEST,
   });
   if (securityResponse) return securityResponse;

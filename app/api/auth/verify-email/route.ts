@@ -8,7 +8,7 @@
 
 import { NextRequest } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import User from '@/models/User';
+import { User } from '@/models';
 import { optionalAuth } from '@/lib/auth/middleware';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
@@ -43,7 +43,7 @@ const verifyEmailSchema = z.object({
 export async function POST(request: NextRequest) {
   // Apply security (CORS, CSRF, rate limiting)
   // Industry standard: 10 verification attempts per 15 minutes (same for all environments)
-  const securityResponse = applyApiSecurity(request, {
+  const securityResponse = await applyApiSecurity(request, {
     rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.AUTH_VERIFY,
     requireContentType: true,
   });

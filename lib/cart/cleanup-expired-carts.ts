@@ -11,8 +11,7 @@
  */
 
 import connectDB from '@/lib/mongodb';
-import Cart from '@/models/Cart';
-import Product from '@/models/Product';
+import { Cart, Product } from '@/models';
 import { releaseReservedStock } from '@/lib/inventory/inventory-service';
 import { logError } from '@/lib/security/error-handler';
 

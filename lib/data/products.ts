@@ -4,10 +4,23 @@
  */
 
 import connectDB from '@/lib/mongodb';
-import Product from '@/models/Product';
-import Category from '@/models/Category';
+import { Product, Category } from '@/models';
 import type { Product as ProductType } from '@/types/data';
 import { logError } from '@/lib/security/error-handler';
+
+/**
+ * Compute inStock from lean product document (virtuals are not included in .lean()).
+ * Matches Product model virtual: availableQuantity = quantity - reservedQuantity;
+ * inStock = !trackQuantity || availableQuantity > 0 || allowBackorder.
+ */
+function inStockFromLean(product: { inventory?: { quantity?: number; reservedQuantity?: number; trackQuantity?: boolean; allowBackorder?: boolean } }): boolean {
+  const inv = product.inventory;
+  if (!inv?.trackQuantity) return true;
+  const quantity = inv.quantity ?? 0;
+  const reserved = inv.reservedQuantity ?? 0;
+  const available = Math.max(0, quantity - reserved);
+  return available > 0 || (inv.allowBackorder === true);
+}
 
 /**
  * Get all active products, optionally filtered by category, featured, mostLoved with pagination
@@ -81,7 +94,7 @@ export async function getProducts(
       .limit(limit)
       .lean();
     
-    // Transform to match existing Product type
+    // Transform to match existing Product type (inStock computed from inventory; lean() omits virtuals)
     const transformedProducts = products.map(product => ({
       id: product._id.toString(),
       slug: product.slug,
@@ -93,7 +106,7 @@ export async function getProducts(
       currency: product.currency || 'INR', // Include currency field
       category: product.category,
       material: product.material,
-      inStock: product.inStock,
+      inStock: inStockFromLean(product),
       mostLoved: product.mostLoved,
       featured: product.featured,
       createdAt: product.createdAt.toISOString(),
@@ -144,7 +157,7 @@ export async function getProduct(slug: string): Promise<ProductType | null> {
       return null;
     }
     
-    // Transform to match existing Product type
+    // Transform to match existing Product type (inStock computed from inventory; lean() omits virtuals)
     return {
       id: product._id.toString(),
       slug: product.slug,
@@ -156,7 +169,7 @@ export async function getProduct(slug: string): Promise<ProductType | null> {
       currency: product.currency || 'INR', // Include currency field
       category: product.category,
       material: product.material,
-      inStock: product.inStock,
+      inStock: inStockFromLean(product),
       mostLoved: product.mostLoved,
       featured: product.featured,
       createdAt: product.createdAt.toISOString(),
@@ -195,7 +208,7 @@ export async function getMostLovedProducts(limit: number = 8): Promise<ProductTy
       .limit(limit)
       .lean();
     
-    // Transform to match existing Product type
+    // Transform to match existing Product type (inStock computed from inventory; lean() omits virtuals)
     return products.map(product => ({
       id: product._id.toString(),
       slug: product.slug,
@@ -207,7 +220,7 @@ export async function getMostLovedProducts(limit: number = 8): Promise<ProductTy
       currency: product.currency || 'INR', // Include currency field
       category: product.category,
       material: product.material,
-      inStock: product.inStock,
+      inStock: inStockFromLean(product),
       mostLoved: product.mostLoved,
       featured: product.featured,
       createdAt: product.createdAt.toISOString(),
@@ -258,7 +271,7 @@ export async function getRelatedProducts(
       .limit(limit)
       .lean();
     
-    // Transform to match existing Product type
+    // Transform to match existing Product type (inStock computed from inventory; lean() omits virtuals)
     return products.map(product => ({
       id: product._id.toString(),
       slug: product.slug,
@@ -270,7 +283,7 @@ export async function getRelatedProducts(
       currency: product.currency || 'INR', // Include currency field
       category: product.category,
       material: product.material,
-      inStock: product.inStock,
+      inStock: inStockFromLean(product),
       mostLoved: product.mostLoved,
       featured: product.featured,
       createdAt: product.createdAt.toISOString(),

@@ -6,10 +6,12 @@ import { logError } from '@/lib/security/error-handler';
 import { formatZodError } from '@/lib/utils/zod-error';
 import { isDevelopment } from '@/lib/utils/env';
 import { SECURITY_CONFIG } from '@/lib/security/constants';
+import connectDB from '@/lib/mongodb';
+import { ContactSubmission } from '@/models';
 import type { ContactRequest, ContactResponse } from '@/types/api';
 
 export async function POST(request: NextRequest) {
-  const securityResponse = applyApiSecurity(request, {
+  const securityResponse = await applyApiSecurity(request, {
     rateLimitConfig: SECURITY_CONFIG.RATE_LIMIT.CONTACT_FORM,
     requireContentType: true,
     maxRequestSize: SECURITY_CONFIG.MAX_REQUEST_SIZE,
@@ -52,6 +54,14 @@ export async function POST(request: NextRequest) {
     if (sanitizedData.message.length > 5000) {
       return createSecureErrorResponse('Message too long', 400, request);
     }
+
+    await connectDB();
+    await ContactSubmission.create({
+      name: sanitizedData.name,
+      email: sanitizedData.email,
+      ...(sanitizedData.phone && { phone: sanitizedData.phone }),
+      message: sanitizedData.message,
+    });
 
     if (isDevelopment()) {
       logError('contact form submission', {

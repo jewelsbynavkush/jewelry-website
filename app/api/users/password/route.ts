@@ -7,8 +7,7 @@
 
 import { NextRequest } from 'next/server';
 import connectDB from '@/lib/mongodb';
-import User from '@/models/User';
-import RefreshToken from '@/models/RefreshToken';
+import { User, RefreshToken } from '@/models';
 import { requireAuth } from '@/lib/auth/middleware';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { logError } from '@/lib/security/error-handler';
@@ -38,7 +37,7 @@ const changePasswordSchema = z.object({
  */
 export async function PATCH(request: NextRequest) {
   // Apply security (CORS, CSRF) - rate limiting done after auth with user ID
-  const securityResponse = applyApiSecurity(request, {
+  const securityResponse = await applyApiSecurity(request, {
     enableRateLimit: false, // Disable IP-based rate limiting, use user-based instead
     requireContentType: true,
   });
@@ -54,7 +53,7 @@ export async function PATCH(request: NextRequest) {
 
     // Industry standard: Per-user rate limiting for sensitive operations
     const { checkUserRateLimit } = await import('@/lib/security/api-security');
-    const userRateLimitResponse = checkUserRateLimit(
+    const userRateLimitResponse = await checkUserRateLimit(
       request,
       user.userId,
       SECURITY_CONFIG.RATE_LIMIT.PASSWORD_CHANGE

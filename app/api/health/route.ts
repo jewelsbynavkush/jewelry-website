@@ -21,7 +21,7 @@ import type { HealthResponse } from '@/types/api';
 export async function GET(request: NextRequest) {
   // Apply security (CORS, CSRF, rate limiting)
   // Health endpoint is public but should be rate limited
-  const securityResponse = applyApiSecurity(request, {
+  const securityResponse = await applyApiSecurity(request, {
     rateLimitConfig: {
       windowMs: TIME_DURATIONS_MS.ONE_MINUTE,
       maxRequests: 60, // 60 requests per minute for health checks

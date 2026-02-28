@@ -3,27 +3,19 @@
  * Supports multiple CDN providers with fallback to local assets
  */
 
+import { getCDNBaseUrl as getCDNBaseUrlFromEnv, getCDNProvider as getCDNProviderFromEnv } from '@/lib/utils/env';
+
 type CDNProvider = 'cloudinary' | 'imagekit' | 'jsdelivr' | 'github' | 'r2' | 'local';
 
-/**
- * Get CDN base URL from environment variables
- */
 function getCDNBaseUrl(): string | null {
-  return process.env.NEXT_PUBLIC_CDN_BASE_URL || null;
+  return getCDNBaseUrlFromEnv();
 }
 
-/**
- * Get CDN provider from environment variables or detect from URL
- * Detects provider from CDN_BASE_URL if CDN_PROVIDER is not set
- */
 function getCDNProvider(): CDNProvider {
-  // First check explicit provider (client-accessible)
-  const explicitProvider = process.env.NEXT_PUBLIC_CDN_PROVIDER;
+  const explicitProvider = getCDNProviderFromEnv();
   if (explicitProvider) {
     return explicitProvider as CDNProvider;
   }
-  
-  // Fallback: detect from CDN_BASE_URL
   const cdnBaseUrl = getCDNBaseUrl();
   if (!cdnBaseUrl) {
     return 'local';

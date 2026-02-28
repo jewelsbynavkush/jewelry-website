@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import Button from '@/components/ui/Button';
 import PageContainer from '@/components/ui/PageContainer';
+import { isProduction } from '@/lib/utils/env';
 
 interface ErrorProps {
   error: Error & { digest?: string };
@@ -11,8 +12,7 @@ interface ErrorProps {
 
 export default function Error({ error, reset }: ErrorProps) {
   useEffect(() => {
-    // Log to reporting service in production
-    if (process.env.NODE_ENV === 'production') {
+    if (isProduction()) {
       console.error('Route error:', error.message);
     }
   }, [error]);

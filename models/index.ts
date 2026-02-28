@@ -25,3 +25,9 @@ export type { IOrder, IOrderModel, IOrderItem, IOrderAddress } from './Order';
 
 export { default as RefreshToken } from './RefreshToken';
 export type { IRefreshToken, IRefreshTokenModel } from './RefreshToken';
+
+export { default as ContactSubmission } from './ContactSubmission';
+export type { IContactSubmission } from './ContactSubmission';
+
+export { default as CountrySettings } from './CountrySettings';
+export type { ICountrySettings } from './CountrySettings';

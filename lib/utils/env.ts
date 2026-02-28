@@ -397,3 +397,11 @@ export function getSwaggerIpWhitelist(): string[] {
   }
   return whitelist.split(',').map(ip => ip.trim()).filter(Boolean);
 }
+
+export function getCDNBaseUrl(): string | null {
+  return process.env.NEXT_PUBLIC_CDN_BASE_URL || null;
+}
+
+export function getCDNProvider(): string {
+  return process.env.NEXT_PUBLIC_CDN_PROVIDER || '';
+}

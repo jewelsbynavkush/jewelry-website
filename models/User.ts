@@ -67,7 +67,10 @@ export interface IUser extends Document {
   addresses: IAddress[];
   defaultShippingAddressId?: string;
   defaultBillingAddressId?: string;
-  
+
+  // Wishlist (product ObjectIds)
+  wishlist: mongoose.Types.ObjectId[];
+
   // Preferences
   preferences: {
     currency: string;
@@ -292,6 +295,11 @@ const UserSchema = new Schema<IUser>(
     defaultBillingAddressId: {
       type: String,
     },
+    wishlist: [{
+      type: Schema.Types.ObjectId,
+      ref: 'Product',
+      default: [],
+    }],
     preferences: {
       currency: {
         type: String,

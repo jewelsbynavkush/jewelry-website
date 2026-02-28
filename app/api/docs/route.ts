@@ -1386,6 +1386,122 @@ const openApiSpec = {
         },
       },
     },
+    '/wishlist': {
+      get: {
+        summary: 'Get wishlist',
+        description: 'Get authenticated user wishlist product IDs',
+        tags: ['Wishlist'],
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Wishlist retrieved successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    productIds: {
+                      type: 'array',
+                      items: { type: 'string' },
+                      description: 'Product IDs in wishlist',
+                    },
+                  },
+                },
+              },
+            },
+          },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+          '429': { $ref: '#/components/responses/TooManyRequests' },
+          '500': { $ref: '#/components/responses/InternalServerError' },
+        },
+      },
+      post: {
+        summary: 'Add to wishlist',
+        description: 'Add a product to the authenticated user wishlist',
+        tags: ['Wishlist'],
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['productId'],
+                properties: {
+                  productId: { type: 'string', description: 'Product ID' },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': {
+            description: 'Product added to wishlist',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean' },
+                    productIds: {
+                      type: 'array',
+                      items: { type: 'string' },
+                    },
+                    message: { type: 'string' },
+                  },
+                },
+              },
+            },
+          },
+          '400': { $ref: '#/components/responses/BadRequest' },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+          '404': { $ref: '#/components/responses/NotFound' },
+          '429': { $ref: '#/components/responses/TooManyRequests' },
+          '500': { $ref: '#/components/responses/InternalServerError' },
+        },
+      },
+    },
+    '/wishlist/{productId}': {
+      delete: {
+        summary: 'Remove from wishlist',
+        description: 'Remove a product from the authenticated user wishlist',
+        tags: ['Wishlist'],
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'productId',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+            description: 'Product ID',
+          },
+        ],
+        responses: {
+          '200': {
+            description: 'Product removed from wishlist',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean' },
+                    productIds: {
+                      type: 'array',
+                      items: { type: 'string' },
+                    },
+                    message: { type: 'string' },
+                  },
+                },
+              },
+            },
+          },
+          '400': { $ref: '#/components/responses/BadRequest' },
+          '401': { $ref: '#/components/responses/Unauthorized' },
+          '429': { $ref: '#/components/responses/TooManyRequests' },
+          '500': { $ref: '#/components/responses/InternalServerError' },
+        },
+      },
+    },
     '/contact': {
       post: {
         summary: 'Submit contact form',
@@ -1723,7 +1839,7 @@ export async function GET(request: NextRequest) {
 
   // Apply security (CORS, CSRF, rate limiting) for API documentation
   // More lenient rate limiting for documentation endpoint
-  const securityResponse = applyApiSecurity(request, {
+  const securityResponse = await applyApiSecurity(request, {
     rateLimitConfig: { maxRequests: 100, windowMs: 60000 }, // 100 requests per minute
   });
   if (securityResponse) return securityResponse;
