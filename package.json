@@ -9,6 +9,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "migrate:mongodb": "tsx scripts/migrate-to-mongodb.ts",
+    "migrate:products": "tsx scripts/migrate-products.ts",
+    "migrate:categories": "tsx scripts/migrate-categories.ts",
     "migrate:site-settings": "tsx scripts/migrate-site-settings.ts",
     "migrate:country-settings": "tsx scripts/migrate-country-settings.ts",
     "update:image-paths": "tsx scripts/update-image-paths.ts",

@@ -91,7 +91,7 @@ export default function CategoryImage3D({ category, imageSource }: CategoryImage
                     src={getCDNUrl(imageSource.src)}
                     alt={imageSource.alt || `${category.name} jewelry collection - Exquisite handcrafted ${category.name.toLowerCase()} pieces`}
                     fill
-                    className="object-contain mix-blend-multiply relative"
+                    className="object-cover mix-blend-multiply relative"
                     sizes="(max-width: 768px) 100vw, 50vw"
                     unoptimized={false}
                     style={{ zIndex: 15 }}

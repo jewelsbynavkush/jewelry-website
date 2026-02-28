@@ -83,7 +83,7 @@ export default function CategoryCard3D({
                 src={getCDNUrl(imageSrc)}
                 alt={`${name} jewelry collection - Exquisite handcrafted ${name.toLowerCase()} pieces`}
                 fill
-                className="object-contain mix-blend-multiply relative z-10"
+                className="object-cover mix-blend-multiply relative z-10"
                 loading="lazy"
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               />

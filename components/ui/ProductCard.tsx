@@ -164,7 +164,7 @@ export default function ProductCard({
                         src={imageUrl}
                         alt={product?.alt || `${product?.title || placeholderTitle} - Handcrafted jewelry piece${product?.material ? ` made from ${product.material}` : ''}`}
                         fill
-                        className="object-contain mix-blend-multiply relative"
+                        className="object-cover mix-blend-multiply relative"
                         loading="lazy"
                         sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
                         unoptimized={isPlaceholder}
