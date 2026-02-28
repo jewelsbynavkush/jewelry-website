@@ -4,6 +4,7 @@ import { ReactNode } from 'react';
 import { Product } from '@/types/data';
 import SmoothLink from './SmoothLink';
 import { formatPrice, getStockStatus } from '@/lib/utils/price-formatting';
+import { formatCategoryName } from '@/lib/utils/text-formatting';
 
 interface ProductSpecificationsProps {
   product: Product;
@@ -26,7 +27,7 @@ export default function ProductSpecifications({ product }: ProductSpecifications
           href={`/designs?category=${product.category}`}
           className="text-[var(--text-secondary)] hover:text-[var(--text-on-cream)]"
         >
-          {product.category}
+          {formatCategoryName(product.category)}
         </SmoothLink>
       ),
     },
