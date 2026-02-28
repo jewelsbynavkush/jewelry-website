@@ -63,6 +63,27 @@ describe('POST /api/auth/resend-email-otp', () => {
       expect(updated?.emailVerificationOTP).toBeDefined();
       expect(updated?.emailVerificationOTP).not.toBe(oldOtp);
     });
+
+    it('should not corrupt user displayName or name when resending OTP (partial select + save)', async () => {
+      const request = createAuthenticatedRequest(
+        testUser._id.toString(),
+        testUser.email,
+        'customer',
+        'POST',
+        'http://localhost:3000/api/auth/resend-email-otp'
+      );
+      await POST(request);
+
+      const refetched = await User.findById(testUser._id)
+        .select('firstName lastName displayName')
+        .lean();
+      expect(refetched?.firstName).toBe(testUser.firstName);
+      expect(refetched?.lastName).toBe(testUser.lastName);
+      expect(refetched?.displayName).not.toBe('undefined undefined');
+      expect(refetched?.displayName).toBe(
+        [refetched?.firstName, refetched?.lastName].filter(Boolean).join(' ').trim() || undefined
+      );
+    });
   });
 
   describe('Already Verified', () => {

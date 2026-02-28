@@ -11,6 +11,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
+import mongoose from 'mongoose';
 import connectDB from '@/lib/mongodb';
 import User, { IUserModel } from '@/models/User';
 import { createTestUser, randomEmail } from '../helpers/test-utils';
@@ -313,6 +314,92 @@ describe('User Model', () => {
       const updated = await User.findById(user._id);
       expect(updated?.addresses.length).toBe(0);
       expect(updated?.defaultShippingAddressId).toBeUndefined();
+    });
+  });
+
+  describe('Partial select then save (no field corruption)', () => {
+    it('should not overwrite displayName when saving after load with .select("wishlist")', async () => {
+      const userData = createTestUser({
+        firstName: 'Partial',
+        lastName: 'Select',
+      });
+      const user = await User.create(userData);
+      const expectedDisplayName = `${user.firstName} ${user.lastName}`.trim();
+      expect(user.displayName).toBe(expectedDisplayName);
+
+      const partialDoc = await User.findById(user._id).select('wishlist');
+      expect(partialDoc).toBeDefined();
+      (partialDoc as any).wishlist = (partialDoc as any).wishlist || [];
+      (partialDoc as any).wishlist.push(new mongoose.Types.ObjectId());
+      await (partialDoc as any).save();
+
+      const refetched = await User.findById(user._id)
+        .select('firstName lastName displayName')
+        .lean();
+      expect(refetched?.firstName).toBe('Partial');
+      expect(refetched?.lastName).toBe('Select');
+      expect(refetched?.displayName).toBe(expectedDisplayName);
+      expect(refetched?.displayName).not.toBe('undefined undefined');
+    });
+
+    it('should not overwrite displayName when saving after load with OTP-only select', async () => {
+      const userData = createTestUser({
+        firstName: 'Otp',
+        lastName: 'Only',
+      });
+      const user = await User.create(userData);
+      const expectedDisplayName = `${user.firstName} ${user.lastName}`.trim();
+
+      const partialDoc = await User.findById(user._id).select(
+        '_id email emailVerified emailVerificationOTP emailVerificationOTPExpires'
+      );
+      expect(partialDoc).toBeDefined();
+      (partialDoc as any).generateEmailOTP();
+      await (partialDoc as any).save();
+
+      const refetched = await User.findById(user._id)
+        .select('firstName lastName displayName')
+        .lean();
+      expect(refetched?.firstName).toBe('Otp');
+      expect(refetched?.lastName).toBe('Only');
+      expect(refetched?.displayName).toBe(expectedDisplayName);
+      expect(refetched?.displayName).not.toBe('undefined undefined');
+    });
+
+    it('should not overwrite displayName when saving after load with addresses-only select', async () => {
+      const userData = createTestUser({
+        firstName: 'Addr',
+        lastName: 'Only',
+      });
+      const user = await User.create(userData);
+      const expectedDisplayName = `${user.firstName} ${user.lastName}`.trim();
+
+      const partialDoc = await User.findById(user._id).select(
+        'addresses defaultShippingAddressId defaultBillingAddressId'
+      );
+      expect(partialDoc).toBeDefined();
+      (partialDoc as any).addAddress({
+        type: 'shipping',
+        firstName: 'Test',
+        lastName: 'User',
+        addressLine1: '123 St',
+        city: 'City',
+        state: 'State',
+        zipCode: '12345',
+        country: 'India',
+        phone: '9876543210',
+        countryCode: '+91',
+        isDefault: true,
+      });
+      await (partialDoc as any).save();
+
+      const refetched = await User.findById(user._id)
+        .select('firstName lastName displayName')
+        .lean();
+      expect(refetched?.firstName).toBe('Addr');
+      expect(refetched?.lastName).toBe('Only');
+      expect(refetched?.displayName).toBe(expectedDisplayName);
+      expect(refetched?.displayName).not.toBe('undefined undefined');
     });
   });
 

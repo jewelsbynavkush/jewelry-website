@@ -99,17 +99,25 @@ export async function GET(request: NextRequest) {
       return createSecureErrorResponse('User not found', 404, request);
     }
 
+    const firstName = userDoc.firstName ?? '';
+    const lastName = userDoc.lastName ?? '';
+    const displayNameRaw = userDoc.displayName;
+    const displayName =
+      displayNameRaw && displayNameRaw !== 'undefined undefined'
+        ? displayNameRaw
+        : `${firstName} ${lastName}`.trim() || undefined;
+
     const payload: GetProfileResponse = {
       user: {
         id: userDoc._id.toString(),
         email: userDoc.email ?? '',
-        firstName: userDoc.firstName ?? '',
-        lastName: userDoc.lastName ?? '',
+        firstName,
+        lastName,
         role: userDoc.role,
         emailVerified: userDoc.emailVerified ?? false,
         mobile: userDoc.mobile,
         countryCode: userDoc.countryCode,
-        displayName: userDoc.displayName,
+        displayName: displayName || undefined,
         preferences: userDoc.preferences,
         totalOrders: userDoc.totalOrders,
         totalSpent: userDoc.totalSpent,
@@ -287,19 +295,32 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
+    if (
+      (!userDoc.displayName || userDoc.displayName === 'undefined undefined') &&
+      userDoc.firstName != null &&
+      userDoc.lastName != null
+    ) {
+      userDoc.displayName = `${String(userDoc.firstName).trim()} ${String(userDoc.lastName).trim()}`.trim();
+    }
+
     try {
       await userDoc.save();
     } catch (saveError: unknown) {
-      // Handle Mongoose errors with reusable utility
       const { handleMongooseSaveError } = await import('@/lib/utils/mongoose-error-handler');
       const errorResponse = handleMongooseSaveError(saveError, request, 'user profile update');
       if (errorResponse) {
         return errorResponse;
       }
-      
-      // Re-throw other errors for outer catch block
       throw saveError;
     }
+
+    const patchedFirstName = userDoc.firstName ?? '';
+    const patchedLastName = userDoc.lastName ?? '';
+    const patchedDisplayNameRaw = userDoc.displayName;
+    const patchedDisplayName =
+      patchedDisplayNameRaw && patchedDisplayNameRaw !== 'undefined undefined'
+        ? patchedDisplayNameRaw
+        : `${patchedFirstName} ${patchedLastName}`.trim() || undefined;
 
     const payload: UpdateProfileResponse = {
       success: true,
@@ -307,13 +328,13 @@ export async function PATCH(request: NextRequest) {
       user: {
         id: userDoc._id.toString(),
         email: userDoc.email ?? '',
-        firstName: userDoc.firstName ?? '',
-        lastName: userDoc.lastName ?? '',
+        firstName: patchedFirstName,
+        lastName: patchedLastName,
         role: userDoc.role,
         emailVerified: userDoc.emailVerified ?? false,
         mobile: userDoc.mobile,
         countryCode: userDoc.countryCode,
-        displayName: userDoc.displayName,
+        displayName: patchedDisplayName,
       },
     };
     return createSecureResponse(payload, 200, request);

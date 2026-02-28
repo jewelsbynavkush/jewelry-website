@@ -134,6 +134,10 @@ export interface LoginResponse {
 }
 
 
+export interface ResendOTPRequest {
+  email?: string;
+}
+
 export interface ResendOTPResponse {
   success: boolean;
   message: string;
@@ -270,6 +274,11 @@ export interface UpdateOrderStatusResponse {
   success: boolean;
   message: string;
   order: Order;
+}
+
+export interface CancelOrderRequest {
+  reason?: string;
+  idempotencyKey?: string;
 }
 
 export interface CancelOrderResponse {

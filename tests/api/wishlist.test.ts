@@ -99,6 +99,29 @@ describe('Wishlist API', () => {
       const getData = await getJsonResponse(getResponse);
       expect(getData.productIds).toContain(testProduct._id.toString());
     });
+
+    it('does not corrupt user displayName or name when adding to wishlist (partial select + save)', async () => {
+      const request = createAuthenticatedRequest(
+        testUser._id.toString(),
+        testUser.email,
+        'customer',
+        'POST',
+        'http://localhost:3000/api/wishlist',
+        { productId: testProduct._id.toString() }
+      );
+      const response = await POST(request);
+      expectStatus(response, 200);
+
+      const refetched = await User.findById(testUser._id)
+        .select('firstName lastName displayName')
+        .lean();
+      expect(refetched?.firstName).toBe(testUser.firstName);
+      expect(refetched?.lastName).toBe(testUser.lastName);
+      expect(refetched?.displayName).not.toBe('undefined undefined');
+      expect(refetched?.displayName).toBe(
+        [refetched?.firstName, refetched?.lastName].filter(Boolean).join(' ').trim() || undefined
+      );
+    });
   });
 
   describe('DELETE /api/wishlist/[productId]', () => {
@@ -135,6 +158,33 @@ describe('Wishlist API', () => {
       expectStatus(response, 200);
       expect(data.success).toBe(true);
       expect(data.productIds).not.toContain(testProduct._id.toString());
+    });
+
+    it('does not corrupt user displayName when removing from wishlist (partial select + save)', async () => {
+      const userDoc = await User.findById(testUser._id).select('wishlist');
+      if (userDoc) {
+        userDoc.wishlist = [testProduct._id];
+        await userDoc.save();
+      }
+
+      const request = createAuthenticatedRequest(
+        testUser._id.toString(),
+        testUser.email,
+        'customer',
+        'DELETE',
+        `http://localhost:3000/api/wishlist/${testProduct._id}`,
+        undefined
+      );
+      await DELETE(request, {
+        params: Promise.resolve({ productId: testProduct._id.toString() }),
+      });
+
+      const refetched = await User.findById(testUser._id)
+        .select('firstName lastName displayName')
+        .lean();
+      expect(refetched?.firstName).toBe(testUser.firstName);
+      expect(refetched?.lastName).toBe(testUser.lastName);
+      expect(refetched?.displayName).not.toBe('undefined undefined');
     });
   });
 });

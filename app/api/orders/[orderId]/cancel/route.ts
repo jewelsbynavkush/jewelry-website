@@ -16,7 +16,7 @@ import { formatZodError } from '@/lib/utils/zod-error';
 import { cancelOrderAndRestoreStock, retryWithBackoff, isTransientError } from '@/lib/inventory/inventory-service';
 import { generateIdempotencyKey } from '@/lib/utils/idempotency';
 import { SECURITY_CONFIG } from '@/lib/security/constants';
-import type { CancelOrderResponse } from '@/types/api';
+import type { CancelOrderRequest, CancelOrderResponse } from '@/types/api';
 import { z } from 'zod';
 import mongoose from 'mongoose';
 
@@ -74,7 +74,7 @@ export async function POST(
 
     // Validate request body BEFORE starting transaction to avoid unnecessary DB operations
     // Transaction overhead is expensive, so fail fast on invalid input
-    const body = await request.json().catch(() => ({}));
+    const body = (await request.json().catch(() => ({}))) as CancelOrderRequest;
     const validatedData = cancelOrderSchema.parse(body);
     
     // Check idempotency if key provided (BEFORE starting transaction - it's just a read)

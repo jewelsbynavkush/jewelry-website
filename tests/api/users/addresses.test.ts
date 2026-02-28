@@ -154,5 +154,36 @@ describe('User Addresses API', () => {
       expectStatus(response, 400);
       expectError(data);
     });
+
+    it('should not corrupt user displayName when adding address (partial select + save)', async () => {
+      const request = createAuthenticatedRequest(
+        testUser._id.toString(),
+        testUser.email,
+        'customer',
+        'POST',
+        'http://localhost:3000/api/users/addresses',
+        {
+          type: 'shipping',
+          firstName: 'Test',
+          lastName: 'User',
+          addressLine1: '123 Test St',
+          city: 'Test City',
+          state: 'Test State',
+          zipCode: '12345',
+          country: 'India',
+          phone: '9876543210',
+          countryCode: '+91',
+          isDefault: true,
+        }
+      );
+      await POST(request);
+
+      const refetched = await User.findById(testUser._id)
+        .select('firstName lastName displayName')
+        .lean();
+      expect(refetched?.firstName).toBe(testUser.firstName);
+      expect(refetched?.lastName).toBe(testUser.lastName);
+      expect(refetched?.displayName).not.toBe('undefined undefined');
+    });
   });
 });

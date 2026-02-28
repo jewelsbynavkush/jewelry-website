@@ -61,6 +61,21 @@ describe('POST /api/auth/reset-password/confirm', () => {
       expect(isValid).toBe(true);
     });
 
+    it('should not corrupt user displayName when confirming reset (partial select + save)', async () => {
+      const request = createGuestRequest('POST', 'http://localhost:3000/api/auth/reset-password/confirm', {
+        token: resetToken,
+        password: 'NewPassword@123',
+      });
+      await POST(request);
+
+      const refetched = await User.findById(testUser._id)
+        .select('firstName lastName displayName')
+        .lean();
+      expect(refetched?.firstName).toBe(testUser.firstName);
+      expect(refetched?.lastName).toBe(testUser.lastName);
+      expect(refetched?.displayName).not.toBe('undefined undefined');
+    });
+
     it('should revoke all refresh tokens on password reset (industry standard)', async () => {
       // Create refresh tokens for user
       await RefreshToken.createToken(testUser._id.toString());

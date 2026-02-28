@@ -405,3 +405,32 @@ export function getCDNBaseUrl(): string | null {
 export function getCDNProvider(): string {
   return process.env.NEXT_PUBLIC_CDN_PROVIDER || '';
 }
+
+function normalizePemFromEnv(pem: string): string {
+  return pem.replace(/\\n/g, '\n').trim();
+}
+
+/**
+ * Server-only. PEM string for RSA private key used to decrypt client-encrypted payloads.
+ */
+export function getRsaPrivateKey(): string {
+  const key = process.env.RSA_PRIVATE_KEY;
+  if (!key) {
+    throw new Error('RSA_PRIVATE_KEY environment variable is not set');
+  }
+  return normalizePemFromEnv(key);
+}
+
+/**
+ * Public key for client-side RSA-OAEP encryption. Safe to expose (NEXT_PUBLIC_).
+ * PEM string; client uses it to encrypt sensitive fields before sending.
+ */
+export function getAuthPublicKey(): string | null {
+  const key = process.env.NEXT_PUBLIC_AUTH_PUBLIC_KEY;
+  if (!key || key.trim() === '') return null;
+  return normalizePemFromEnv(key);
+}
+
+export function isRsaEncryptionEnabled(): boolean {
+  return !!process.env.NEXT_PUBLIC_AUTH_PUBLIC_KEY?.trim();
+}

@@ -53,6 +53,28 @@ describe('POST /api/auth/verify-email', () => {
       expect(updated?.emailVerificationOTPExpires).toBeUndefined();
     });
 
+    it('should not corrupt user displayName when verifying email (partial select + save)', async () => {
+      const otp = testUser.generateEmailOTP();
+      await testUser.save();
+
+      const request = createAuthenticatedRequest(
+        testUser._id.toString(),
+        testUser.email,
+        'customer',
+        'POST',
+        'http://localhost:3000/api/auth/verify-email',
+        { otp }
+      );
+      await POST(request);
+
+      const refetched = await User.findById(testUser._id)
+        .select('firstName lastName displayName')
+        .lean();
+      expect(refetched?.firstName).toBe(testUser.firstName);
+      expect(refetched?.lastName).toBe(testUser.lastName);
+      expect(refetched?.displayName).not.toBe('undefined undefined');
+    });
+
     it('should verify email with valid OTP and email in request', async () => {
       const otp = testUser.generateEmailOTP();
       await testUser.save();

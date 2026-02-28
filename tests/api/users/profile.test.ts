@@ -51,6 +51,26 @@ describe('User Profile API', () => {
       const response = await GET(request);
       expectStatus(response, 401);
     });
+
+    it('should return computed displayName when stored displayName is invalid (e.g. "undefined undefined")', async () => {
+      await User.findByIdAndUpdate(testUser._id, { $set: { displayName: 'undefined undefined' } });
+
+      const request = createAuthenticatedRequest(
+        testUser._id.toString(),
+        testUser.email,
+        'customer',
+        'GET',
+        'http://localhost:3000/api/users/profile'
+      );
+      const response = await GET(request);
+      const data = await getJsonResponse(response);
+
+      expectStatus(response, 200);
+      expect(data.user.displayName).not.toBe('undefined undefined');
+      expect(data.user.displayName).toBe(
+        [data.user.firstName, data.user.lastName].filter(Boolean).join(' ').trim() || undefined
+      );
+    });
   });
 
   describe('PATCH /api/users/profile', () => {

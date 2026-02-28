@@ -1,13 +1,30 @@
 /**
  * Server-Side Request Decryption Utilities
- * 
+ *
  * Decrypts/deobfuscates sensitive fields in API requests.
- * Industry standard: Reverses client-side obfuscation to process sensitive data.
- * 
- * This reverses the simple XOR obfuscation applied on the client side.
+ * Supports RSA-OAEP (prefix "RSA:") when RSA_PRIVATE_KEY is set; otherwise XOR deobfuscation.
  */
 
 /* eslint-disable @typescript-eslint/no-require-imports */
+
+const RSA_PREFIX = 'RSA:';
+
+function decryptRsa(ciphertextBase64: string): string {
+  const crypto = require('crypto');
+  const { getRsaPrivateKey } = require('@/lib/utils/env');
+  const pem = getRsaPrivateKey();
+  const key = crypto.createPrivateKey({ key: pem.replace(/\\n/g, '\n'), format: 'pem' });
+  const buf = Buffer.from(ciphertextBase64, 'base64');
+  const decrypted = crypto.privateDecrypt(
+    {
+      key,
+      padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+      oaepHash: 'sha256',
+    },
+    buf
+  );
+  return decrypted.toString('utf8');
+}
 
 /**
  * Check if a string looks like base64-encoded obfuscated data
@@ -50,20 +67,23 @@ function looksLikeObfuscated(value: string): boolean {
 }
 
 /**
- * Deobfuscate sensitive value that was obfuscated on client side
- * 
- * Reverses XOR-based obfuscation with Base64 encoding to restore original value.
- * Maintains backward compatibility by returning plain text values unchanged.
- * 
- * @param obfuscatedValue - Obfuscated value (base64 encoded) or plain text
- * @returns Original plaintext value
+ * Deobfuscate or decrypt sensitive value from client. Handles "RSA:" (RSA-OAEP) or XOR obfuscation.
  */
 export function deobfuscateSensitiveValue(obfuscatedValue: string): string {
-  // Backward compatibility: tests and direct API calls may send plain text
+  if (obfuscatedValue.startsWith(RSA_PREFIX)) {
+    try {
+      return decryptRsa(obfuscatedValue.slice(RSA_PREFIX.length));
+    } catch (error) {
+      const logger = require('@/lib/utils/logger').default;
+      logger.warn('RSA decrypt failed', { error: error instanceof Error ? error.message : 'Unknown' });
+      return obfuscatedValue;
+    }
+  }
+
   if (!looksLikeObfuscated(obfuscatedValue)) {
     return obfuscatedValue;
   }
-  
+
   try {
     const decoded = Buffer.from(obfuscatedValue, 'base64').toString('binary');
     

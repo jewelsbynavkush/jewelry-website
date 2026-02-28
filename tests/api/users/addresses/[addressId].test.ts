@@ -116,6 +116,25 @@ describe('User Address Detail API', () => {
       expectStatus(response, 404);
       expectError(data);
     });
+
+    it('should not corrupt user displayName when updating address (partial select + save)', async () => {
+      const request = createAuthenticatedRequest(
+        testUser._id.toString(),
+        testUser.email,
+        'customer',
+        'PATCH',
+        `http://localhost:3000/api/users/addresses/${addressId}`,
+        { firstName: 'Updated', city: 'Updated City' }
+      );
+      await PATCH(request, { params: Promise.resolve({ addressId }) });
+
+      const refetched = await User.findById(testUser._id)
+        .select('firstName lastName displayName')
+        .lean();
+      expect(refetched?.firstName).toBe(testUser.firstName);
+      expect(refetched?.lastName).toBe(testUser.lastName);
+      expect(refetched?.displayName).not.toBe('undefined undefined');
+    });
   });
 
   describe('DELETE /api/users/addresses/[addressId]', () => {
@@ -166,6 +185,24 @@ describe('User Address Detail API', () => {
 
       expectStatus(response, 404);
       expectError(data);
+    });
+
+    it('should not corrupt user displayName when deleting address (partial select + save)', async () => {
+      const request = createAuthenticatedRequest(
+        testUser._id.toString(),
+        testUser.email,
+        'customer',
+        'DELETE',
+        `http://localhost:3000/api/users/addresses/${addressId}`
+      );
+      await DELETE(request, { params: Promise.resolve({ addressId }) });
+
+      const refetched = await User.findById(testUser._id)
+        .select('firstName lastName displayName')
+        .lean();
+      expect(refetched?.firstName).toBe(testUser.firstName);
+      expect(refetched?.lastName).toBe(testUser.lastName);
+      expect(refetched?.displayName).not.toBe('undefined undefined');
     });
   });
 });

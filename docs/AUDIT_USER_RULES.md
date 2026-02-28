@@ -149,12 +149,16 @@ Assessment of the codebase against the project's user rules (Principal Full-Stac
 
 ## 12. Audit check (latest run)
 
+**Run:** 2026-02-08 (user rules audit).
+
 | Rule | Status |
 |------|--------|
-| Imports (barrel only) | **Pass.** Deep `@/models/` only in tests; 25 API routes + 9 lib files use `from '@/models'`. |
+| Imports (barrel only) | **Pass.** No deep `@/models/` in app or lib. |
 | Environment | **Pass.** No `process.env` in app or components; only `lib/utils/env.ts` in lib. |
 | Rate limit | **Pass.** `rate-limit.ts` uses `getRateLimitStore()` from `rate-limit-store`. |
 | Swagger | **Pass.** Wishlist paths in `app/api/docs/route.ts`. |
 | API security | **Pass.** All routes use `await applyApiSecurity()`. |
+| Lint | **Pass.** `npm run lint` exit 0. |
+| TypeScript | **Pass.** `npx tsc --noEmit` exit 0. |
 
 **Verdict:** No violations.

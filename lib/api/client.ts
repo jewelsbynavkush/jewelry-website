@@ -285,9 +285,9 @@ export async function apiPost<T = unknown>(
   let encryptedBody = body;
   if (body && typeof body === 'object' && !Array.isArray(body)) {
     const { encryptRequestFields } = await import('@/lib/client/request-encryption');
-    encryptedBody = encryptRequestFields(body as Record<string, unknown>);
+    encryptedBody = await encryptRequestFields(body as Record<string, unknown>);
   }
-  
+
   return apiRequest<T>(endpoint, {
     method: 'POST',
     body: encryptedBody ? JSON.stringify(encryptedBody) : undefined,
@@ -307,9 +307,9 @@ export async function apiPatch<T = unknown>(
   let encryptedBody = body;
   if (body && typeof body === 'object' && !Array.isArray(body)) {
     const { encryptRequestFields } = await import('@/lib/client/request-encryption');
-    encryptedBody = encryptRequestFields(body as Record<string, unknown>);
+    encryptedBody = await encryptRequestFields(body as Record<string, unknown>);
   }
-  
+
   return apiRequest<T>(endpoint, {
     method: 'PATCH',
     body: encryptedBody ? JSON.stringify(encryptedBody) : undefined,

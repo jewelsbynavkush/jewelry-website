@@ -12,7 +12,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { applyApiSecurity, createSecureResponse, createSecureErrorResponse } from '@/lib/security/api-security';
 import { getSwaggerSecurityHeaders } from '@/lib/security/api-headers';
-import { getBaseUrl, isProduction, getSupportEmail } from '@/lib/utils/env';
+import { getBaseUrl, getSupportEmail } from '@/lib/utils/env';
 import { ECOMMERCE } from '@/lib/constants';
 import { requireAdmin } from '@/lib/auth/middleware';
 
@@ -1817,16 +1817,10 @@ function getClientIp(request: NextRequest): string {
 
 
 export async function GET(request: NextRequest) {
-  // Security: Disable Swagger UI in production unless explicitly enabled
-  const { isSwaggerEnabled } = await import('@/lib/utils/env');
-  if (isProduction() && !isSwaggerEnabled()) {
-    return createSecureErrorResponse('API documentation is not available in production', 404, request);
-  }
-
-  // Security: Require admin authentication for Swagger UI access
+  // Security: API documentation is admin-only; others get a generic "not available" message
   const authResult = await requireAdmin(request);
   if ('error' in authResult) {
-    return authResult.error;
+    return createSecureErrorResponse('API documentation is not available', 404, request);
   }
 
   // Security: Optional IP whitelisting

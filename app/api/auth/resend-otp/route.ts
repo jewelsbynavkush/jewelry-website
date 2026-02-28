@@ -17,7 +17,7 @@ import { sanitizeEmail } from '@/lib/security/sanitize';
 import { formatZodError } from '@/lib/utils/zod-error';
 import { SECURITY_CONFIG } from '@/lib/security/constants';
 import { z } from 'zod';
-import type { ResendOTPResponse } from '@/types/api';
+import type { ResendOTPRequest, ResendOTPResponse } from '@/types/api';
 
 /**
  * Schema for resend OTP request
@@ -45,15 +45,13 @@ export async function POST(request: NextRequest) {
     await connectDB();
 
     // Handle both authenticated and unauthenticated OTP resend requests
-    // Authenticated requests may omit body (uses user from session)
-    let body: unknown = {};
+    let body: ResendOTPRequest = {};
     try {
       const text = await request.text();
       if (text) {
-        body = JSON.parse(text);
+        body = JSON.parse(text) as ResendOTPRequest;
       }
     } catch {
-      // Empty body is acceptable for authenticated requests
       body = {};
     }
     const validatedData = resendOTPSchema.parse(body);

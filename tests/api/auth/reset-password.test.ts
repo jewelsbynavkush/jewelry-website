@@ -59,6 +59,23 @@ describe('POST /api/auth/reset-password', () => {
       const user = await User.findOne({ email });
       expect(user?.resetPasswordToken).toBeDefined();
     });
+
+    it('should not corrupt user displayName when requesting reset (partial select + save)', async () => {
+      const email = randomEmail();
+      const user = await User.create(createTestUser({ email, firstName: 'Reset', lastName: 'User' }));
+
+      const request = createGuestRequest('POST', 'http://localhost:3000/api/auth/reset-password', {
+        identifier: email,
+      });
+      await POST(request);
+
+      const refetched = await User.findById(user._id)
+        .select('firstName lastName displayName')
+        .lean();
+      expect(refetched?.firstName).toBe('Reset');
+      expect(refetched?.lastName).toBe('User');
+      expect(refetched?.displayName).not.toBe('undefined undefined');
+    });
   });
 
   describe('User Enumeration Prevention', () => {

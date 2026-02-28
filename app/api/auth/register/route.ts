@@ -60,20 +60,23 @@ const registerSchema = z.object({
     .trim(),
   countryCode: z
     .string()
+    .trim()
     .refine(
       async (code) => {
-        if (!code) return true; // Optional
+        if (!code) return true;
         const { getCountryByPhoneCode } = await import('@/lib/data/country-settings');
-        const country = await getCountryByPhoneCode(code.trim());
+        const country = await getCountryByPhoneCode(code);
         return country !== null;
       },
       'Please select a valid country code'
     )
-    .optional(),
+    .optional()
+    .transform((v) => (v === '' ? undefined : v)),
   mobile: z
     .string()
+    .trim()
     .optional()
-    .or(z.literal('')),
+    .transform((v) => (v === undefined || v === '' ? undefined : v)),
   password: z
     .string()
     .min(6, 'Password must be at least 6 characters')
@@ -186,27 +189,29 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Sanitize all inputs to prevent XSS and injection attacks
+    const mobileTrimmed = validatedData.mobile?.trim();
+    const hasMobile = Boolean(mobileTrimmed);
     const sanitizedData = {
       email: sanitizeEmail(validatedData.email),
       firstName: sanitizeString(validatedData.firstName),
       lastName: sanitizeString(validatedData.lastName),
-      mobile: validatedData.mobile ? sanitizeString(validatedData.mobile) : undefined,
-      countryCode: validatedData.mobile ? sanitizeString(validatedData.countryCode || '+91') : undefined,
-      password: validatedData.password, // Will be hashed by pre-save hook
+      mobile: hasMobile ? sanitizeString(mobileTrimmed!) : undefined,
+      countryCode: hasMobile ? sanitizeString(validatedData.countryCode?.trim() || '+91') : undefined,
+      password: validatedData.password,
     };
 
-    // Password will be automatically hashed by User model pre-save hook using bcrypt
     const user = new User({
       email: sanitizedData.email,
       firstName: sanitizedData.firstName,
       lastName: sanitizedData.lastName,
-      mobile: sanitizedData.mobile,
-      countryCode: sanitizedData.countryCode,
       password: sanitizedData.password,
       emailVerified: false,
       role: 'customer',
       isActive: true,
+      ...(sanitizedData.mobile !== undefined && {
+        mobile: sanitizedData.mobile,
+        countryCode: sanitizedData.countryCode ?? '+91',
+      }),
     });
 
     // Generate time-limited OTP for email verification
@@ -246,6 +251,7 @@ export async function POST(request: NextRequest) {
       firstName: user.firstName,
       lastName: user.lastName,
       mobile: user.mobile,
+      countryCode: user.countryCode,
       emailVerified: user.emailVerified,
       role: user.role,
     };

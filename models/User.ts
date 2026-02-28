@@ -387,10 +387,15 @@ UserSchema.pre('save', async function() {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Pre-save hook to set displayName
+// Pre-save hook to set displayName only when firstName/lastName are loaded (avoids "undefined undefined" when save is called after a partial select)
 UserSchema.pre('save', async function() {
-  if (!this.displayName) {
-    this.displayName = `${this.firstName} ${this.lastName}`.trim();
+  const first = this.firstName;
+  const last = this.lastName;
+  if (first != null && last != null) {
+    const computed = `${String(first).trim()} ${String(last).trim()}`.trim();
+    if (computed && (!this.displayName || this.displayName === 'undefined undefined')) {
+      this.displayName = computed;
+    }
   }
 });
 
