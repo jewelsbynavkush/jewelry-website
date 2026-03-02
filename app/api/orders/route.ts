@@ -379,7 +379,7 @@ export async function POST(request: NextRequest) {
 
       const userDoc = await User.findById(new mongoose.Types.ObjectId(user.userId)).select('email').lean();
       if (userDoc?.email) {
-        sendOrderConfirmationEmail(userDoc.email, {
+        await sendOrderConfirmationEmail(userDoc.email, {
           orderNumber: order.orderNumber,
           items: order.items.map((i) => ({
             productTitle: i.productTitle,
