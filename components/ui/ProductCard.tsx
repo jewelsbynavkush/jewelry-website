@@ -9,6 +9,7 @@ import { formatPrice } from '@/lib/utils/price-formatting';
 import { getCDNUrl } from '@/lib/utils/cdn';
 import ProductBadge from './ProductBadge';
 import ImagePlaceholder from './ImagePlaceholder';
+import ProductImageGallery from './ProductImageGallery';
 import { SCALE, DURATION, SHADOW, EASING, TRANSLATE, TILT_3D } from '@/lib/animations/constants';
 import { use3DTilt } from '@/lib/hooks/use3DTilt';
 
@@ -38,10 +39,18 @@ export default function ProductCard({
   placeholderHref = '/designs',
 }: ProductCardProps) {
   const [imageError, setImageError] = useState(false);
-  
+
   const isPlaceholder = !product && !!placeholderImage;
+  const imageList = product?.images?.length
+    ? product.images
+    : product?.image
+      ? [product.image]
+      : placeholderImage
+        ? [placeholderImage]
+        : [];
   const rawImageUrl = product?.image || placeholderImage || null;
   const imageUrl = rawImageUrl ? getCDNUrl(rawImageUrl) : null;
+  const hasGallery = imageList.length > 1;
   const href = product ? `/designs/${product.slug}` : placeholderHref;
   const isOutOfStock = product?.inStock === false;
   const productAriaLabel = product 
@@ -134,23 +143,33 @@ export default function ProductCard({
               overflow: 'visible',
             }}
           >
-            {/* Container with overflow hidden for rounded corners */}
             <div className="absolute inset-0 rounded-lg overflow-hidden">
-              <div 
+              <div
                 className="absolute inset-0"
                 style={{
                   background: `linear-gradient(135deg, var(--gradient-beige-light) 0%, var(--gradient-cream-light) 50%, var(--gradient-beige-light) 100%)`,
                   zIndex: 0,
                 }}
               />
-              
-              {imageUrl ? (
-                <div 
+              {hasGallery ? (
+                <motion.div
                   className="relative w-full h-full"
                   style={{
+                    scale: isHovered ? 1.05 : 1,
+                    transition: 'scale 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
                     zIndex: 10,
                   }}
                 >
+                  <ProductImageGallery
+                    images={imageList}
+                    alt={product?.alt || `${product?.title || placeholderTitle} - Handcrafted jewelry piece${product?.material ? ` made from ${product.material}` : ''}`}
+                    variant="card"
+                    stopPropagation
+                    className="!p-2 sm:!p-3 md:!p-4 !rounded-lg"
+                  />
+                </motion.div>
+              ) : imageUrl ? (
+                <div className="relative w-full h-full" style={{ zIndex: 10 }}>
                   {!imageError && imageUrl ? (
                     <motion.div
                       className="relative w-full h-full"
@@ -170,7 +189,6 @@ export default function ProductCard({
                         unoptimized={isPlaceholder}
                         onError={() => setImageError(true)}
                       />
-                      {/* Shine overlay effect - inside image container, very subtle */}
                       {isHovered && (
                         <motion.div
                           className="absolute inset-0 pointer-events-none"
@@ -182,26 +200,20 @@ export default function ProductCard({
                             repeat: Infinity,
                             repeatDelay: 2,
                           }}
-                      style={{
-                        background: `linear-gradient(90deg, transparent 0%, var(--white-opacity-10) 50%, transparent 100%)`,
-                        zIndex: 1,
-                        mixBlendMode: 'screen',
-                      }}
+                          style={{
+                            background: `linear-gradient(90deg, transparent 0%, var(--white-opacity-10) 50%, transparent 100%)`,
+                            zIndex: 1,
+                            mixBlendMode: 'screen',
+                          }}
                         />
                       )}
                     </motion.div>
                   ) : (
-                    <ImagePlaceholder 
-                      text="Image unavailable" 
-                      className="relative"
-                    />
+                    <ImagePlaceholder text="Image unavailable" className="relative" />
                   )}
                 </div>
               ) : (
-                <ImagePlaceholder 
-                  text="No image" 
-                  className="relative z-10"
-                />
+                <ImagePlaceholder text="No image" className="relative z-10" />
               )}
             </div>
             {/* Enhanced shadow on hover - outside container */}

@@ -100,10 +100,11 @@ export async function getProducts(
       slug: product.slug,
       title: product.title,
       description: product.description,
-      image: product.primaryImage || (product.images[0] || ''),
+      image: product.primaryImage || (product.images?.[0] || ''),
+      images: product.images ?? [],
       alt: product.alt,
       price: product.price,
-      currency: product.currency || 'INR', // Include currency field
+      currency: product.currency || 'INR',
       category: product.category,
       material: product.material,
       inStock: inStockFromLean(product),
@@ -157,16 +158,16 @@ export async function getProduct(slug: string): Promise<ProductType | null> {
       return null;
     }
     
-    // Transform to match existing Product type (inStock computed from inventory; lean() omits virtuals)
     return {
       id: product._id.toString(),
       slug: product.slug,
       title: product.title,
       description: product.description,
-      image: product.primaryImage || (product.images[0] || ''),
+      image: product.primaryImage || (product.images?.[0] || ''),
+      images: product.images ?? [],
       alt: product.alt,
       price: product.price,
-      currency: product.currency || 'INR', // Include currency field
+      currency: product.currency || 'INR',
       category: product.category,
       material: product.material,
       inStock: inStockFromLean(product),
@@ -208,16 +209,16 @@ export async function getMostLovedProducts(limit: number = 8): Promise<ProductTy
       .limit(limit)
       .lean();
     
-    // Transform to match existing Product type (inStock computed from inventory; lean() omits virtuals)
     return products.map(product => ({
       id: product._id.toString(),
       slug: product.slug,
       title: product.title,
       description: product.description,
-      image: product.primaryImage || (product.images[0] || ''),
+      image: product.primaryImage || (product.images?.[0] || ''),
+      images: product.images ?? [],
       alt: product.alt,
       price: product.price,
-      currency: product.currency || 'INR', // Include currency field
+      currency: product.currency || 'INR',
       category: product.category,
       material: product.material,
       inStock: inStockFromLean(product),
@@ -271,16 +272,16 @@ export async function getRelatedProducts(
       .limit(limit)
       .lean();
     
-    // Transform to match existing Product type (inStock computed from inventory; lean() omits virtuals)
     return products.map(product => ({
       id: product._id.toString(),
       slug: product.slug,
       title: product.title,
       description: product.description,
-      image: product.primaryImage || (product.images[0] || ''),
+      image: product.primaryImage || (product.images?.[0] || ''),
+      images: product.images ?? [],
       alt: product.alt,
       price: product.price,
-      currency: product.currency || 'INR', // Include currency field
+      currency: product.currency || 'INR',
       category: product.category,
       material: product.material,
       inStock: inStockFromLean(product),
@@ -325,7 +326,7 @@ export async function getCategoryImages(): Promise<Record<string, string>> {
         .lean();
       
       if (product) {
-        categoryImages[category.slug] = product.primaryImage || (product.images[0] || category.image);
+        categoryImages[category.slug] = product.primaryImage || (product.images?.[0] || category.image);
       } else {
         // Fallback to category image if no products
         categoryImages[category.slug] = category.image;

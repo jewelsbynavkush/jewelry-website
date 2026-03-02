@@ -44,7 +44,7 @@ if (existsSync(envPath)) {
 }
 
 import connectDB from '../lib/mongodb';
-import SiteSettings from '../models/SiteSettings';
+import { SiteSettings } from '@/models';
 
 /**
  * Main update function

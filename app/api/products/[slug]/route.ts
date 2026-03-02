@@ -44,8 +44,10 @@ export async function GET(
       currency: productData.currency ?? ECOMMERCE.currency,
       category: productData.category ?? '',
       material: productData.material ?? '',
-      images: productData.image ? [productData.image] : [],
-      primaryImage: productData.image ?? '',
+      images: Array.isArray(productData.images) && productData.images.length > 0
+        ? productData.images
+        : (productData.image ? [productData.image] : []),
+      primaryImage: productData.images?.[0] ?? productData.image ?? '',
       inStock: productData.inStock ?? false,
       featured: productData.featured ?? false,
       mostLoved: productData.mostLoved ?? false,

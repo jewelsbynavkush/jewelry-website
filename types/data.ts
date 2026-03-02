@@ -9,9 +9,10 @@ export interface Product {
   title: string;
   description: string;
   image: string;
+  images: string[];
   alt: string;
   price?: number;
-  currency?: string; // Currency code (INR, USD, EUR) - defaults to INR
+  currency?: string;
   category?: string;
   material?: string;
   inStock?: boolean;

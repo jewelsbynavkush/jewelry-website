@@ -32,7 +32,7 @@ if (existsSync(envPath)) {
 }
 
 import connectDB from '../lib/mongodb';
-import Category from '../models/Category';
+import { Category } from '@/models';
 
 const DATA_DIR = join(process.cwd(), 'data');
 const CATEGORIES_FILE = join(DATA_DIR, 'categories.json');

@@ -162,3 +162,28 @@ Assessment of the codebase against the project's user rules (Principal Full-Stac
 | TypeScript | **Pass.** `npx tsc --noEmit` exit 0. |
 
 **Verdict:** No violations.
+
+---
+
+## 13. Audit check (user rules – full mapping)
+
+**Rule reference:** Operational directives, Intentional Simplicity, Frontend/Backend/Data/Infrastructure, Import & structure, Utilities, Final constraints.
+
+| User rule | Finding | Status |
+|-----------|---------|--------|
+| **Import:** Always import from index/barrel; never deep-import implementation files | app/api, lib, and scripts use `from '@/models'`. Tests deep-import (allowed). | Pass (scripts updated to use barrel) |
+| **Import:** Directory structure reflects domain boundaries | app/, lib/, components/, models/ are domain-aligned | Pass |
+| **Frontend:** No redundant CSS or duplicate components | Single ImagePlaceholder; ProductImageGallery is single purpose; ProductImage3D unused but not duplicated | Pass |
+| **Frontend:** Code self-explanatory; **no inline comments** | Multiple components contain `//` and `{/* */}` (Footer, TopHeader, CartItem, CategoryImage3D, RegisterForm, OTPInput, UserMenu, SectionHeading, etc.) | **Violation** |
+| **Frontend:** Wrap/style library components; semantic HTML; keyboard nav; ARIA when necessary | Buttons, links, regions used; gallery has aria-label, role, keyboard (Arrow) on controls | Pass |
+| **Frontend:** Local-first state | Zustand for auth, cart, wishlist; component state for UI | Pass |
+| **Backend:** Validation at boundaries; business logic outside controllers; no fat controllers | Zod at API boundaries; inventory-service, merge-cart, etc. hold logic; routes orchestrate | Pass |
+| **Backend:** Structured, user-safe errors | createSecureErrorResponse, formatZodError | Pass |
+| **Data:** Schema-first; migrations mandatory; no implicit relationships | Mongoose schemas; migration scripts for products, categories, site-settings, country-settings | Pass |
+| **Infrastructure:** Stateless; env-based config; assume failure | JWT cookies; env via lib/utils/env.ts; health, metrics, logs | Pass |
+| **Utilities:** Reuse existing; no duplicated helpers | getCDNUrl, formatPrice, sanitize, etc. centralized; ProductImageGallery uses existing utils | Pass |
+| **Final:** No emojis; no apologies; no breaking rules | Audit doc and codebase align | Pass |
+
+**Verdict (full):** One violation — inline comments present in several components despite “no inline comments” rule. Scripts now use `@/models` barrel. All other checked rules conform.
+
+*Audit run: 2026-02-08 (full user rules).*

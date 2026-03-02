@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { getProduct, getRelatedProducts, getProducts } from '@/lib/data/products';
 import { notFound } from 'next/navigation';
 import ProductCard from '@/components/ui/ProductCard';
-import ProductImage3D from '@/components/ui/ProductImage3D';
+import ProductImageGallery from '@/components/ui/ProductImageGallery';
 import ProductBadge from '@/components/ui/ProductBadge';
 import TrustBadges from '@/components/ui/TrustBadges';
 import SocialShare from '@/components/ui/SocialShare';
@@ -126,15 +126,13 @@ export default async function DesignDetailPage({ params }: PageProps) {
         </ScrollReveal>
 
         <div className="grid md:grid-cols-2 standard-gap section-padding-small">
-          {/* Product Image */}
           <ScrollReveal delay={0.1}>
-            {product.image && (
-              <ProductImage3D 
-                image={product.image}
-                alt={product.alt || product.title}
-                priority
-              />
-            )}
+            {(() => {
+              const images = product.images?.length ? product.images : product.image ? [product.image] : [];
+              return images.length > 0 ? (
+                <ProductImageGallery images={images} alt={product.alt || product.title} variant="detail" priority />
+              ) : null;
+            })()}
           </ScrollReveal>
 
           {/* Product Details */}

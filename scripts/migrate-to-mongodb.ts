@@ -55,18 +55,18 @@ if (existsSync(envPath)) {
 
 // Now import modules after env vars are loaded
 import connectDB from '../lib/mongodb';
-import Product from '../models/Product';
-import Category from '../models/Category';
-import SiteSettings from '../models/SiteSettings';
+import { Product, Category, SiteSettings } from '@/models';
 import mongoose from 'mongoose';
 import type { Product as ProductType, Category as CategoryType } from '../types/data';
 
 const DATA_DIR = join(process.cwd(), 'data');
 
+type JsonProductInput = Omit<ProductType, 'image' | 'images'> & { image?: string; images?: string[] };
+
 /**
  * Transform JSON product to MongoDB Product schema
  */
-function transformProduct(jsonProduct: ProductType) {
+function transformProduct(jsonProduct: JsonProductInput) {
   // Generate SKU from ID or slug
   const sku = jsonProduct.id?.toUpperCase().replace(/-/g, '_') || 
               `PROD_${jsonProduct.slug.toUpperCase().replace(/-/g, '_')}`;
@@ -87,8 +87,10 @@ function transformProduct(jsonProduct: ProductType) {
     currency: 'INR',
     category: jsonProduct.category || 'other',
     material: jsonProduct.material || 'Not specified',
-    images: jsonProduct.image ? [jsonProduct.image] : [],
-    primaryImage: jsonProduct.image || '',
+    images: Array.isArray(jsonProduct.images) && jsonProduct.images.length > 0
+      ? jsonProduct.images
+      : (jsonProduct.image ? [jsonProduct.image] : []),
+    primaryImage: (Array.isArray(jsonProduct.images) && jsonProduct.images[0]) || jsonProduct.image || '',
     alt: jsonProduct.alt || jsonProduct.title,
     inventory: {
       quantity: jsonProduct.inStock ? 10 : 0, // Default quantity

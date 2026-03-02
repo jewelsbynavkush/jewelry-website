@@ -33,8 +33,7 @@ if (existsSync(envPath)) {
 }
 
 import connectDB from '../lib/mongodb';
-import Product from '../models/Product';
-import Category from '../models/Category';
+import { Product, Category } from '@/models';
 
 const DATA_DIR = join(process.cwd(), 'data');
 const PRODUCTS_FILE = join(DATA_DIR, 'products.json');
@@ -45,6 +44,7 @@ interface JsonProduct {
   title: string;
   description?: string;
   image?: string;
+  images?: string[];
   alt?: string;
   price?: number;
   category?: string;
@@ -72,8 +72,8 @@ function transformProduct(p: JsonProduct) {
     currency: 'INR',
     category: (p.category ?? 'other').toLowerCase().trim(),
     material: p.material ?? 'Not specified',
-    images: p.image ? [p.image] : [],
-    primaryImage: p.image ?? '',
+    images: Array.isArray(p.images) && p.images.length > 0 ? p.images : (p.image ? [p.image] : []),
+    primaryImage: ((Array.isArray(p.images) && p.images[0]) || p.image) ?? '',
     alt: p.alt ?? p.title,
     inventory: {
       quantity: p.inStock ? 10 : 0,

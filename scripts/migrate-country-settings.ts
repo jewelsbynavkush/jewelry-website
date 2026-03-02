@@ -46,7 +46,7 @@ if (existsSync(envPath)) {
 }
 
 import connectDB from '../lib/mongodb';
-import CountrySettings from '../models/CountrySettings';
+import { CountrySettings } from '@/models';
 
 /**
  * Indian States and Union Territories
