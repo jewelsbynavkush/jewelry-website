@@ -158,6 +158,8 @@ export interface VerifyEmailResponse {
     firstName: string;
     lastName: string;
     role: 'customer' | 'admin' | 'staff';
+    mobile?: string;
+    countryCode?: string;
   };
 }
 

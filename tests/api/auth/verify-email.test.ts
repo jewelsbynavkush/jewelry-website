@@ -95,6 +95,30 @@ describe('POST /api/auth/verify-email', () => {
       expectSuccess(data);
       expect(data.user.emailVerified).toBe(true);
     });
+
+    it('should return mobile and countryCode in user when present', async () => {
+      testUser.mobile = '9876543210';
+      testUser.countryCode = '+91';
+      const otp = testUser.generateEmailOTP();
+      await testUser.save();
+
+      const request = createAuthenticatedRequest(
+        testUser._id.toString(),
+        testUser.email,
+        'customer',
+        'POST',
+        'http://localhost:3000/api/auth/verify-email',
+        { otp }
+      );
+
+      const response = await POST(request);
+      const data = await getJsonResponse(response);
+
+      expectStatus(response, 200);
+      expectSuccess(data);
+      expect(data.user.mobile).toBe('9876543210');
+      expect(data.user.countryCode).toBe('+91');
+    });
   });
 
   describe('Invalid OTP', () => {

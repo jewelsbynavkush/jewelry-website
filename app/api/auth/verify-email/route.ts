@@ -122,10 +122,8 @@ export async function POST(request: NextRequest) {
     userDoc.emailVerificationOTPExpires = undefined;
     await userDoc.save();
 
-    // Fetch minimal user fields for session creation (excludes password and sensitive data)
-    // Use .lean() for performance since this is read-only
     const fullUser = await User.findById(userDoc._id)
-      .select('_id email firstName lastName role')
+      .select('_id email firstName lastName role mobile countryCode')
       .lean();
     if (!fullUser) {
       return createSecureErrorResponse('User not found', 404, request);
@@ -141,6 +139,8 @@ export async function POST(request: NextRequest) {
         firstName: fullUser.firstName,
         lastName: fullUser.lastName,
         role: fullUser.role,
+        mobile: fullUser.mobile,
+        countryCode: fullUser.countryCode,
       },
     };
     
