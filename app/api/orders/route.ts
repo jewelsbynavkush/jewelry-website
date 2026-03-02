@@ -25,6 +25,7 @@ import { generateIdempotencyKey } from '@/lib/utils/idempotency';
 import { ECOMMERCE } from '@/lib/constants';
 import { SECURITY_CONFIG } from '@/lib/security/constants';
 import { getEcommerceSettings } from '@/lib/utils/site-settings-helpers';
+import { sendOrderConfirmationEmail } from '@/lib/email/order-invoice';
 import type { CreateOrderRequest, CreateOrderResponse, GetOrdersResponse } from '@/types/api';
 import { z } from 'zod';
 import mongoose from 'mongoose';
@@ -373,10 +374,33 @@ export async function POST(request: NextRequest) {
         { session }
       );
 
-      // Commit transaction to persist all changes atomically
-      // All database operations (order, inventory, cart, addresses, user stats) succeed or fail together
       await session.commitTransaction();
       session.endSession();
+
+      const userDoc = await User.findById(new mongoose.Types.ObjectId(user.userId)).select('email').lean();
+      if (userDoc?.email) {
+        sendOrderConfirmationEmail(userDoc.email, {
+          orderNumber: order.orderNumber,
+          items: order.items.map((i) => ({
+            productTitle: i.productTitle,
+            productSku: i.productSku,
+            quantity: i.quantity,
+            price: i.price,
+            total: i.total,
+          })),
+          subtotal: order.subtotal,
+          tax: order.tax,
+          shipping: order.shipping,
+          discount: order.discount,
+          total: order.total,
+          currency: order.currency,
+          shippingAddress: order.shippingAddress,
+          billingAddress: order.billingAddress,
+          paymentMethod: order.paymentMethod,
+          customerNotes: order.customerNotes,
+          createdAt: order.createdAt.toISOString(),
+        }).catch((err) => logError('Order confirmation email', err));
+      }
 
       const responseData: CreateOrderResponse = {
         success: true,
