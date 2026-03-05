@@ -129,13 +129,25 @@ async function migrate() {
     // ============================================
     console.log('📦 Migrating About Settings...');
     try {
+      const intro = 'Jewels by Navkush creates timeless jewelry inspired by elegance and refined craftsmanship. Specializing in freshwater and cultured pearls, our collections feature beautifully designed necklace sets and pearl stud essentials. Each piece is thoughtfully crafted to celebrate natural beauty and become a treasured part of your story.';
+      const ourStory = 'Jewels by Navkush was born from the friendship of two best friends of nearly two decades and a shared love for timeless pearls.\n\nWhat began as a passion soon became a vision—to create elegant jewelry that celebrates natural beauty and refined craftsmanship. Specializing in freshwater and cultured pearls, our collections feature thoughtfully designed necklace sets and pearl stud essentials, crafted to bring effortless sophistication to every moment.\n\nJewels by Navkush is a reflection of friendship, passion, and a shared dream turned into timeless jewelry.';
       const aboutData = {
         about: {
           title: 'ABOUT US',
           content: [
-            'We carefully select the finest materials—precious metals, sparkling gemstones, and luxurious pearls—to create each piece. Every design is meticulously crafted by skilled artisans, ensuring that each item is not only beautiful but built to last.',
-            'Our commitment to excellence is reflected in every detail, from the intricate designs to the flawless finish. At Jewels by NavKush, we are dedicated to creating jewelry that transcends trends, offering pieces that will remain cherished for generations.',
-            'At Jewels by NavKush, we believe that jewelry is more than just an accessory; it\'s a timeless expression of elegance and a celebration of life\'s most precious moments. With a legacy spanning over decades, our brand has become synonymous with exceptional craftsmanship and sophistication.',
+            intro,
+            'Jewels by Navkush was born from the friendship of two best friends of nearly two decades and a shared love for timeless pearls.',
+            'What began as a passion soon became a vision—to create elegant jewelry that celebrates natural beauty and refined craftsmanship. Specializing in freshwater and cultured pearls, our collections feature thoughtfully designed necklace sets and pearl stud essentials, crafted to bring effortless sophistication to every moment.',
+            'Jewels by Navkush is a reflection of friendship, passion, and a shared dream turned into timeless jewelry.',
+            'We invite you to explore our collections and discover a piece that becomes part of your story.',
+          ],
+          intro,
+          ourStory,
+          whyChooseUs: [
+            { title: 'Carefully Selected Pearls', description: 'We specialize in freshwater and cultured pearls chosen for their natural beauty, luster, and quality.' },
+            { title: 'Timeless Designs', description: 'Our collections are thoughtfully designed to blend classic elegance with modern style.' },
+            { title: 'Attention to Craftsmanship', description: 'Each piece is created with meticulous attention to detail to ensure lasting beauty.' },
+            { title: 'Elegant & Meaningful Jewelry', description: 'From statement necklace sets to pearl stud essentials, our jewelry is designed to be cherished for years to come.' },
           ],
           image: '/assets/about/about-image.png',
           alt: 'About Jewels by NavKush',

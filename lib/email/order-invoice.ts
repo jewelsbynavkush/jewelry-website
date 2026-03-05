@@ -90,6 +90,13 @@ function buildOrderInvoiceHtml(data: OrderInvoiceData): string {
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <style type="text/css">
+        @media screen and (max-width: 600px) {
+          .invoice-table-wrap { margin-left: -4px; margin-right: -4px; }
+          .invoice-items-table { min-width: 320px; font-size: 14px; }
+          .invoice-items-table th, .invoice-items-table td { padding: 8px 10px !important; }
+        }
+      </style>
     </head>
     <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #2a2a2a; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #faf8f5;">
       <div style="background-color: #faf8f5; padding: 30px; border-radius: 8px; border: 1px solid #e8e5e0;">
@@ -97,20 +104,22 @@ function buildOrderInvoiceHtml(data: OrderInvoiceData): string {
         <p style="color: #2a2a2a; font-size: 18px; margin-bottom: 4px;">Order Confirmation</p>
         <p style="color: #6a6a6a; font-size: 14px; margin-top: 0;">Order <strong style="color: #2a2a2a;">${escapeHtml(data.orderNumber)}</strong> &middot; ${escapeHtml(orderDate)}</p>
 
-        <table style="width: 100%; border-collapse: collapse; margin: 24px 0; background: #fff; border-radius: 4px; overflow: hidden; border: 1px solid #e8e5e0;">
-          <thead>
-            <tr style="background-color: #CCC4BA;">
-              <th style="padding: 12px; text-align: left; color: #fff; font-size: 13px;">Item</th>
-              <th style="padding: 12px; text-align: left; color: #fff; font-size: 13px;">SKU</th>
-              <th style="padding: 12px; text-align: center; color: #fff; font-size: 13px;">Qty</th>
-              <th style="padding: 12px; text-align: right; color: #fff; font-size: 13px;">Price</th>
-              <th style="padding: 12px; text-align: right; color: #fff; font-size: 13px;">Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${itemsRows}
-          </tbody>
-        </table>
+        <div class="invoice-table-wrap" style="overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 24px 0; border-radius: 4px; border: 1px solid #e8e5e0;">
+          <table class="invoice-items-table" style="width: 100%; border-collapse: collapse; background: #fff; min-width: 320px;">
+            <thead>
+              <tr style="background-color: #CCC4BA;">
+                <th style="padding: 12px; text-align: left; color: #fff; font-size: 13px;">Item</th>
+                <th style="padding: 12px; text-align: left; color: #fff; font-size: 13px;">SKU</th>
+                <th style="padding: 12px; text-align: center; color: #fff; font-size: 13px;">Qty</th>
+                <th style="padding: 12px; text-align: right; color: #fff; font-size: 13px;">Price</th>
+                <th style="padding: 12px; text-align: right; color: #fff; font-size: 13px;">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsRows}
+            </tbody>
+          </table>
+        </div>
 
         <table style="width: 100%; max-width: 260px; margin-left: auto;">
           <tr><td style="padding: 6px 0; color: #6a6a6a;">Subtotal</td><td style="padding: 6px 0; text-align: right; color: #2a2a2a;">${fmt(data.subtotal)}</td></tr>

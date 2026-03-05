@@ -6,8 +6,24 @@ import ScrollReveal from '@/components/ui/ScrollReveal';
 import { generateStandardMetadata } from '@/lib/seo/metadata';
 import { generateFAQPageSchema } from '@/lib/seo/faq-schema';
 import { getBaseUrl } from '@/lib/utils/env';
+import { getSiteSettings } from '@/lib/data/site-settings';
+import type { FaqsPageContent } from '@/types/data';
 
 const baseUrl = getBaseUrl();
+
+const defaultFaqs: FaqsPageContent = {
+  title: 'FAQs',
+  ctaText: "Still have questions? We're here to help!",
+  faqs: [
+    { question: 'What type of pearls do you use?', answer: 'We specialize in freshwater pearls and cultured pearls, carefully selected for their natural beauty, luster, and quality.' },
+    { question: 'Are your pearls real?', answer: 'Yes, all our pearls are genuine and sourced with care to ensure their authenticity and elegance.' },
+    { question: 'Do pearls require special care?', answer: 'Pearls are delicate and should be protected from perfumes, cosmetics, and harsh chemicals to preserve their natural luster.' },
+    { question: 'How should I store my pearl jewelry?', answer: 'Store your pearls in a soft pouch or separate jewelry box to prevent scratches and maintain their beauty.' },
+    { question: 'Are your pieces suitable for everyday wear?', answer: 'Yes, many of our designs—especially pearl studs—are perfect for everyday elegance as well as special occasions.' },
+    { question: 'Do you offer gift packaging?', answer: 'Yes, all pieces from Jewels by Navkush are presented in elegant packaging, making them ideal for gifting.' },
+    { question: 'Do you offer shipping?', answer: 'Yes, we offer shipping for all our orders. Delivery timelines may vary depending on location.' },
+  ],
+};
 
 export const metadata: Metadata = generateStandardMetadata({
   title: 'FAQs - Frequently Asked Questions',
@@ -15,41 +31,10 @@ export const metadata: Metadata = generateStandardMetadata({
   url: `${baseUrl}/faqs`,
 });
 
-export default function FAQsPage() {
-  const faqs = [
-    {
-      question: 'What materials do you use in your jewelry?',
-      answer: 'We use premium materials including 14k and 18k gold, sterling silver, platinum, and high-quality gemstones. All materials are sourced from certified suppliers who adhere to ethical and environmental standards.',
-    },
-    {
-      question: 'How do I care for my jewelry?',
-      answer: 'To keep your jewelry looking its best, store it in a soft pouch or jewelry box when not in use. Clean it gently with a soft cloth and avoid exposing it to harsh chemicals, perfumes, or lotions. For detailed care instructions, please refer to the care card included with your purchase.',
-    },
-    {
-      question: 'Do you offer custom jewelry?',
-      answer: 'Yes, we offer custom jewelry services. Please contact us to discuss your vision and we\'ll work with you to create a unique piece that perfectly matches your style and preferences.',
-    },
-    {
-      question: 'What is your return policy?',
-      answer: 'We offer a 30-day return window from the date of delivery. Items must be in original condition with all packaging. Custom or personalized items may not be eligible for return. Please contact our customer service team to initiate a return.',
-    },
-    {
-      question: 'How long does shipping take?',
-      answer: 'Shipping times vary by location and selected shipping method. Standard shipping typically takes 5-7 business days, express shipping takes 2-3 business days, and overnight shipping is available for select items. International shipping times may vary.',
-    },
-    {
-      question: 'Do you offer gift wrapping?',
-      answer: 'Yes, we offer beautiful gift wrapping services. You can select this option at checkout, and we\'ll carefully wrap your jewelry in elegant packaging perfect for gift-giving.',
-    },
-    {
-      question: 'Are your gemstones certified?',
-      answer: 'Yes, all our gemstones come with certification documentation that includes information about the stone\'s origin, quality, and characteristics. This documentation is included with your purchase.',
-    },
-    {
-      question: 'Can I resize my ring?',
-      answer: 'Yes, we offer ring resizing services. Please contact us within 30 days of purchase to arrange for resizing. There may be a fee for resizing depending on the complexity of the design.',
-    },
-  ];
+export default async function FAQsPage() {
+  const settings = await getSiteSettings();
+  const content = settings.faqs ?? defaultFaqs;
+  const faqs = content.faqs;
 
   const faqSchema = generateFAQPageSchema(faqs, `${baseUrl}/faqs`);
 
@@ -60,7 +45,7 @@ export default function FAQsPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema).replace(/</g, '\\u003c').replace(/>/g, '\\u003e') }}
       />
       <PageSectionLayout
-        title="FREQUENTLY ASKED QUESTIONS"
+        title={content.title}
         srOnlyTitle="Frequently Asked Questions - Jewelry FAQs"
         maxWidth="4xl"
       >
@@ -82,7 +67,7 @@ export default function FAQsPage() {
         <ScrollReveal delay={0.5}>
           <div className="mt-6 sm:mt-8 md:mt-10 text-center">
             <p className="text-[var(--text-secondary)] text-body-sm sm:text-body-base mb-4">
-              Still have questions? We&apos;re here to help!
+              {content.ctaText}
             </p>
             <Button href="/contact">
               Contact Us

@@ -165,7 +165,7 @@ export default function ProductCard({
                     alt={product?.alt || `${product?.title || placeholderTitle} - Handcrafted jewelry piece${product?.material ? ` made from ${product.material}` : ''}`}
                     variant="card"
                     stopPropagation
-                    className="!p-2 sm:!p-3 md:!p-4 !rounded-lg"
+                    className="!p-0 !rounded-lg"
                   />
                 </motion.div>
               ) : imageUrl ? (

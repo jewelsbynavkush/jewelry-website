@@ -1,12 +1,68 @@
 import type { Metadata } from 'next';
-import Card from '@/components/ui/Card';
 import PageSectionLayout from '@/components/ui/PageSectionLayout';
-import SectionHeading from '@/components/ui/SectionHeading';
 import ScrollReveal from '@/components/ui/ScrollReveal';
+import PageSectionRenderer from '@/components/content/PageSectionRenderer';
 import { generateStandardMetadata } from '@/lib/seo/metadata';
 import { getBaseUrl } from '@/lib/utils/env';
-import { formatPrice } from '@/lib/utils/price-formatting';
-import { ECOMMERCE } from '@/lib/constants';
+import { getSiteSettings } from '@/lib/data/site-settings';
+import type { ShippingPageContent } from '@/types/data';
+
+const defaultShipping: ShippingPageContent = {
+  title: 'SHIPPING & RETURNS',
+  sections: [
+    {
+      visible: true,
+      heading: 'Shipping Information',
+      paragraphs: [
+        'We offer secure shipping to ensure your jewelry arrives safely. All orders are carefully packaged in protective materials and shipped via trusted carriers.',
+      ],
+      subsections: [
+        {
+          visible: true,
+          heading: 'Shipping Options',
+          listItems: [
+            'Standard Shipping: 5-7 business days',
+            'Express Shipping: 2-3 business days',
+            'Overnight Shipping: Next business day (available for select items)',
+          ],
+        },
+      ],
+      paragraphsAfter: [
+        'Shipping costs are calculated at checkout based on your location and selected shipping method. Free shipping is available for orders over the threshold shown at checkout.',
+      ],
+    },
+    {
+      visible: true,
+      heading: 'Returns & Exchanges',
+      paragraphs: [
+        "We want you to be completely satisfied with your purchase. If you're not happy with your jewelry, we offer a hassle-free return and exchange policy.",
+      ],
+      subsections: [
+        {
+          visible: true,
+          heading: 'Return Policy',
+          listItems: [
+            '30-day return window from date of delivery',
+            'Items must be in original condition with all packaging',
+            'Custom or personalized items may not be eligible for return',
+            'Refunds will be processed within 5-7 business days',
+          ],
+        },
+      ],
+      paragraphsAfter: [
+        "To initiate a return, please contact our customer service team. We'll provide you with a return authorization and shipping instructions.",
+      ],
+    },
+    {
+      visible: true,
+      heading: 'International Shipping',
+      paragraphs: [
+        'We currently ship to select international destinations. International shipping times and costs vary by location. Please note that customers are responsible for any customs duties or taxes that may apply.',
+        'For international orders, please allow additional time for customs processing. We recommend choosing express shipping for faster delivery.',
+      ],
+    },
+  ],
+};
 
 export const metadata: Metadata = generateStandardMetadata({
   title: 'Shipping & Returns - Jewelry Delivery Information',
@@ -14,82 +70,25 @@ export const metadata: Metadata = generateStandardMetadata({
   url: `${getBaseUrl()}/shipping`,
 });
 
-export default function ShippingPage() {
+export default async function ShippingPage() {
+  const settings = await getSiteSettings();
+  const content = settings.shippingPage ?? defaultShipping;
+
+  const visibleSections = content.sections.filter((s) => s.visible !== false);
   return (
     <PageSectionLayout
-      title="SHIPPING & RETURNS"
+      title={content.title}
       srOnlyTitle="Shipping & Returns - Jewelry Delivery Information"
       maxWidth="4xl"
     >
       <div className="space-y-8 sm:space-y-10 md:space-y-12">
-        <ScrollReveal delay={0.1}>
-          <section>
-            <SectionHeading as="h2" size="md" align="left">
-              Shipping Information
-            </SectionHeading>
-            <div className="space-y-4 text-[var(--text-secondary)] text-body-sm sm:text-body-base md:text-body-lg">
-              <p>
-                We offer secure shipping to ensure your jewelry arrives safely. All orders are carefully packaged in protective materials and shipped via trusted carriers.
-              </p>
-              <Card padding="sm">
-                <SectionHeading as="h3" size="sm" align="left" className="mb-3">
-                  Shipping Options
-                </SectionHeading>
-                <ul className="space-y-2 list-disc list-inside">
-                  <li>Standard Shipping: 5-7 business days</li>
-                  <li>Express Shipping: 2-3 business days</li>
-                  <li>Overnight Shipping: Next business day (available for select items)</li>
-                </ul>
-              </Card>
-              <p>
-                Shipping costs are calculated at checkout based on your location and selected shipping method. Free shipping is available for orders over {formatPrice(ECOMMERCE.freeShippingThreshold, { currencyCode: ECOMMERCE.currency })}.
-              </p>
+        {visibleSections.map((section, i) => (
+          <ScrollReveal key={i} delay={(i + 1) * 0.1}>
+            <div className="space-y-4">
+              <PageSectionRenderer section={section} cardSubsections={i < 2} />
             </div>
-          </section>
-        </ScrollReveal>
-
-        <ScrollReveal delay={0.2}>
-          <section>
-            <SectionHeading as="h2" size="md" align="left">
-              Returns & Exchanges
-            </SectionHeading>
-            <div className="space-y-4 text-[var(--text-secondary)] text-body-sm sm:text-body-base md:text-body-lg">
-              <p>
-                We want you to be completely satisfied with your purchase. If you&apos;re not happy with your jewelry, we offer a hassle-free return and exchange policy.
-              </p>
-              <Card padding="sm">
-                <SectionHeading as="h3" size="sm" align="left" className="mb-3">
-                  Return Policy
-                </SectionHeading>
-                <ul className="space-y-2 list-disc list-inside">
-                  <li>30-day return window from date of delivery</li>
-                  <li>Items must be in original condition with all packaging</li>
-                  <li>Custom or personalized items may not be eligible for return</li>
-                  <li>Refunds will be processed within 5-7 business days</li>
-                </ul>
-              </Card>
-              <p>
-                To initiate a return, please contact our customer service team. We&apos;ll provide you with a return authorization and shipping instructions.
-              </p>
-            </div>
-          </section>
-        </ScrollReveal>
-
-        <ScrollReveal delay={0.3}>
-          <section>
-            <SectionHeading as="h2" size="md" align="left">
-              International Shipping
-            </SectionHeading>
-            <div className="space-y-4 text-[var(--text-secondary)] text-body-sm sm:text-body-base md:text-body-lg">
-              <p>
-                We currently ship to select international destinations. International shipping times and costs vary by location. Please note that customers are responsible for any customs duties or taxes that may apply.
-              </p>
-              <p>
-                For international orders, please allow additional time for customs processing. We recommend choosing express shipping for faster delivery.
-              </p>
-            </div>
-          </section>
-        </ScrollReveal>
+          </ScrollReveal>
+        ))}
       </div>
     </PageSectionLayout>
   );

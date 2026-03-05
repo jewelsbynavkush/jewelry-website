@@ -17,20 +17,29 @@ interface PageProps {
   searchParams: Promise<{ category?: string; sort?: string }>;
 }
 
+function getCategoryDisplayName(slug: string | undefined, categoriesForUI: Array<{ slug: string; displayName: string }>): string | null {
+  if (!slug) return null;
+  const found = categoriesForUI.find((c) => c.slug === slug);
+  return found?.displayName ?? formatCategoryName(slug);
+}
+
 export async function generateMetadata({ searchParams }: PageProps): Promise<Metadata> {
   const params = await searchParams;
   const category = params.category;
   const baseUrl = getBaseUrl();
-  
-  const title = category 
-    ? `${formatCategoryName(category)} - Jewelry Collection`
+  const categories = await getCategories();
+  const categoriesForUI = transformCategoriesForUI(categories);
+  const categoryDisplayName = getCategoryDisplayName(category ?? undefined, categoriesForUI);
+
+  const title = categoryDisplayName
+    ? `${categoryDisplayName} - Jewelry Collection`
     : 'Jewelry Designs - Browse Our Collection';
-  
-  const description = category
-    ? `Explore our exquisite collection of ${formatCategoryName(category)} jewelry. Handcrafted with precision and elegance.`
+
+  const description = categoryDisplayName
+    ? `Explore our exquisite collection of ${categoryDisplayName} jewelry. Handcrafted with precision and elegance.`
     : 'Explore our exquisite collection of handcrafted jewelry designs. Discover rings, earrings, necklaces, and bracelets.';
-  
-  const url = category 
+
+  const url = category
     ? `${baseUrl}/designs?category=${category}`
     : `${baseUrl}/designs`;
 
@@ -40,15 +49,15 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
     'handcrafted jewelry',
     'luxury jewelry',
     'fine jewelry',
-    category ? formatCategoryName(category).toLowerCase() : '',
-    category ? `${formatCategoryName(category)} jewelry` : '',
+    categoryDisplayName ? categoryDisplayName.toLowerCase() : '',
+    categoryDisplayName ? `${categoryDisplayName} jewelry` : '',
     'rings',
     'earrings',
     'necklaces',
     'bracelets',
     'precious metals',
     'gemstones',
-  ].filter(Boolean); // Remove empty strings
+  ].filter(Boolean);
 
   return generateStandardMetadata({
     title,
@@ -88,13 +97,14 @@ export default async function DesignsPage({ searchParams }: PageProps) {
   const collectionSchema = generateCollectionPageSchema(category);
   const categories = await getCategories();
   const categoriesForUI = transformCategoriesForUI(categories);
+  const categoryDisplayName = getCategoryDisplayName(category ?? undefined, categoriesForUI);
 
   const filterCategories = [
     { name: 'All', value: '', href: '/designs' },
-    ...categoriesForUI.map(cat => ({ 
-      name: formatCategoryName(cat.slug), 
-      value: cat.slug, 
-      href: cat.href 
+    ...categoriesForUI.map((cat) => ({
+      name: cat.displayName || formatCategoryName(cat.slug),
+      value: cat.slug,
+      href: cat.href,
     })),
   ];
 
@@ -108,10 +118,10 @@ export default async function DesignsPage({ searchParams }: PageProps) {
         <div className="section-container section-padding">
         <ScrollReveal>
           <h1 className="sr-only">
-            {category ? `${formatCategoryName(category)} - Jewelry Collection` : 'Our Designs - Jewelry Collection'}
+            {categoryDisplayName ? `${categoryDisplayName} - Jewelry Collection` : 'Our Designs - Jewelry Collection'}
           </h1>
           <SectionHeading as="h2" className="text-center standard-mb">
-            {category ? formatCategoryName(category).toUpperCase() : 'OUR DESIGNS'}
+            {categoryDisplayName ? categoryDisplayName.toUpperCase() : 'OUR DESIGNS'}
           </SectionHeading>
         </ScrollReveal>
         
@@ -146,8 +156,8 @@ export default async function DesignsPage({ searchParams }: PageProps) {
                 No Products Found
               </h2>
               <p className="text-[var(--text-secondary)] text-body-lg mb-2">
-                {category 
-                  ? `No products available in ${formatCategoryName(category)} category yet.`
+                {categoryDisplayName
+                  ? `No products available in ${categoryDisplayName} category yet.`
                   : 'No products available yet.'}
               </p>
               <p className="text-[var(--text-muted)] text-body-base mb-6">

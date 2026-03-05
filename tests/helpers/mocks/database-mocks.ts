@@ -114,10 +114,21 @@ export const mockSiteSettings = {
     buttonText: 'DISCOVER',
   },
   about: {
-    title: 'About Us',
-    description: 'Test about description',
+    title: 'ABOUT US',
+    content: [],
+    image: '/assets/about/about-image.png',
+    alt: 'About us',
     buttonText: 'MORE ABOUT US',
+    intro: 'Jewels by Navkush creates timeless jewelry inspired by elegance and refined craftsmanship.',
+    ourStory: 'Jewels by Navkush was born from the friendship of two best friends.',
+    whyChooseUs: [
+      { title: 'Carefully Selected Pearls', description: 'We specialize in freshwater and cultured pearls.' },
+    ],
   },
+  contact: {},
+  social: {},
+  mostLoved: { title: 'OUR MOST LOVED CREATIONS', slogan: 'Discover our most cherished pieces' },
+  products: { title: 'OUR PRODUCTS' },
   ecommerce: {
     currency: 'INR',
     currencySymbol: '₹',
@@ -140,6 +151,33 @@ export const mockSiteSettings = {
   },
   intro: {
     rightColumnSlogan: 'Discover our most cherished pieces',
+  },
+  materials: {
+    title: 'MATERIALS',
+    sections: [{ heading: 'Materials', paragraphs: ['At Jewels by Navkush, we specialize in freshwater and cultured pearls.'] }],
+  },
+  sustainability: {
+    title: 'SUSTAINABILITY',
+    sections: [{ heading: 'Sustainability', paragraphs: ['At Jewels by Navkush, we believe true beauty should be responsible and enduring.'] }],
+  },
+  shippingPage: {
+    title: 'SHIPPING & RETURNS',
+    sections: [{ heading: 'Shipping Information', paragraphs: ['We offer secure shipping.'] }],
+  },
+  faqs: {
+    title: 'FAQs',
+    ctaText: "Still have questions? We're here to help!",
+    faqs: [{ question: 'What type of pearls do you use?', answer: 'We specialize in freshwater and cultured pearls.' }],
+  },
+  privacy: {
+    title: 'PRIVACY POLICY',
+    lastUpdated: 'November 2024',
+    sections: [{ heading: 'Information We Collect', paragraphs: ['We collect information that you provide.'] }],
+  },
+  terms: {
+    title: 'TERMS OF SERVICE',
+    lastUpdated: 'November 2024',
+    sections: [{ heading: 'Acceptance of Terms', paragraphs: ['By using our website, you agree to these terms.'] }],
   },
 };
 

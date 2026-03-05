@@ -40,6 +40,9 @@ export interface SiteSettings {
     image: string;
     alt: string;
     buttonText: string;
+    intro?: string;
+    ourStory?: string;
+    whyChooseUs?: { title: string; description: string }[];
   };
   mostLoved: {
     title: string;
@@ -82,6 +85,65 @@ export interface SiteSettings {
     contactEmail?: string;
     supportEmail?: string;
   };
+  materials?: MaterialsPageContent;
+  sustainability?: SustainabilityPageContent;
+  shippingPage?: ShippingPageContent;
+  faqs?: FaqsPageContent;
+  privacy?: PrivacyPageContent;
+  terms?: TermsPageContent;
+}
+
+export interface PageSubsection {
+  heading: string;
+  listItems: string[];
+  visible?: boolean;
+}
+
+export interface PageSectionContent {
+  heading?: string;
+  paragraphs?: string[];
+  listItems?: string[];
+  paragraphsAfter?: string[];
+  subsections?: PageSubsection[];
+  visible?: boolean;
+}
+
+export interface MaterialsPageContent {
+  title: string;
+  sections: PageSectionContent[];
+}
+
+export interface SustainabilityPageContent {
+  title: string;
+  sections: PageSectionContent[];
+}
+
+export interface ShippingPageContent {
+  title: string;
+  sections: PageSectionContent[];
+}
+
+export interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+export interface FaqsPageContent {
+  title: string;
+  faqs: FaqItem[];
+  ctaText?: string;
+}
+
+export interface PrivacyPageContent {
+  title: string;
+  lastUpdated?: string;
+  sections: PageSectionContent[];
+}
+
+export interface TermsPageContent {
+  title: string;
+  lastUpdated?: string;
+  sections: PageSectionContent[];
 }
 
 export interface Category {

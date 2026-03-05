@@ -109,7 +109,7 @@ export default function ProductImageGallery({
           background: `linear-gradient(135deg, var(--gradient-beige-light) 0%, var(--gradient-cream-light) 50%, var(--gradient-beige-light) 100%)`,
         }}
       />
-      <div className="relative w-full h-full z-10 p-4 sm:p-6 md:p-8">
+      <div className={`relative w-full h-full z-10 ${isCard ? 'p-0' : 'p-4 sm:p-6 md:p-8'}`}>
         <Image
           src={imageUrl}
           alt={count > 1 ? `${alt} — image ${index + 1} of ${count}` : alt}

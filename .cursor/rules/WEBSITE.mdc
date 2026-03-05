@@ -1,0 +1,75 @@
+---
+alwaysApply: true
+---
+
+# Full-Stack Audit & Consistency Prompt
+
+Use this prompt to run a full audit and apply fixes across the app.
+
+---
+
+## Backend & APIs
+
+- Ensure all APIs have **explicit request and response types/models** (no inline or untyped bodies).
+- Optimize **database queries** (indexes, N+1 avoidance, lean/select where applicable).
+- Add or extend **test cases** for API and business logic; report or improve **test coverage**.
+- Document all API routes in **Swagger/OpenAPI** (or equivalent) and keep it in sync.
+- Align with **backend standards**: validation at boundaries, structured errors, no fat controllers, business logic outside routes.
+
+---
+
+## E‑commerce
+
+- Apply **e‑commerce best practices** and consistency: cart, checkout, product catalog, pricing, inventory handling, guest vs logged-in flows.
+- Keep patterns consistent (naming, error handling, loading states) across shop-related features.
+
+---
+
+## Design System & CSS
+
+- Audit **color shades** (backgrounds, borders, text) for consistency and contrast (WCAG where relevant).
+- Enforce **text color shades** and hierarchy (primary, secondary, muted) consistently.
+- Apply **CSS and responsiveness** best practices: breakpoints, touch targets, no overflow, consistent spacing; ensure consistency across pages.
+
+---
+
+## SEO
+
+- Apply **SEO best practices**: meta tags, titles, descriptions, canonical URLs, structured data where relevant, and consistency across routes.
+
+---
+
+## Security
+
+- Deep **security** pass: auth boundaries, input validation/sanitization, no secrets in client code, secure cookies/headers, CSRF/XSS/injection mitigations; apply consistently.
+
+---
+
+## Code Quality & Structure
+
+- Enforce **clean, modular code**: reuse shared logic, extract repeated UI into **reusable components**, remove **dead code and unused dependencies**.
+- Run **npm lint** (and any project lint script); fix all reported issues.
+- Run **build** and fix build errors and warnings.
+
+---
+
+## Comments & Docs
+
+- Ensure **comments** follow a **standard format** and explain **code logic only** (no redundant or noisy comments); update or remove as needed.
+- **Merge duplicate** or overlapping docs/markdown; **move all docs/md into a `docs/` directory**, keep only **README** in project root; **remove irrelevant docs** and merge where it makes sense.
+
+---
+
+## Final Checks
+
+- Run **lint and build** again; fix all errors and warnings.
+- Do a final pass for **overall best practices and consistency** across the app and update wherever required.
+
+---
+
+## Instructions for the AI
+
+1. Perform the above **in order**.
+2. For each section, list what you **checked**, what you **changed**, and what you **deferred** (with reason).
+3. Run **lint and build** at the start (to baseline) and at the end (to confirm clean state).
+4. Prefer **minimal, targeted changes**; avoid unnecessary refactors.

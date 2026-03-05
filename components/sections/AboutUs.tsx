@@ -7,18 +7,17 @@ import AboutImage3D from './AboutImage3D';
 export default async function AboutUs() {
   const settings = await getSiteSettings();
 
-  // Fallback to default content if CMS settings are empty to prevent blank page
-  const contentArray = settings.about.content.length > 0 
-    ? settings.about.content 
-    : [
-        'We carefully select the finest materials—precious metals, sparkling gemstones, and luxurious pearls—to create each piece. Every design is meticulously crafted by skilled artisans, ensuring that each item is not only beautiful but built to last.',
-        'Our commitment to excellence is reflected in every detail, from the intricate designs to the flawless finish. At Jewels by NavKush, we are dedicated to creating jewelry that transcends trends, offering pieces that will remain cherished for generations.',
-        'At Jewels by NavKush, we believe that jewelry is more than just an accessory; it\'s a timeless expression of elegance and a celebration of life\'s most precious moments. With a legacy spanning over decades, our brand has become synonymous with exceptional craftsmanship and sophistication.'
-      ];
+  const defaultContent = [
+    'Jewels by Navkush creates timeless jewelry inspired by elegance and refined craftsmanship. Specializing in freshwater and cultured pearls, our collections feature beautifully designed necklace sets and pearl stud essentials. Each piece is thoughtfully crafted to celebrate natural beauty and become a treasured part of your story.',
+    'Jewels by Navkush was born from the friendship of two best friends of nearly two decades and a shared love for timeless pearls.',
+    'What began as a passion soon became a vision—to create elegant jewelry that celebrates natural beauty and refined craftsmanship. Specializing in freshwater and cultured pearls, our collections feature thoughtfully designed necklace sets and pearl stud essentials, crafted to bring effortless sophistication to every moment.',
+    'Jewels by Navkush is a reflection of friendship, passion, and a shared dream turned into timeless jewelry.',
+    'We invite you to explore our collections and discover a piece that becomes part of your story.',
+  ];
+  const contentArray = settings.about.content.length > 0 ? settings.about.content : defaultContent;
 
-  // Split into left and right columns
-  const leftContent = contentArray.slice(0, 2);
-  const rightContent = contentArray.slice(2);
+  const leftContent = contentArray.slice(0, 3);
+  const rightContent = contentArray.slice(3, 5);
 
   return (
     <section id="about-section" className="bg-[var(--cream)] section-padding">
@@ -33,16 +32,11 @@ export default async function AboutUs() {
           
           <ScrollReveal delay={0.1}>
             <div className="standard-space-y-small">
-              {[...leftContent, ...rightContent].map((text, idx) => (
+              {contentArray.slice(0, 5).map((text, idx) => (
                 <p key={idx} className="text-[var(--text-secondary)] text-body-sm sm:text-body-base">
                   {text}
                 </p>
               ))}
-                {rightContent.length === 0 && contentArray.length > 2 && (
-                  <p className="text-[var(--text-secondary)] text-body-sm sm:text-body-base">
-                    {contentArray[2]}
-                  </p>
-                )}
             </div>
           </ScrollReveal>
 
@@ -92,11 +86,6 @@ export default async function AboutUs() {
                     {text}
                   </p>
                 ))}
-                {rightContent.length === 0 && (
-                  <p className="text-[var(--text-secondary)] text-body-sm lg:text-body-base xl:text-body-lg">
-                    {contentArray[2] || ''}
-                  </p>
-                )}
               </div>
               
               {/* Bottom Row: Image */}

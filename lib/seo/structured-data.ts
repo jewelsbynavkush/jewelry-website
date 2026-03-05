@@ -16,13 +16,15 @@ const siteName = getBrandName();
 export async function generateOrganizationSchema() {
   const settings = await getSiteSettings();
   
-  // Collect social media links for Schema.org sameAs property
-  // Only includes links that are actually configured to avoid empty arrays
   const sameAs: string[] = [];
-  if (settings.social?.facebook) sameAs.push(settings.social.facebook);
-  if (settings.social?.instagram) sameAs.push(settings.social.instagram);
-  if (settings.social?.pinterest) sameAs.push(settings.social.pinterest);
-  if (settings.social?.twitter) sameAs.push(settings.social.twitter);
+  const facebook = settings.social?.facebook?.trim();
+  const instagram = settings.social?.instagram?.trim();
+  const pinterest = settings.social?.pinterest?.trim();
+  const twitter = settings.social?.twitter?.trim();
+  if (facebook) sameAs.push(facebook);
+  if (instagram) sameAs.push(instagram);
+  if (pinterest) sameAs.push(pinterest);
+  if (twitter) sameAs.push(twitter);
   
   interface OrganizationSchema {
     '@context': string;

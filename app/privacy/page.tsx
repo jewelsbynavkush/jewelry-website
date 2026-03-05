@@ -1,9 +1,75 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import PageSectionLayout from '@/components/ui/PageSectionLayout';
-import SectionHeading from '@/components/ui/SectionHeading';
 import ScrollReveal from '@/components/ui/ScrollReveal';
+import PageSectionRenderer from '@/components/content/PageSectionRenderer';
 import { generateStandardMetadata } from '@/lib/seo/metadata';
 import { getBaseUrl } from '@/lib/utils/env';
+import { getSiteSettings } from '@/lib/data/site-settings';
+import type { PrivacyPageContent } from '@/types/data';
+
+const defaultPrivacy: PrivacyPageContent = {
+  title: 'PRIVACY POLICY',
+  lastUpdated: 'November 2024',
+  sections: [
+    {
+      paragraphs: [
+        'At Jewels by NavKush, we are committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website or make a purchase.',
+      ],
+    },
+    {
+      heading: 'Information We Collect',
+      paragraphs: ['We collect information that you provide directly to us, including:'],
+      listItems: [
+        'Name, email address, and phone number',
+        'Shipping and billing addresses',
+        'Payment information (processed securely through our payment providers)',
+        'Order history and preferences',
+        'Communications with our customer service team',
+      ],
+      paragraphsAfter: [
+        'We also automatically collect certain information when you visit our website, such as your IP address, browser type, and browsing behavior.',
+      ],
+    },
+    {
+      heading: 'How We Use Your Information',
+      paragraphs: ['We use the information we collect to:'],
+      listItems: [
+        'Process and fulfill your orders',
+        'Communicate with you about your orders and our products',
+        'Improve our website and customer experience',
+        'Send you marketing communications (with your consent)',
+        'Comply with legal obligations',
+      ],
+    },
+    {
+      heading: 'Data Security',
+      paragraphs: [
+        'We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the internet is 100% secure.',
+      ],
+    },
+    {
+      heading: 'Your Rights',
+      paragraphs: ['You have the right to:'],
+      listItems: [
+        'Access your personal information',
+        'Correct inaccurate information',
+        'Request deletion of your information',
+        'Opt-out of marketing communications',
+        'Object to certain processing activities',
+      ],
+      paragraphsAfter: [
+        'To exercise these rights, please contact us using the information provided in our Contact page.',
+      ],
+    },
+    {
+      heading: 'Contact Us',
+      paragraphs: [
+        'If you have questions about this Privacy Policy, please contact us at Our Contact Page.',
+      ],
+    },
+  ],
+};
 
 export const metadata: Metadata = generateStandardMetadata({
   title: 'Privacy Policy - Data Protection & Privacy',
@@ -11,111 +77,35 @@ export const metadata: Metadata = generateStandardMetadata({
   url: `${getBaseUrl()}/privacy`,
 });
 
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const settings = await getSiteSettings();
+  const content = settings.privacy ?? defaultPrivacy;
+
   return (
     <PageSectionLayout
-      title="PRIVACY POLICY"
+      title={content.title}
       srOnlyTitle="Privacy Policy - Data Protection & Privacy"
       maxWidth="4xl"
     >
       <div className="space-y-6 sm:space-y-8 md:space-y-10 text-[var(--text-secondary)] text-body-sm sm:text-body-base md:text-body-lg">
-        <ScrollReveal delay={0.1}>
-          <section>
+        {content.lastUpdated && (
+          <ScrollReveal delay={0.05}>
             <p className="mb-4">
-              <strong className="text-[var(--text-on-cream)]">Last Updated:</strong> November 2024
+              <strong className="text-[var(--text-on-cream)]">Last Updated:</strong> {content.lastUpdated}
             </p>
-            <p>
-              At Jewels by NavKush, we are committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website or make a purchase.
-            </p>
-          </section>
-        </ScrollReveal>
-
-        <ScrollReveal delay={0.2}>
-          <section>
-            <SectionHeading as="h2" size="md" align="left">
-              Information We Collect
-            </SectionHeading>
-              <p className="mb-4">
-                We collect information that you provide directly to us, including:
-              </p>
-              <ul className="list-disc list-inside space-y-2 mb-4">
-                <li>Name, email address, and phone number</li>
-                <li>Shipping and billing addresses</li>
-                <li>Payment information (processed securely through our payment providers)</li>
-                <li>Order history and preferences</li>
-                <li>Communications with our customer service team</li>
-              </ul>
-              <p>
-                We also automatically collect certain information when you visit our website, such as your IP address, browser type, and browsing behavior.
-              </p>
-              </section>
-            </ScrollReveal>
-
-        <ScrollReveal delay={0.3}>
-          <section>
-            <SectionHeading as="h2" size="md" align="left">
-              How We Use Your Information
-            </SectionHeading>
-              <p className="mb-4">
-                We use the information we collect to:
-              </p>
-              <ul className="list-disc list-inside space-y-2 mb-4">
-                <li>Process and fulfill your orders</li>
-                <li>Communicate with you about your orders and our products</li>
-                <li>Improve our website and customer experience</li>
-                <li>Send you marketing communications (with your consent)</li>
-                <li>Comply with legal obligations</li>
-              </ul>
-              </section>
-            </ScrollReveal>
-
-        <ScrollReveal delay={0.4}>
-          <section>
-            <SectionHeading as="h2" size="md" align="left">
-              Data Security
-            </SectionHeading>
-              <p>
-                We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the internet is 100% secure.
-              </p>
-              </section>
-            </ScrollReveal>
-
-        <ScrollReveal delay={0.5}>
-          <section>
-            <SectionHeading as="h2" size="md" align="left">
-              Your Rights
-            </SectionHeading>
-              <p className="mb-4">
-                You have the right to:
-              </p>
-              <ul className="list-disc list-inside space-y-2 mb-4">
-                <li>Access your personal information</li>
-                <li>Correct inaccurate information</li>
-                <li>Request deletion of your information</li>
-                <li>Opt-out of marketing communications</li>
-                <li>Object to certain processing activities</li>
-              </ul>
-              <p>
-                To exercise these rights, please contact us using the information provided in our Contact page.
-              </p>
-              </section>
-            </ScrollReveal>
-
-        <ScrollReveal delay={0.6}>
-          <section>
-            <SectionHeading as="h2" size="md" align="left">
-              Contact Us
-            </SectionHeading>
-              <p>
-                If you have questions about this Privacy Policy, please contact us at{' '}
-                <a href="/contact" className="text-[var(--beige)] hover:text-[var(--beige-hover)] underline">
-                  our contact page
-                </a>.
-            </p>
-          </section>
-        </ScrollReveal>
+          </ScrollReveal>
+        )}
+        {content.sections.filter((s) => s.visible !== false).map((section, i) => (
+          <ScrollReveal key={i} delay={(i + 1) * 0.1}>
+            <PageSectionRenderer section={section} />
+          </ScrollReveal>
+        ))}
+        <p className="mt-4">
+          <Link href="/contact" className="text-[var(--beige)] hover:text-[var(--beige-hover)] underline">
+            Our Contact Page
+          </Link>
+        </p>
       </div>
     </PageSectionLayout>
   );
 }
-

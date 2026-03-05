@@ -1,8 +1,14 @@
 import type { Metadata } from 'next';
 import PageSectionLayout from '@/components/ui/PageSectionLayout';
+import SectionHeading from '@/components/ui/SectionHeading';
 import ScrollReveal from '@/components/ui/ScrollReveal';
 import { generateStandardMetadata } from '@/lib/seo/metadata';
 import { getBaseUrl } from '@/lib/utils/env';
+import { getSiteSettings } from '@/lib/data/site-settings';
+
+const defaultIntro = 'Jewels by Navkush creates timeless jewelry inspired by elegance and refined craftsmanship. Specializing in freshwater and cultured pearls, our collections feature beautifully designed necklace sets and pearl stud essentials. Each piece is thoughtfully crafted to celebrate natural beauty and become a treasured part of your story.';
+
+const defaultOurStory = 'Jewels by Navkush was born from the friendship of two best friends of nearly two decades and a shared love for timeless pearls.\n\nWhat began as a passion soon became a vision—to create elegant jewelry that celebrates natural beauty and refined craftsmanship. Specializing in freshwater and cultured pearls, our collections feature thoughtfully designed necklace sets and pearl stud essentials, crafted to bring effortless sophistication to every moment.\n\nJewels by Navkush is a reflection of friendship, passion, and a shared dream turned into timeless jewelry.';
 
 export const metadata: Metadata = generateStandardMetadata({
   title: 'About Us',
@@ -10,35 +16,38 @@ export const metadata: Metadata = generateStandardMetadata({
   url: `${getBaseUrl()}/about`,
 });
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const settings = await getSiteSettings();
+  const intro = settings.about?.intro ?? defaultIntro;
+  const ourStory = settings.about?.ourStory ?? defaultOurStory;
+  const storyParagraphs = ourStory.split(/\n\n+/).filter(Boolean);
+
   return (
     <PageSectionLayout
-      title="ABOUT US"
+      title={settings.about?.title ?? 'ABOUT US'}
       srOnlyTitle="About Us - Jewels by NavKush"
       maxWidth="5xl"
     >
-      <div className="grid md:grid-cols-2 standard-gap items-start">
+      <div className="space-y-8 sm:space-y-10 md:space-y-12 text-[var(--text-secondary)] text-body-sm sm:text-body-base md:text-body-lg">
         <ScrollReveal delay={0.1}>
-          <div className="standard-space-y text-[var(--text-secondary)] text-body-sm sm:text-body-base md:text-body-lg">
-            <section>
-              <p className="mb-4">
-                We carefully select the finest materials—precious metals, sparkling gemstones, and luxurious pearls—to create each piece. Every design is meticulously crafted by skilled artisans, ensuring that each item is not only beautiful but built to last.
-              </p>
-              <p>
-                Our commitment to excellence is reflected in every detail, from the intricate designs to the flawless finish. At Jewels by NavKush, we are dedicated to creating jewelry that transcends trends, offering pieces that will remain cherished for generations.
-              </p>
-            </section>
-          </div>
+          <section>
+            <p>{intro}</p>
+          </section>
         </ScrollReveal>
+
         <ScrollReveal delay={0.2}>
-          <div className="standard-space-y text-[var(--text-secondary)] text-body-sm sm:text-body-base md:text-body-lg">
-            <p>
-              At Jewels by NavKush, we believe that jewelry is more than just an accessory; it&apos;s a timeless expression of elegance and a celebration of life&apos;s most precious moments. With a legacy spanning over decades, our brand has become synonymous with exceptional craftsmanship and sophistication.
-            </p>
-          </div>
+          <section>
+            <SectionHeading as="h2" size="md" align="left">
+              Our Story
+            </SectionHeading>
+            <div className="standard-space-y mt-4">
+              {storyParagraphs.map((p, i) => (
+                <p key={i}>{p}</p>
+              ))}
+            </div>
+          </section>
         </ScrollReveal>
       </div>
     </PageSectionLayout>
   );
 }
-

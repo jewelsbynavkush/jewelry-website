@@ -18,6 +18,7 @@ export const NAVIGATION_LINKS = [
 
 export const FOOTER_LEFT_LINKS = [
   { name: 'Our Story', href: '/about' },
+  { name: 'Why Choose Us', href: '/why-choose-us' },
   { name: 'Materials', href: '/materials' },
   { name: 'Sustainability', href: '/sustainability' },
   { name: 'Shipping & Returns', href: '/shipping' },

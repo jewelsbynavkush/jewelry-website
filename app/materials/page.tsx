@@ -1,9 +1,23 @@
 import type { Metadata } from 'next';
 import PageSectionLayout from '@/components/ui/PageSectionLayout';
-import SectionHeading from '@/components/ui/SectionHeading';
 import ScrollReveal from '@/components/ui/ScrollReveal';
+import PageSectionRenderer from '@/components/content/PageSectionRenderer';
 import { generateStandardMetadata } from '@/lib/seo/metadata';
 import { getBaseUrl } from '@/lib/utils/env';
+import { getSiteSettings } from '@/lib/data/site-settings';
+import type { MaterialsPageContent } from '@/types/data';
+
+const defaultMaterials: MaterialsPageContent = {
+  title: 'MATERIALS',
+  sections: [
+    {
+      paragraphs: [
+        'At Jewels by Navkush, we specialize in freshwater pearls and cultured pearls, carefully selected for their natural beauty and radiant luster.',
+        'Freshwater pearls are known for their soft glow and organic charm, while cultured pearls are cultivated with precision to achieve exceptional quality and elegance. Each pearl is thoughtfully chosen to ensure our jewelry reflects timeless sophistication and refined craftsmanship.',
+      ],
+    },
+  ],
+};
 
 export const metadata: Metadata = generateStandardMetadata({
   title: 'Materials - Premium Jewelry Materials',
@@ -11,57 +25,24 @@ export const metadata: Metadata = generateStandardMetadata({
   url: `${getBaseUrl()}/materials`,
 });
 
-export default function MaterialsPage() {
+export default async function MaterialsPage() {
+  const settings = await getSiteSettings();
+  const content = settings.materials ?? defaultMaterials;
+
+  const visibleSections = content.sections.filter((s) => s.visible !== false);
   return (
     <PageSectionLayout
-      title="MATERIALS"
+      title={content.title}
       srOnlyTitle="Materials - Premium Jewelry Materials"
       maxWidth="4xl"
     >
-      <div className="space-y-6 sm:space-y-8 md:space-y-10 text-[var(--text-secondary)] text-body-sm sm:text-body-base md:text-body-lg">
-        <ScrollReveal delay={0.1}>
-          <section>
-            <SectionHeading as="h2" size="md" align="left">
-              Precious Metals
-            </SectionHeading>
-                <p className="mb-4">
-                  At Jewels by NavKush, we work exclusively with the finest precious metals. Our collection features pieces crafted in 14k and 18k gold, sterling silver, and platinum. Each metal is carefully selected for its durability, beauty, and ability to showcase the intricate details of our designs.
-                </p>
-                <p>
-                  We source our metals from certified suppliers who adhere to strict ethical and environmental standards, ensuring that every piece you wear is not only beautiful but responsibly crafted.
-                </p>
-              </section>
-            </ScrollReveal>
-
-        <ScrollReveal delay={0.2}>
-          <section>
-            <SectionHeading as="h2" size="md" align="left">
-              Gemstones
-            </SectionHeading>
-                <p className="mb-4">
-                  Our gemstone collection features both natural and lab-grown stones, each selected for its exceptional quality and brilliance. From classic diamonds to vibrant colored gemstones, every stone is carefully chosen to complement our designs.
-                </p>
-                <p>
-                  We offer a wide range of gemstones including diamonds, sapphires, rubies, emeralds, and pearls. Each gemstone is certified and comes with documentation of its origin and quality.
-                </p>
-              </section>
-            </ScrollReveal>
-
-        <ScrollReveal delay={0.3}>
-          <section>
-            <SectionHeading as="h2" size="md" align="left">
-              Quality Assurance
-            </SectionHeading>
-                <p className="mb-4">
-                  Every piece in our collection undergoes rigorous quality control to ensure it meets our exacting standards. We work with master craftspeople who bring decades of experience to each creation.
-                </p>
-                <p>
-                  Our commitment to quality extends beyond the materials themselves—we ensure that every piece is crafted with precision, attention to detail, and the care that our customers deserve.
-                </p>
-          </section>
-        </ScrollReveal>
+      <div className="space-y-6 sm:space-y-8 md:space-y-10">
+        {visibleSections.map((section, i) => (
+          <ScrollReveal key={i} delay={(i + 1) * 0.1}>
+            <PageSectionRenderer section={section} />
+          </ScrollReveal>
+        ))}
       </div>
     </PageSectionLayout>
   );
 }
-

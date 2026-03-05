@@ -97,6 +97,69 @@ describe('SiteSettings Model', () => {
       const allSettings = await SiteSettings.find();
       expect(allSettings.length).toBe(2);
     });
+
+    it('should allow footer page types (materials, sustainability, faqs, privacy, terms)', async () => {
+      await SiteSettings.create({
+        type: 'materials',
+        data: {
+          materials: {
+            title: 'MATERIALS',
+            sections: [{ heading: 'Materials', paragraphs: ['Test paragraph.'] }],
+          },
+        },
+      });
+      await SiteSettings.create({
+        type: 'sustainability',
+        data: {
+          sustainability: {
+            title: 'SUSTAINABILITY',
+            sections: [{ heading: 'Sustainability', paragraphs: ['Test.'] }],
+          },
+        },
+      });
+      await SiteSettings.create({
+        type: 'faqs',
+        data: {
+          faqs: {
+            title: 'FAQs',
+            faqs: [{ question: 'Q?', answer: 'A.' }],
+          },
+        },
+      });
+      await SiteSettings.create({
+        type: 'privacy',
+        data: {
+          privacy: {
+            title: 'PRIVACY POLICY',
+            sections: [{ heading: 'Info', paragraphs: ['We collect.'] }],
+          },
+        },
+      });
+      await SiteSettings.create({
+        type: 'terms',
+        data: {
+          terms: {
+            title: 'TERMS OF SERVICE',
+            sections: [{ heading: 'Terms', paragraphs: ['By using.'] }],
+          },
+        },
+      });
+      const materials = await SiteSettings.findOne({ type: 'materials' }).lean();
+      const sustainability = await SiteSettings.findOne({ type: 'sustainability' }).lean();
+      const faqs = await SiteSettings.findOne({ type: 'faqs' }).lean();
+      const privacy = await SiteSettings.findOne({ type: 'privacy' }).lean();
+      const terms = await SiteSettings.findOne({ type: 'terms' }).lean();
+      expect(materials).toBeDefined();
+      expect(sustainability).toBeDefined();
+      expect(faqs).toBeDefined();
+      expect(privacy).toBeDefined();
+      expect(terms).toBeDefined();
+      expect((materials?.data as Record<string, unknown>)?.materials).toBeDefined();
+      expect((sustainability?.data as Record<string, unknown>)?.sustainability).toBeDefined();
+      expect((faqs?.data as Record<string, unknown>)?.faqs).toBeDefined();
+      expect((privacy?.data as Record<string, unknown>)?.privacy).toBeDefined();
+      expect((terms?.data as Record<string, unknown>)?.terms).toBeDefined();
+    });
   });
 
   describe('Settings Update', () => {

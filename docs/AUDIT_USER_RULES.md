@@ -165,6 +165,27 @@ Assessment of the codebase against the project's user rules (Principal Full-Stac
 
 ---
 
+## 14. Audit check (WEBSITE.mdc rules)
+
+**Run:** 2026-03-05 (full-stack audit per `.cursor/rules/WEBSITE.mdc`).
+
+**Baseline:** `npm run lint` exit 0. `npm run build` exit 0 (Mongo unreachable during build is expected in CI/sandbox; app uses fallbacks).
+
+| Section | Checked | Changed | Deferred |
+|--------|---------|---------|----------|
+| **Backend & APIs** | Typed request/response in `types/api.ts`; routes use Zod + `formatZodError`; `applyApiSecurity` on all API routes; lean/select in queries; Swagger in `app/api/docs/route.ts`. | None. | None. |
+| **E-commerce** | Cart, checkout, orders, inventory, guest vs auth flows; patterns in lib/cart, lib/inventory, app/api/orders. | None. | None. |
+| **Design & CSS** | Tailwind; `--text-on-cream`, `--text-secondary`, etc.; spacing/breakpoints. | None. | Full color/WCAG audit deferred (docs exist). |
+| **SEO** | `generateStandardMetadata`, canonical URLs, structured data (org, FAQ). | None. | None. |
+| **Security** | CORS, CSRF, rate limit, auth, sanitization, secure responses; env via `lib/utils/env.ts` only in app/lib. | None. | None. |
+| **Code quality** | No deep `@/models/` in app/lib; shared components (PageSectionLayout, ScrollReveal, etc.); lint clean. | None. | Inline comments in components (known per §13). |
+| **Comments & docs** | Docs in `docs/`; README in root. | None. | Comment standard pass deferred. |
+| **Final** | Lint and build re-run: both pass. | None. | None. |
+
+**Verdict:** No violations. Conforms to WEBSITE.mdc and user rules. Gaps (inline comments, migration runner) documented and non-blocking.
+
+---
+
 ## 13. Audit check (user rules – full mapping)
 
 **Rule reference:** Operational directives, Intentional Simplicity, Frontend/Backend/Data/Infrastructure, Import & structure, Utilities, Final constraints.

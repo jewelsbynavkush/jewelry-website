@@ -1,9 +1,23 @@
 import type { Metadata } from 'next';
 import PageSectionLayout from '@/components/ui/PageSectionLayout';
-import SectionHeading from '@/components/ui/SectionHeading';
 import ScrollReveal from '@/components/ui/ScrollReveal';
+import PageSectionRenderer from '@/components/content/PageSectionRenderer';
 import { generateStandardMetadata } from '@/lib/seo/metadata';
 import { getBaseUrl } from '@/lib/utils/env';
+import { getSiteSettings } from '@/lib/data/site-settings';
+import type { SustainabilityPageContent } from '@/types/data';
+
+const defaultSustainability: SustainabilityPageContent = {
+  title: 'SUSTAINABILITY',
+  sections: [
+    {
+      paragraphs: [
+        'At Jewels by Navkush, we believe true beauty should be responsible and enduring. Our pearls are thoughtfully sourced, and we work with trusted partners who follow ethical cultivation practices.',
+        'By focusing on freshwater and cultured pearls, we celebrate materials that are naturally formed and sustainably cultivated. We are committed to mindful sourcing and craftsmanship that respects both nature and tradition.',
+      ],
+    },
+  ],
+};
 
 export const metadata: Metadata = generateStandardMetadata({
   title: 'Sustainability - Ethical Jewelry Practices',
@@ -11,57 +25,24 @@ export const metadata: Metadata = generateStandardMetadata({
   url: `${getBaseUrl()}/sustainability`,
 });
 
-export default function SustainabilityPage() {
+export default async function SustainabilityPage() {
+  const settings = await getSiteSettings();
+  const content = settings.sustainability ?? defaultSustainability;
+
+  const visibleSections = content.sections.filter((s) => s.visible !== false);
   return (
     <PageSectionLayout
-      title="SUSTAINABILITY"
+      title={content.title}
       srOnlyTitle="Sustainability - Ethical Jewelry Practices"
       maxWidth="4xl"
     >
-      <div className="space-y-6 sm:space-y-8 md:space-y-10 text-[var(--text-secondary)] text-body-sm sm:text-body-base md:text-body-lg">
-        <ScrollReveal delay={0.1}>
-          <section>
-            <SectionHeading as="h2" size="md" align="left">
-              Our Commitment
-            </SectionHeading>
-                <p className="mb-4">
-                  At Jewels by NavKush, we believe that beautiful jewelry should be created responsibly. Our commitment to sustainability guides every aspect of our business, from material sourcing to packaging and shipping.
-                </p>
-                <p>
-                  We are dedicated to minimizing our environmental impact while creating pieces that will be cherished for generations. This means working with suppliers who share our values and implementing practices that protect our planet.
-                </p>
-              </section>
-            </ScrollReveal>
-
-        <ScrollReveal delay={0.2}>
-          <section>
-            <SectionHeading as="h2" size="md" align="left">
-              Ethical Sourcing
-            </SectionHeading>
-                <p className="mb-4">
-                  We source our materials from suppliers who adhere to strict ethical standards. This includes ensuring that our metals and gemstones are obtained through responsible mining practices and that workers throughout our supply chain are treated fairly.
-                </p>
-                <p>
-                  We are committed to transparency in our supply chain and continuously work to improve our sourcing practices to ensure that every piece we create supports both environmental and social responsibility.
-                </p>
-              </section>
-            </ScrollReveal>
-
-        <ScrollReveal delay={0.3}>
-          <section>
-            <SectionHeading as="h2" size="md" align="left">
-              Sustainable Practices
-            </SectionHeading>
-                <p className="mb-4">
-                  Our sustainability efforts extend to every aspect of our operations. We use eco-friendly packaging materials, minimize waste in our production process, and work with partners who share our commitment to environmental stewardship.
-                </p>
-                <p>
-                  We believe that creating timeless jewelry means creating pieces that not only last for generations but are made in a way that preserves our planet for future generations to enjoy.
-                </p>
-          </section>
-        </ScrollReveal>
+      <div className="space-y-6 sm:space-y-8 md:space-y-10">
+        {visibleSections.map((section, i) => (
+          <ScrollReveal key={i} delay={(i + 1) * 0.1}>
+            <PageSectionRenderer section={section} />
+          </ScrollReveal>
+        ))}
       </div>
     </PageSectionLayout>
   );
 }
-

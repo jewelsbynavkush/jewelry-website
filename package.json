@@ -12,6 +12,7 @@
     "migrate:products": "tsx scripts/migrate-products.ts",
     "migrate:categories": "tsx scripts/migrate-categories.ts",
     "migrate:site-settings": "tsx scripts/migrate-site-settings.ts",
+    "migrate:footer-pages": "tsx scripts/migrate-footer-pages.ts",
     "migrate:country-settings": "tsx scripts/migrate-country-settings.ts",
     "update:image-paths": "tsx scripts/update-image-paths.ts",
     "test": "vitest",
