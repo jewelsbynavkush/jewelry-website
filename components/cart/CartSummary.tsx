@@ -8,7 +8,6 @@
 
 import { Cart } from '@/lib/store/cart-store';
 import { formatPrice } from '@/lib/utils/price-formatting';
-import { ECOMMERCE } from '@/lib/constants';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { useRouter } from 'next/navigation';
@@ -58,9 +57,16 @@ export default function CartSummary({ cart }: CartSummaryProps) {
               <span className="text-[var(--success-text)] font-medium">FREE</span>
             )}
           </div>
-          {cart.subtotal > 0 && cart.subtotal < ECOMMERCE.freeShippingThreshold && (
+          {cart.subtotal > 0 &&
+            cart.freeShippingThreshold != null &&
+            cart.subtotal < cart.freeShippingThreshold && (
             <div className="text-[var(--text-muted)] text-sm bg-[var(--beige)] bg-opacity-10 p-2 rounded border border-[var(--border-light)]">
-              <span className="font-medium">Free shipping available!</span> Add {formatPrice(ECOMMERCE.freeShippingThreshold - cart.subtotal, { currencyCode: cart.currency })} more to qualify.
+              <span className="font-medium">Free shipping available!</span>{' '}
+              Add{' '}
+              {formatPrice(cart.freeShippingThreshold - cart.subtotal, {
+                currencyCode: cart.currency,
+              })}{' '}
+              more to qualify.
             </div>
           )}
 

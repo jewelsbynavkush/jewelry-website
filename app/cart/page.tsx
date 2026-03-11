@@ -63,6 +63,7 @@ export default function CartPage() {
     discount: 0,
     total: 0,
     currency: ECOMMERCE.currency,
+    freeShippingThreshold: ECOMMERCE.freeShippingThreshold,
   };
 
   const isEmpty = currentCart.items.length === 0;

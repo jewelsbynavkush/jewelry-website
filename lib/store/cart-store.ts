@@ -32,6 +32,7 @@ export interface Cart {
   discount: number;
   total: number;
   currency: string;
+  freeShippingThreshold?: number;
 }
 
 interface CartState {
@@ -57,6 +58,7 @@ const initialCart: Cart = {
   discount: 0,
   total: 0,
   currency: ECOMMERCE.currency,
+  freeShippingThreshold: ECOMMERCE.freeShippingThreshold,
 };
 
 export const useCartStore = create<CartState>((set, get) => ({

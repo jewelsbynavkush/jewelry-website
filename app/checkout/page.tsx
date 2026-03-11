@@ -27,7 +27,6 @@ import { useAuthStore } from '@/lib/store/auth-store';
 import { apiPost, apiGet } from '@/lib/api/client';
 import { formatPrice } from '@/lib/utils/price-formatting';
 import logger from '@/lib/utils/logger';
-import { ECOMMERCE } from '@/lib/constants';
 import type { UserAddress } from '@/types/api';
 
 interface Address {
@@ -860,9 +859,15 @@ export default function CheckoutPage() {
                     <span>FREE</span>
                   </div>
                 )}
-                {cart.subtotal > 0 && cart.subtotal < ECOMMERCE.freeShippingThreshold && (
+                {cart.subtotal > 0 &&
+                  cart.freeShippingThreshold != null &&
+                  cart.subtotal < cart.freeShippingThreshold && (
                   <div className="text-[var(--text-muted)] text-xs bg-[var(--beige)] bg-opacity-10 p-2 rounded border border-[var(--border-light)]">
-                    Add {formatPrice(ECOMMERCE.freeShippingThreshold - cart.subtotal, { currencyCode: cart.currency })} more for free shipping
+                    Add{' '}
+                    {formatPrice(cart.freeShippingThreshold - cart.subtotal, {
+                      currencyCode: cart.currency,
+                    })}{' '}
+                    more for free shipping
                   </div>
                 )}
                 <div className="border-t border-[var(--border-light)] pt-2 mt-2">

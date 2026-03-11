@@ -16,6 +16,7 @@ import { generateProductSchema, generateBreadcrumbSchema } from '@/lib/seo/struc
 import { formatCategoryName } from '@/lib/utils/text-formatting';
 import { formatPrice, getStockStatus } from '@/lib/utils/price-formatting';
 import { getBaseUrl } from '@/lib/utils/env';
+import { getEcommerceSettings } from '@/lib/utils/site-settings-helpers';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -100,6 +101,8 @@ export default async function DesignDetailPage({ params }: PageProps) {
     ...(product.category ? [{ name: formatCategoryName(product.category), url: `${baseUrl}/designs?category=${product.category}` }] : []),
     { name: product.title, url: `${baseUrl}/designs/${product.slug}` },
   ]);
+
+  const ecommerce = await getEcommerceSettings();
 
   return (
     <>
@@ -191,7 +194,10 @@ export default async function DesignDetailPage({ params }: PageProps) {
             <ProductActions product={product} />
 
             {/* Trust Badges */}
-            <TrustBadges />
+            <TrustBadges
+              freeShippingThreshold={ecommerce.freeShippingThreshold}
+              currencyCode={ecommerce.currency}
+            />
 
             {/* Social Sharing */}
             <SocialShare

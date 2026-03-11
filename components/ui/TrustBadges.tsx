@@ -4,11 +4,21 @@ import SmoothLink from './SmoothLink';
 import { formatPrice } from '@/lib/utils/price-formatting';
 import { ECOMMERCE } from '@/lib/constants';
 
+interface TrustBadgesProps {
+  freeShippingThreshold?: number;
+  currencyCode?: string;
+}
+
 /**
  * Trust badges component for e-commerce credibility
  * Displays security, shipping, and guarantee information
  */
-export default function TrustBadges() {
+export default function TrustBadges({
+  freeShippingThreshold,
+  currencyCode,
+}: TrustBadgesProps) {
+  const threshold = freeShippingThreshold ?? ECOMMERCE.freeShippingThreshold;
+  const currency = currencyCode ?? ECOMMERCE.currency;
   return (
     <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 py-4 sm:py-6 border-t border-[var(--border-light)]">
       <div className="flex items-center gap-2 text-[var(--text-secondary)] text-body-xs sm:text-body-sm">
@@ -43,7 +53,9 @@ export default function TrustBadges() {
             d="M5 13l4 4L19 7"
           />
         </svg>
-        <span>Free Shipping Over {formatPrice(ECOMMERCE.freeShippingThreshold, { currencyCode: ECOMMERCE.currency })}</span>
+        <span>
+          Free Shipping Over {formatPrice(threshold, { currencyCode: currency })}
+        </span>
       </div>
       <div className="flex items-center gap-2 text-[var(--text-secondary)] text-body-xs sm:text-body-sm">
         <svg
